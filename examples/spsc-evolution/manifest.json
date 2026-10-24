@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "spsc-evolution",
+  "version": 1,
+  "title": "From mutex to lock-free SPSC queue",
+  "subtitle": "How Fifo3 and Fifo4 remove the lock without losing correctness",
+  "recipe": "codebase-tour",
+  "kicker": "Codebase tour · cppcon2023",
+  "createdAt": "2026-10-24T09:00:00Z",
+  "source": {
+    "provider": "github",
+    "repository": "CharlesFrasch/cppcon2023",
+    "headSha": "043e9cbd8d6f36d82b538a114ded838df1553313",
+    "url": "https://github.com/CharlesFrasch/cppcon2023",
+    "visibility": "public"
+  },
+  "entrySceneId": "mutex-baseline"
+}

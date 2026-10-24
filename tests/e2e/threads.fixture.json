@@ -1,0 +1,17 @@
+{
+  "syncedAt": "2026-10-24T10:00:00Z",
+  "threads": [
+    {
+      "id": "gh-12",
+      "number": 12,
+      "url": "https://github.com/acme/reels/discussions/12",
+      "title": "[Reel] Why is the lock stricter than needed?",
+      "question": "Why is the lock stricter than needed?",
+      "author": "bob",
+      "createdAt": "2026-10-24T09:00:00Z",
+      "status": "answered",
+      "context": { "reelId": "spsc-evolution", "reelVersion": 1, "sceneId": "mutex-baseline", "timestampMs": 4200, "entityId": "mutex", "sourceRefs": [] },
+      "replies": [{ "author": "alice", "body": "Each cursor has a single writer, so ordering only needs acquire/release.", "createdAt": "2026-10-24T09:30:00Z", "aiAssisted": true }]
+    }
+  ]
+}

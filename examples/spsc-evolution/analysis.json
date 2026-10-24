@@ -1,0 +1,54 @@
+{
+  "units": [
+    {
+      "id": "mutex-serialises",
+      "kind": "mechanism",
+      "title": "One mutex serialises both threads",
+      "summary": "Mutex::push and Mutex::pop each take a std::lock_guard on the same mutex_, so producer and consumer never run queue operations concurrently.",
+      "claims": [
+        { "text": "push and pop both lock mutex_ before touching the cursors.", "basis": "evidence", "refs": [{ "kind": "code", "path": "Mutex.hpp", "startLine": 39, "endLine": 60 }] }
+      ],
+      "entities": ["mutex", "producer", "consumer"],
+      "refs": [{ "kind": "code", "path": "Mutex.hpp", "startLine": 39, "endLine": 60 }],
+      "confidence": "high"
+    },
+    {
+      "id": "acquire-release",
+      "kind": "mechanism",
+      "title": "Acquire/release cursors replace the lock",
+      "summary": "Fifo3 makes each cursor a std::atomic with a single writer. The writer publishes with a release store; the other thread observes it with an acquire load.",
+      "claims": [
+        { "text": "push stores pushCursor_ with memory_order_release after constructing the element.", "basis": "evidence", "refs": [{ "kind": "code", "path": "Fifo3.hpp", "startLine": 60, "endLine": 61 }] },
+        { "text": "pop loads pushCursor_ with memory_order_acquire before reading the element.", "basis": "evidence", "refs": [{ "kind": "code", "path": "Fifo3.hpp", "startLine": 68, "endLine": 73 }] }
+      ],
+      "entities": ["push-cursor", "slot"],
+      "refs": [{ "kind": "code", "path": "Fifo3.hpp", "startLine": 54, "endLine": 77 }],
+      "confidence": "high"
+    },
+    {
+      "id": "cache-lines",
+      "kind": "performance",
+      "title": "Cursors live on separate cache lines",
+      "summary": "Both cursors are alignas(64) so writes by one core do not invalidate the line the other core reads.",
+      "claims": [
+        { "text": "pushCursor_ and popCursor_ are each aligned to a 64-byte boundary.", "basis": "evidence", "refs": [{ "kind": "code", "path": "Fifo3.hpp", "startLine": 103, "endLine": 112 }] },
+        { "text": "This avoids false-sharing ping-pong between the two cores.", "basis": "inference" }
+      ],
+      "entities": ["push-b", "pop-b"],
+      "refs": [{ "kind": "code", "path": "Fifo3.hpp", "startLine": 103, "endLine": 112 }],
+      "confidence": "medium"
+    },
+    {
+      "id": "cached-cursors",
+      "kind": "performance",
+      "title": "Fifo4 caches the other thread's cursor",
+      "summary": "The producer keeps a private copy of popCursor_ and only reloads the shared atomic when the cached value says the queue is full.",
+      "claims": [
+        { "text": "push reloads popCursor_ only when full(pushCursor, popCursorCached_) is true.", "basis": "evidence", "refs": [{ "kind": "code", "path": "Fifo4.hpp", "startLine": 55, "endLine": 63 }] }
+      ],
+      "entities": ["pop-cache"],
+      "refs": [{ "kind": "code", "path": "Fifo4.hpp", "startLine": 55, "endLine": 70 }],
+      "confidence": "high"
+    }
+  ]
+}

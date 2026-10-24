@@ -1,0 +1,1253 @@
+{
+  "scenes": [
+    {
+      "id": "mutex-baseline",
+      "title": "One lock guards everything",
+      "kicker": "Before",
+      "durationMs": 16000,
+      "narration": "The baseline Mutex queue is a ring buffer behind a single std::mutex. Every push and every pop takes the same lock, so the producer and consumer threads take turns even though each one only ever writes its own cursor.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "A ring buffer shared by a producer and a consumer thread."
+        },
+        {
+          "atMs": 3000,
+          "text": "Both sides must take the same std::mutex first."
+        },
+        {
+          "atMs": 7000,
+          "text": "push() holds the lock for the whole operation."
+        },
+        {
+          "atMs": 12000,
+          "text": "Each thread only writes its own cursor \u2014 the lock is stricter than needed."
+        }
+      ],
+      "entities": [
+        {
+          "id": "producer",
+          "type": "component",
+          "label": "Producer",
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "push thread",
+          "explanation": "The thread calling push(). In an SPSC queue there is exactly one."
+        },
+        {
+          "id": "mutex",
+          "type": "component",
+          "label": "std::mutex",
+          "layout": {
+            "col": 5,
+            "row": 1,
+            "colSpan": 4,
+            "rowSpan": 1
+          },
+          "tone": "warning",
+          "sublabel": "mutex_ \u00b7 shared by both",
+          "explanation": "A single mutex taken by push, pop and size via std::lock_guard.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Mutex.hpp",
+              "startLine": 77,
+              "endLine": 77
+            }
+          ]
+        },
+        {
+          "id": "ring",
+          "type": "component",
+          "label": "Ring buffer",
+          "layout": {
+            "col": 5,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "ring_[cursor % capacity_]",
+          "explanation": "Elements live in a raw allocation indexed by monotonically increasing cursors.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Mutex.hpp",
+              "startLine": 75,
+              "endLine": 79
+            }
+          ]
+        },
+        {
+          "id": "consumer",
+          "type": "component",
+          "label": "Consumer",
+          "layout": {
+            "col": 11,
+            "row": 2,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "pop thread",
+          "explanation": "The thread calling pop(). Exactly one in an SPSC queue."
+        },
+        {
+          "id": "push-edge",
+          "type": "edge",
+          "from": "producer",
+          "to": "ring",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "neutral",
+          "label": "push()"
+        },
+        {
+          "id": "pop-edge",
+          "type": "edge",
+          "from": "ring",
+          "to": "consumer",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "neutral",
+          "label": "pop()"
+        },
+        {
+          "id": "lock-p",
+          "type": "edge",
+          "from": "producer",
+          "to": "mutex",
+          "style": "dashed",
+          "arrow": "end",
+          "tone": "warning",
+          "label": "lock"
+        },
+        {
+          "id": "lock-c",
+          "type": "edge",
+          "from": "consumer",
+          "to": "mutex",
+          "style": "dashed",
+          "arrow": "end",
+          "tone": "warning",
+          "label": "lock"
+        },
+        {
+          "id": "push-code",
+          "type": "code-block",
+          "label": "Mutex.hpp:39-48",
+          "language": "cpp",
+          "code": "auto push(T const& value) {\n    std::lock_guard<std::mutex> lock(mutex_);\n\n    if (full(pushCursor_, popCursor_)) {\n        return false;\n    }\n    new (&ring_[pushCursor_ % capacity_]) T(value);\n    ++pushCursor_;\n    return true;\n}",
+          "startLine": 39,
+          "highlightLines": [
+            40
+          ],
+          "layout": {
+            "col": 1,
+            "row": 5,
+            "colSpan": 7,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Mutex.hpp",
+              "startLine": 39,
+              "endLine": 48
+            }
+          ],
+          "explanation": "Mutex::push: the lock_guard on line 40 covers the full check, construct and increment."
+        },
+        {
+          "id": "note",
+          "type": "label",
+          "text": "Each cursor has exactly one writer, yet both threads serialise on mutex_.",
+          "size": "md",
+          "align": "start",
+          "tone": "muted",
+          "layout": {
+            "col": 9,
+            "row": 5,
+            "colSpan": 4,
+            "rowSpan": 2
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "atMs": 0,
+          "action": "appear",
+          "target": "producer"
+        },
+        {
+          "atMs": 300,
+          "action": "appear",
+          "target": "ring"
+        },
+        {
+          "atMs": 600,
+          "action": "appear",
+          "target": "consumer"
+        },
+        {
+          "atMs": 1000,
+          "action": "connect",
+          "target": "push-edge"
+        },
+        {
+          "atMs": 1400,
+          "action": "connect",
+          "target": "pop-edge"
+        },
+        {
+          "atMs": 3000,
+          "action": "appear",
+          "target": "mutex"
+        },
+        {
+          "atMs": 3400,
+          "action": "connect",
+          "target": "lock-p"
+        },
+        {
+          "atMs": 3700,
+          "action": "connect",
+          "target": "lock-c"
+        },
+        {
+          "atMs": 4500,
+          "action": "highlight",
+          "target": "mutex"
+        },
+        {
+          "atMs": 7000,
+          "action": "appear",
+          "target": "push-code"
+        },
+        {
+          "atMs": 7600,
+          "action": "focus",
+          "target": "push-code"
+        },
+        {
+          "atMs": 11500,
+          "action": "focus"
+        },
+        {
+          "atMs": 12000,
+          "action": "appear",
+          "target": "note"
+        },
+        {
+          "atMs": 12000,
+          "action": "restore",
+          "target": "mutex"
+        }
+      ],
+      "claims": [
+        {
+          "text": "push() and pop() each lock mutex_ for the whole operation.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "code",
+              "path": "Mutex.hpp",
+              "startLine": 39,
+              "endLine": 60
+            }
+          ]
+        },
+        {
+          "text": "The lock forces the two threads to take turns on every operation.",
+          "basis": "inference",
+          "refs": []
+        }
+      ]
+    },
+    {
+      "id": "drop-the-lock",
+      "title": "push() without a lock",
+      "kicker": "The change",
+      "durationMs": 15000,
+      "narration": "Fifo3 deletes the mutex. push now reads its own cursor relaxed, reads the consumer's cursor with acquire, constructs the element, and publishes it with a single release store.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Mutex::push on the left, Fifo3::push on the right."
+        },
+        {
+          "atMs": 4000,
+          "text": "The lock_guard is gone."
+        },
+        {
+          "atMs": 8000,
+          "text": "Two atomic loads replace it, with explicit memory orders."
+        },
+        {
+          "atMs": 11500,
+          "text": "One release store publishes the new element."
+        }
+      ],
+      "entities": [
+        {
+          "id": "push-diff",
+          "type": "diff-panel",
+          "label": "Mutex.hpp:39-48 \u2192 Fifo3.hpp:54-63",
+          "language": "cpp",
+          "before": "auto push(T const& value) {\n    std::lock_guard<std::mutex> lock(mutex_);\n\n    if (full(pushCursor_, popCursor_)) {\n        return false;\n    }\n    new (&ring_[pushCursor_ % capacity_]) T(value);\n    ++pushCursor_;\n    return true;\n}",
+          "after": "auto push(T const& value) {\n    auto pushCursor = pushCursor_.load(std::memory_order_relaxed);\n    auto popCursor = popCursor_.load(std::memory_order_acquire);\n    if (full(pushCursor, popCursor)) {\n        return false;\n    }\n    new (element(pushCursor)) T(value);\n    pushCursor_.store(pushCursor + 1, std::memory_order_release);\n    return true;\n}",
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 12,
+            "rowSpan": 6
+          },
+          "explanation": "Same contract \u2014 return false when full \u2014 but synchronisation moves from a lock to per-cursor atomics.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Mutex.hpp",
+              "startLine": 39,
+              "endLine": 48
+            },
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 54,
+              "endLine": 63
+            }
+          ]
+        },
+        {
+          "id": "diff-note",
+          "type": "label",
+          "text": "No lock: each thread writes only its own cursor, and acquire/release orders the element hand-off.",
+          "size": "md",
+          "align": "center",
+          "tone": "accent",
+          "layout": {
+            "col": 1,
+            "row": 7,
+            "colSpan": 12,
+            "rowSpan": 2
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "atMs": 0,
+          "action": "appear",
+          "target": "push-diff"
+        },
+        {
+          "atMs": 11500,
+          "action": "appear",
+          "target": "diff-note"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Fifo3::push loads popCursor_ with memory_order_acquire and stores pushCursor_ with memory_order_release.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 54,
+              "endLine": 63
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "happens-before",
+      "title": "Why the hand-off is safe",
+      "kicker": "Correctness",
+      "durationMs": 18000,
+      "narration": "Correctness comes from one pairing. The producer constructs the element, then stores pushCursor_ with release. The consumer loads pushCursor_ with acquire, so once it sees the new value, the element's construction is visible too.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Producer, consumer, and one slot in the ring."
+        },
+        {
+          "atMs": 2500,
+          "text": "\u2460 The producer constructs T in the slot."
+        },
+        {
+          "atMs": 5500,
+          "text": "\u2461 Then it publishes: pushCursor_.store(+1, release)."
+        },
+        {
+          "atMs": 9000,
+          "text": "\u2462 The consumer loads pushCursor_ with acquire."
+        },
+        {
+          "atMs": 12500,
+          "text": "\u2463 Only then does it read the slot \u2014 the write is guaranteed visible."
+        }
+      ],
+      "entities": [
+        {
+          "id": "p3",
+          "type": "component",
+          "label": "Producer",
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "push thread",
+          "explanation": "Constructs the element, then publishes it by advancing pushCursor_.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 54,
+              "endLine": 63
+            }
+          ]
+        },
+        {
+          "id": "slot",
+          "type": "component",
+          "label": "ring_[i]",
+          "layout": {
+            "col": 5,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "element being handed off",
+          "explanation": "The ring slot the producer fills and the consumer later reads.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 86,
+              "endLine": 88
+            }
+          ]
+        },
+        {
+          "id": "c3",
+          "type": "component",
+          "label": "Consumer",
+          "layout": {
+            "col": 11,
+            "row": 2,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "pop thread",
+          "explanation": "Observes pushCursor_ with acquire before touching the element.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 67,
+              "endLine": 77
+            }
+          ]
+        },
+        {
+          "id": "push-cursor",
+          "type": "component",
+          "label": "pushCursor_",
+          "layout": {
+            "col": 5,
+            "row": 5,
+            "colSpan": 4,
+            "rowSpan": 1
+          },
+          "tone": "accent",
+          "sublabel": "std::atomic \u00b7 one writer",
+          "explanation": "Written only by the producer (release), read by the consumer (acquire).",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 105,
+              "endLine": 106
+            }
+          ]
+        },
+        {
+          "id": "w-slot",
+          "type": "edge",
+          "from": "p3",
+          "to": "slot",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "added",
+          "label": "\u2460 construct"
+        },
+        {
+          "id": "w-cursor",
+          "type": "edge",
+          "from": "p3",
+          "to": "push-cursor",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "accent",
+          "label": "\u2461 release"
+        },
+        {
+          "id": "r-cursor",
+          "type": "edge",
+          "from": "push-cursor",
+          "to": "c3",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "accent",
+          "label": "\u2462 acquire"
+        },
+        {
+          "id": "r-slot",
+          "type": "edge",
+          "from": "c3",
+          "to": "slot",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "added",
+          "label": "\u2463 read"
+        },
+        {
+          "id": "hb",
+          "type": "label",
+          "text": "release \u2192 acquire creates a happens-before edge: \u2460 is visible to \u2463.",
+          "size": "md",
+          "align": "center",
+          "tone": "muted",
+          "layout": {
+            "col": 1,
+            "row": 7,
+            "colSpan": 12,
+            "rowSpan": 1
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "atMs": 0,
+          "action": "appear",
+          "target": "p3"
+        },
+        {
+          "atMs": 200,
+          "action": "appear",
+          "target": "slot"
+        },
+        {
+          "atMs": 400,
+          "action": "appear",
+          "target": "c3"
+        },
+        {
+          "atMs": 600,
+          "action": "appear",
+          "target": "push-cursor"
+        },
+        {
+          "atMs": 2500,
+          "action": "connect",
+          "target": "w-slot"
+        },
+        {
+          "atMs": 2500,
+          "action": "highlight",
+          "target": "slot"
+        },
+        {
+          "atMs": 5500,
+          "action": "connect",
+          "target": "w-cursor"
+        },
+        {
+          "atMs": 5500,
+          "action": "highlight",
+          "target": "push-cursor"
+        },
+        {
+          "atMs": 5500,
+          "action": "restore",
+          "target": "slot"
+        },
+        {
+          "atMs": 9000,
+          "action": "connect",
+          "target": "r-cursor"
+        },
+        {
+          "atMs": 12500,
+          "action": "connect",
+          "target": "r-slot"
+        },
+        {
+          "atMs": 12500,
+          "action": "highlight",
+          "target": "slot"
+        },
+        {
+          "atMs": 12500,
+          "action": "restore",
+          "target": "push-cursor"
+        },
+        {
+          "atMs": 15000,
+          "action": "appear",
+          "target": "hb"
+        },
+        {
+          "atMs": 15000,
+          "action": "restore",
+          "target": "slot"
+        }
+      ],
+      "claims": [
+        {
+          "text": "The release store happens after placement-new constructs the element.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 60,
+              "endLine": 61
+            }
+          ]
+        },
+        {
+          "text": "pop loads pushCursor_ with acquire before reading the element.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 68,
+              "endLine": 73
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cache-lines",
+      "title": "Give each cursor its own cache line",
+      "kicker": "Performance",
+      "durationMs": 17000,
+      "narration": "Atomic cursors on the same 64-byte line would still fight: every store invalidates the other core's copy. Fifo3 aligns each cursor to 64 bytes, so the producer's writes and the consumer's writes touch different lines.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Two cores, two cursors \u2014 on one shared cache line."
+        },
+        {
+          "atMs": 3500,
+          "text": "Each store invalidates the other core's copy of the line."
+        },
+        {
+          "atMs": 7500,
+          "text": "Fifo3: alignas(64) puts each cursor on its own line."
+        },
+        {
+          "atMs": 12000,
+          "text": "Writes no longer ping-pong between cores."
+        }
+      ],
+      "entities": [
+        {
+          "id": "core1",
+          "type": "component",
+          "label": "Core 1",
+          "layout": {
+            "col": 3,
+            "row": 1,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "neutral",
+          "sublabel": "producer",
+          "explanation": "The core running the push thread; it writes pushCursor_."
+        },
+        {
+          "id": "core2",
+          "type": "component",
+          "label": "Core 2",
+          "layout": {
+            "col": 9,
+            "row": 1,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "neutral",
+          "sublabel": "consumer",
+          "explanation": "The core running the pop thread; it writes popCursor_."
+        },
+        {
+          "id": "push-a",
+          "type": "component",
+          "label": "pushCursor_",
+          "layout": {
+            "col": 4,
+            "row": 3,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "removed",
+          "explanation": "Fifo2 declares both atomics back to back, so they can share one cache line.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo2.hpp",
+              "startLine": 78,
+              "endLine": 82
+            }
+          ]
+        },
+        {
+          "id": "pop-a",
+          "type": "component",
+          "label": "popCursor_",
+          "layout": {
+            "col": 8,
+            "row": 3,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "removed",
+          "explanation": "Adjacent to pushCursor_ in Fifo2 \u2014 a write to either invalidates both.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo2.hpp",
+              "startLine": 78,
+              "endLine": 82
+            }
+          ]
+        },
+        {
+          "id": "line-shared",
+          "type": "group",
+          "label": "one 64-byte line",
+          "children": [
+            "push-a",
+            "pop-a"
+          ],
+          "tone": "removed"
+        },
+        {
+          "id": "ping",
+          "type": "edge",
+          "from": "push-a",
+          "to": "pop-a",
+          "style": "dashed",
+          "arrow": "both",
+          "tone": "removed",
+          "label": "invalidate"
+        },
+        {
+          "id": "push-b",
+          "type": "component",
+          "label": "pushCursor_",
+          "layout": {
+            "col": 3,
+            "row": 4,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "added",
+          "sublabel": "alignas(64)",
+          "explanation": "Producer-owned cursor, alone on its cache line.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 106,
+              "endLine": 106
+            }
+          ]
+        },
+        {
+          "id": "pop-b",
+          "type": "component",
+          "label": "popCursor_",
+          "layout": {
+            "col": 9,
+            "row": 4,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "added",
+          "sublabel": "alignas(64)",
+          "explanation": "Consumer-owned cursor, alone on its cache line.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 109,
+              "endLine": 109
+            }
+          ]
+        },
+        {
+          "id": "line-0",
+          "type": "group",
+          "label": "line A",
+          "children": [
+            "push-b"
+          ],
+          "tone": "added"
+        },
+        {
+          "id": "line-1",
+          "type": "group",
+          "label": "line B",
+          "children": [
+            "pop-b"
+          ],
+          "tone": "added"
+        },
+        {
+          "id": "c1-push",
+          "type": "edge",
+          "from": "core1",
+          "to": "push-b",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "neutral",
+          "label": "writes"
+        },
+        {
+          "id": "c2-pop",
+          "type": "edge",
+          "from": "core2",
+          "to": "pop-b",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "neutral",
+          "label": "writes"
+        },
+        {
+          "id": "align-code",
+          "type": "code-block",
+          "label": "Fifo3.hpp:103-112",
+          "language": "cpp",
+          "code": "static constexpr auto hardware_destructive_interference_size = size_type{64};\n\n/// Loaded and stored by the push thread; loaded by the pop thread\nalignas(hardware_destructive_interference_size) CursorType pushCursor_;\n\n/// Loaded and stored by the pop thread; loaded by the push thread\nalignas(hardware_destructive_interference_size) CursorType popCursor_;\n\n// Padding to avoid false sharing with adjacent objects\nchar padding_[hardware_destructive_interference_size - sizeof(size_type)];",
+          "startLine": 103,
+          "highlightLines": [
+            106,
+            109
+          ],
+          "layout": {
+            "col": 2,
+            "row": 6,
+            "colSpan": 10,
+            "rowSpan": 3
+          },
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 103,
+              "endLine": 112
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "atMs": 0,
+          "action": "appear",
+          "target": "core1"
+        },
+        {
+          "atMs": 0,
+          "action": "appear",
+          "target": "core2"
+        },
+        {
+          "atMs": 400,
+          "action": "appear",
+          "target": "push-a"
+        },
+        {
+          "atMs": 400,
+          "action": "appear",
+          "target": "pop-a"
+        },
+        {
+          "atMs": 400,
+          "action": "appear",
+          "target": "line-shared"
+        },
+        {
+          "atMs": 3500,
+          "action": "connect",
+          "target": "ping"
+        },
+        {
+          "atMs": 3500,
+          "action": "highlight",
+          "target": "line-shared"
+        },
+        {
+          "atMs": 7000,
+          "action": "disconnect",
+          "target": "ping"
+        },
+        {
+          "atMs": 7000,
+          "action": "disappear",
+          "target": "push-a"
+        },
+        {
+          "atMs": 7000,
+          "action": "disappear",
+          "target": "pop-a"
+        },
+        {
+          "atMs": 7000,
+          "action": "disappear",
+          "target": "line-shared"
+        },
+        {
+          "atMs": 7500,
+          "action": "appear",
+          "target": "push-b"
+        },
+        {
+          "atMs": 7500,
+          "action": "appear",
+          "target": "pop-b"
+        },
+        {
+          "atMs": 7500,
+          "action": "appear",
+          "target": "line-0"
+        },
+        {
+          "atMs": 7500,
+          "action": "appear",
+          "target": "line-1"
+        },
+        {
+          "atMs": 8200,
+          "action": "connect",
+          "target": "c1-push"
+        },
+        {
+          "atMs": 8200,
+          "action": "connect",
+          "target": "c2-pop"
+        },
+        {
+          "atMs": 9500,
+          "action": "appear",
+          "target": "align-code"
+        }
+      ],
+      "claims": [
+        {
+          "text": "pushCursor_ and popCursor_ are each declared alignas(64).",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "code",
+              "path": "Fifo3.hpp",
+              "startLine": 103,
+              "endLine": 112
+            }
+          ]
+        },
+        {
+          "text": "Separate lines remove false-sharing traffic between the two cores; measure with the repo's bench to quantify it.",
+          "basis": "inference",
+          "refs": []
+        }
+      ]
+    },
+    {
+      "id": "cached-cursors",
+      "title": "Fifo4: read the other cursor less",
+      "kicker": "Refinement",
+      "durationMs": 17000,
+      "narration": "Fifo4 adds a private cache of the other thread's cursor. The producer checks fullness against popCursorCached_ and only reloads the shared atomic when the cache claims the queue is full, so the hot path stays on its own cache line.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Fifo4 keeps a private copy of the consumer's cursor."
+        },
+        {
+          "atMs": 4000,
+          "text": "Most pushes only read the local cache."
+        },
+        {
+          "atMs": 8000,
+          "text": "Only when it looks full does push reload popCursor_ (acquire)."
+        },
+        {
+          "atMs": 12000,
+          "text": "The second check decides: still full \u2192 return false."
+        }
+      ],
+      "entities": [
+        {
+          "id": "p5",
+          "type": "component",
+          "label": "Producer",
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "tone": "neutral",
+          "sublabel": "push thread",
+          "explanation": "Checks fullness against its private cache first.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo4.hpp",
+              "startLine": 55,
+              "endLine": 70
+            }
+          ]
+        },
+        {
+          "id": "pop-cache",
+          "type": "component",
+          "label": "popCursorCached_",
+          "layout": {
+            "col": 5,
+            "row": 2,
+            "colSpan": 3,
+            "rowSpan": 2
+          },
+          "tone": "added",
+          "sublabel": "exclusive to producer",
+          "explanation": "A plain size_type owned by the push thread; refreshed from popCursor_ only when needed.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo4.hpp",
+              "startLine": 116,
+              "endLine": 117
+            }
+          ]
+        },
+        {
+          "id": "pop-shared",
+          "type": "component",
+          "label": "popCursor_",
+          "layout": {
+            "col": 10,
+            "row": 2,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "tone": "accent",
+          "sublabel": "shared atomic",
+          "explanation": "Written by the consumer; reading it from the producer core is the expensive cross-core load.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo4.hpp",
+              "startLine": 119,
+              "endLine": 120
+            }
+          ]
+        },
+        {
+          "id": "c5",
+          "type": "component",
+          "label": "Consumer",
+          "layout": {
+            "col": 10,
+            "row": 6,
+            "colSpan": 2,
+            "rowSpan": 1
+          },
+          "tone": "neutral",
+          "sublabel": "pop thread",
+          "explanation": "Advances popCursor_ with a release store after each pop.",
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo4.hpp",
+              "startLine": 74,
+              "endLine": 90
+            }
+          ]
+        },
+        {
+          "id": "fast",
+          "type": "edge",
+          "from": "p5",
+          "to": "pop-cache",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "neutral",
+          "label": "fast path"
+        },
+        {
+          "id": "reload",
+          "type": "edge",
+          "from": "pop-cache",
+          "to": "pop-shared",
+          "style": "dashed",
+          "arrow": "end",
+          "tone": "accent",
+          "label": "reload if full"
+        },
+        {
+          "id": "c5-writes",
+          "type": "edge",
+          "from": "c5",
+          "to": "pop-shared",
+          "style": "solid",
+          "arrow": "end",
+          "tone": "neutral",
+          "label": "writes"
+        },
+        {
+          "id": "push4",
+          "type": "code-block",
+          "label": "Fifo4.hpp:55-63",
+          "language": "cpp",
+          "code": "auto push(T const& value) {\n    auto pushCursor = pushCursor_.load(std::memory_order_relaxed);\n    if (full(pushCursor, popCursorCached_)) {\n        popCursorCached_ = popCursor_.load(std::memory_order_acquire);\n        // popCursorCached_ = popCursor_.load(std::memory_order_relaxed);\n        if (full(pushCursor, popCursorCached_)) {\n            return false;\n        }\n    }",
+          "startLine": 55,
+          "highlightLines": [
+            57,
+            58,
+            60
+          ],
+          "layout": {
+            "col": 1,
+            "row": 5,
+            "colSpan": 8,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "code",
+              "path": "Fifo4.hpp",
+              "startLine": 55,
+              "endLine": 63
+            }
+          ]
+        },
+        {
+          "id": "tradeoff",
+          "type": "label",
+          "text": "Trade-off: a stale cache can report full early; the reload re-checks before failing.",
+          "size": "sm",
+          "align": "start",
+          "tone": "muted",
+          "layout": {
+            "col": 9,
+            "row": 7,
+            "colSpan": 4,
+            "rowSpan": 2
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "atMs": 0,
+          "action": "appear",
+          "target": "p5"
+        },
+        {
+          "atMs": 200,
+          "action": "appear",
+          "target": "pop-shared"
+        },
+        {
+          "atMs": 400,
+          "action": "appear",
+          "target": "c5"
+        },
+        {
+          "atMs": 600,
+          "action": "connect",
+          "target": "c5-writes"
+        },
+        {
+          "atMs": 1500,
+          "action": "appear",
+          "target": "pop-cache"
+        },
+        {
+          "atMs": 4000,
+          "action": "connect",
+          "target": "fast"
+        },
+        {
+          "atMs": 4000,
+          "action": "highlight",
+          "target": "pop-cache"
+        },
+        {
+          "atMs": 8000,
+          "action": "connect",
+          "target": "reload"
+        },
+        {
+          "atMs": 8000,
+          "action": "restore",
+          "target": "pop-cache"
+        },
+        {
+          "atMs": 8000,
+          "action": "highlight",
+          "target": "pop-shared"
+        },
+        {
+          "atMs": 10000,
+          "action": "appear",
+          "target": "push4"
+        },
+        {
+          "atMs": 12000,
+          "action": "appear",
+          "target": "tradeoff"
+        },
+        {
+          "atMs": 12000,
+          "action": "restore",
+          "target": "pop-shared"
+        }
+      ],
+      "claims": [
+        {
+          "text": "push reloads popCursor_ only when full(pushCursor, popCursorCached_) is true, then re-checks.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "code",
+              "path": "Fifo4.hpp",
+              "startLine": 55,
+              "endLine": 63
+            }
+          ]
+        },
+        {
+          "text": "This reduces cross-core loads on the push hot path.",
+          "basis": "inference",
+          "refs": []
+        }
+      ]
+    }
+  ]
+}
