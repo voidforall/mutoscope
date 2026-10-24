@@ -5,3 +5,4 @@ export * from "./analysis";
 export * from "./scene";
 export * from "./collaboration";
 export * from "./reel";
+export * from "./live";

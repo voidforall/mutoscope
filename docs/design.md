@@ -22,8 +22,9 @@ The skill never depends on a specific agent: steps reference CLI commands and fi
 - **Self-contained HTML with a hash CSP.** The reel works offline and from any host; the page cannot make network requests, so reel content cannot load or exfiltrate anything.
 - **Questions via GitHub's own UI.** The player opens a prefilled `discussions/new` URL with a fenced `json mutoscope-context` block — no OAuth app, no token in the page. The CLI parses the block with the same schema.
 - **Threads are baked, not fetched.** GitHub's Discussions API needs auth even for public repos, so `sync` snapshots threads into the reel on the author's machine; the player links out for anything newer.
+- **Live sessions copy the lavish-axi loop.** Asking your own agent while watching needs a channel back from the page. A detached loopback server holds the session; the page talks to it over same-origin SSE + POST; the agent long-polls with `poll` and replies through the same call. The conversation lives in the CLI's state dir, not the reel, so it is never published. Only pages served by `watch` get `connect-src 'self'`; built reels keep `default-src 'none'`.
 - **Human gates are CLI-level.** `publish` and `reply` are dry runs without `--yes`, so an agent following the skill has to surface the plan/draft before anything is sent.
 
 ## Deferred
 
-Narration audio/TTS, embedded live comments, real-time co-viewing, GitLab/Bitbucket adapters, richer primitives (sequence lanes, charts), and a remote agent bridge. The format is versioned so these can be added without breaking existing reels.
+Narration audio/TTS, promoting live Q&A into published threads, real-time co-viewing, GitLab/Bitbucket adapters, richer primitives (sequence lanes, charts), and a remote agent bridge. The format is versioned so these can be added without breaking existing reels.

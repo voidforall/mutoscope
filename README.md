@@ -10,7 +10,8 @@ A mutoscope was the 1890s peep-show machine where *the viewer* turned the crank 
 - **Agent-agnostic.** The skill follows the open [Agent Skills](https://agentskills.io) layout (`SKILL.md` + resources). All deterministic work is a plain CLI, so Claude Code, Codex, Gemini CLI, Cursor or any agent that can run a shell command can drive it.
 - **Data, not code.** Agents write validated JSON (scenes, entities, timeline actions); a fixed renderer draws it. No generated JavaScript ever runs in a reel.
 - **Honest by construction.** Every claim is tagged `evidence` (must cite a source ref) or `inference`. Code refs are pinned to commit SHAs, and `validate --repo-root` rejects snippets that don't match the pinned file.
-- **Collaborative without a backend.** Viewers ask questions anchored to scene + entity + timestamp; they land as GitHub Discussions. The author's local agent drafts grounded answers, and nothing is posted without explicit approval.
+- **Ask your own agent while you watch.** `mutoscope watch` opens the reel with an *Ask your agent* panel. Pause anywhere, click an element, ask, and the question reaches the agent in your terminal with that exact moment attached (plus a rendered frame). The answer appears beside the reel, with links that jump the player to what it explains.
+- **Collaborative without a backend.** Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions. The author's local agent drafts grounded answers, and nothing is posted without explicit approval.
 - **Portable.** One self-contained `index.html` with a strict CSP (no network access at all). Host it on GitHub Pages, any static host, or open it from disk.
 
 | Inspect anything | Ask about the exact moment |
@@ -59,6 +60,17 @@ mutoscope preview  examples/spsc-evolution          # http://127.0.0.1:4870/
 mutoscope export   examples/spsc-evolution --out spsc.mp4
 ```
 
+## Watch with your agent
+
+```bash
+mutoscope watch examples/spsc-evolution     # opens http://127.0.0.1:4880/s/<session>/
+mutoscope poll  examples/spsc-evolution     # (your agent runs this) waits for your question
+```
+
+The pattern is the same as [lavish-axi](https://github.com/kunchenguid/lavish-axi). A background server on loopback holds the session. The agent long-polls it with `poll`, and `poll --reply-file answer.md` delivers an answer and waits for the next question. Questions survive agent restarts until they're answered. Editing the reel files reloads the open tab in place (same moment, same conversation), so "this caption is wrong" can be fixed on the spot. Live answers never leave the machine.
+
+The session page differs from a published reel in one way: its CSP adds `connect-src 'self'`. The server only accepts requests addressed to `127.0.0.1`/`localhost` (which blocks DNS rebinding). Browser writes need the page's per-session token and same-origin `Origin`, and agent calls need a separate token stored `0600` in `~/.mutoscope/live/`.
+
 ## CLI
 
 | Command | What it does |
@@ -69,6 +81,7 @@ mutoscope export   examples/spsc-evolution --out spsc.mp4
 | `validate <dir> [--repo-root <checkout>]` | Schema, cross-references, layout overlaps, pacing, and (with a checkout) source refs + snippet fidelity |
 | `build <dir> [--out <dir>]` / `preview <dir>` | Static site / local server |
 | `snapshot <dir> [--at end\|mid\|both]` | PNG per scene for visual review |
+| `watch <dir>`, `poll <dir> [--reply-file f]`, `end <dir>`, `sessions` | Live session: watch in the browser, ask your local agent |
 | `export <dir> [--fps 30]` | MP4 via headless Chromium + ffmpeg |
 | `collab setup <dir> --repo o/r` | Route viewer questions to a GitHub Discussions category |
 | `publish <dir> [--yes]` | Dry-run plan + safety scan; pushes to GitHub Pages only with `--yes` |

@@ -3,6 +3,7 @@ import * as collab from "./commands/collab";
 import * as exportVideo from "./commands/export";
 import * as ingest from "./commands/ingest";
 import * as init from "./commands/init";
+import * as live from "./commands/live";
 import * as preview from "./commands/preview";
 import * as publish from "./commands/publish";
 import * as recipes from "./commands/recipes";
@@ -29,6 +30,11 @@ const COMMANDS: Record<string, Command> = {
   question: threads.question,
   reply: threads.reply,
   sync: threads.sync,
+  watch: live.watch,
+  poll: live.poll,
+  end: live.end,
+  sessions: live.sessions,
+  "live-server": live.liveServerMain,
 };
 
 const USAGE = [
@@ -43,10 +49,12 @@ const USAGE = [
   `  ${preview.help}`,
   `  ${snapshot.help}`,
   `  ${exportVideo.help}`,
+  "Watch with your agent",
+  `  ${live.help}`,
   "Share",
   `  ${collab.help}`,
   `  ${publish.help}`,
-  "Collaborate",
+  "Collaborate on GitHub",
   `  ${threads.help}`,
 ].join("\n");
 

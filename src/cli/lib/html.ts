@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { ReelBundle } from "../../schema";
+import { LIVE_ELEMENT_ID, type LiveConfig, type ReelBundle } from "../../schema";
 
 /** JSON that is safe inside a <script> element (no `</script>`, no line separators). */
 export function scriptSafeJson(value: unknown): string {
@@ -17,9 +17,11 @@ const sha256 = (s: string) => createHash("sha256").update(s, "utf8").digest("bas
 /**
  * One self-contained page. The CSP allows exactly the bundled player script
  * (by hash) and no network access at all, so reel content can never load or
- * exfiltrate anything even if a string slipped past validation.
+ * exfiltrate anything even if a string slipped past validation. A page served
+ * by a local live session (`live`) may additionally talk to its own origin —
+ * and nothing else.
  */
-export function renderReelHtml(bundle: ReelBundle, playerJs: string, playerCss: string): string {
+export function renderReelHtml(bundle: ReelBundle, playerJs: string, playerCss: string, live?: LiveConfig): string {
   const js = playerJs.replace(/<\/script/gi, "<\\/script");
   const css = playerCss.replace(/<\/style/gi, "<\\/style");
   const csp = [
@@ -27,6 +29,7 @@ export function renderReelHtml(bundle: ReelBundle, playerJs: string, playerCss: 
     `script-src 'sha256-${sha256(js)}'`,
     `style-src 'sha256-${sha256(css)}'`,
     "img-src data:",
+    ...(live ? ["connect-src 'self'"] : []),
     "base-uri 'none'",
     "form-action 'none'",
   ].join("; ");
@@ -47,7 +50,7 @@ export function renderReelHtml(bundle: ReelBundle, playerJs: string, playerCss: 
 <body>
 <div id="root"></div>
 <script type="application/json" id="mutoscope-reel">${scriptSafeJson(bundle)}</script>
-<script>${js}</script>
+${live ? `<script type="application/json" id="${LIVE_ELEMENT_ID}">${scriptSafeJson(live)}</script>\n` : ""}<script>${js}</script>
 </body>
 </html>
 `;

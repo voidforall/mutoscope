@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildDeepLink, captionAt, parseDeepLink, resolveDeepLink, totalDuration } from "../core";
-import type { ReelBundle, Thread } from "../schema";
+import type { ReelBundle, ReelContext, Thread } from "../schema";
 import { installApi } from "./api";
 import { AskPanel } from "./components/AskPanel";
 import { Controls } from "./components/Controls";
 import { Icon } from "./components/Icon";
 import { InspectPanel } from "./components/InspectPanel";
+import { Presence } from "./components/Conversation";
 import { ScenePanel } from "./components/ScenePanel";
 import { Stage } from "./components/Stage";
 import { ThreadsPanel } from "./components/ThreadsPanel";
+import { readLiveConfig, useLiveSession } from "./live";
 import type { PlayerState } from "./state";
 import { applyTheme, storedTheme, systemTheme, type Theme } from "./theme";
 import { useKeyboard } from "./useKeyboard";
@@ -33,6 +35,28 @@ function initialState(bundle: ReelBundle): PlayerState {
   return { index: r.index, tMs: r.tMs, playing: !deep && !reduced && !isVideoMode(), selectedId: r.entityId, rate: 1 };
 }
 
+const TAB_KEY = "mutoscope:tab";
+const TAB_IDS: readonly string[] = TABS.map((t) => t.id);
+
+/** Survive a live reload on the same tab; storage may be unavailable, which only costs the convenience. */
+function rememberTab(tab: Tab): void {
+  try {
+    sessionStorage.setItem(TAB_KEY, tab);
+  } catch {
+    // ignore
+  }
+}
+
+function restoredTab(): Tab | undefined {
+  try {
+    const t = sessionStorage.getItem(TAB_KEY);
+    sessionStorage.removeItem(TAB_KEY);
+    return t && TAB_IDS.includes(t) ? (t as Tab) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function baseUrl(bundle: ReelBundle): string {
   const here = window.location.href.split(/[?#]/)[0]!;
   return bundle.manifest.publicUrl ?? (here.startsWith("http") ? here : "https://localhost/");
@@ -41,11 +65,27 @@ function baseUrl(bundle: ReelBundle): string {
 export function App({ bundle }: { readonly bundle: ReelBundle }) {
   const { manifest, scenes } = bundle;
   const [state, dispatch] = usePlayer(scenes, useMemo(() => initialState(bundle), [bundle]));
-  const [tab, setTab] = useState<Tab>(state.selectedId ? "inspect" : "scene");
+  const [tab, setTab] = useState<Tab>(() => restoredTab() ?? (state.selectedId ? "inspect" : "scene"));
   const [theme, setTheme] = useState<Theme>(() => storedTheme() ?? systemTheme());
   const [toast, setToast] = useState<string>();
   const stateRef = useRef(state);
   stateRef.current = state;
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+  const liveConfig = useMemo(readLiveConfig, []);
+  // The reel files changed on disk and still validate: reload in place, keeping the moment.
+  const reloadHere = () => {
+    const s = stateRef.current;
+    const url = buildDeepLink(window.location.href, { sceneId: scenes[s.index]!.id, tMs: s.tMs, entityId: s.selectedId });
+    window.history.replaceState(null, "", new URL(url).search);
+    rememberTab(tabRef.current);
+    window.location.reload();
+  };
+  const live = useLiveSession(liveConfig, reloadHere);
+  const answers = live?.snapshot?.entries.filter((e) => e.role === "agent").length ?? 0;
+  // Answers already in the session when the page loads count as seen.
+  const [seenAnswers, setSeenAnswers] = useState<number>();
+  const loaded = Boolean(live?.snapshot);
 
   const scene = scenes[state.index]!;
   const entity = scene.entities.find((e) => e.id === state.selectedId);
@@ -80,6 +120,10 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
   }, [state.playing, state.index, state.selectedId, state.tMs, scene.id]);
 
   useEffect(() => {
+    if (loaded && (tab === "ask" || seenAnswers === undefined)) setSeenAnswers(answers);
+  }, [tab, answers, loaded, seenAnswers]);
+
+  useEffect(() => {
     if (!toast) return;
     const id = setTimeout(() => setToast(undefined), 2200);
     return () => clearTimeout(id);
@@ -94,12 +138,18 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
       setToast("Could not access the clipboard");
     }
   };
-  const jumpToThread = (t: Thread) => {
-    const index = scenes.findIndex((s) => s.id === t.context.sceneId);
+  const jumpTo = (sceneId: string | undefined, tMs: number | undefined, entityId: string | undefined) => {
+    const index = scenes.findIndex((s) => s.id === sceneId);
     if (index < 0) return;
     dispatch({ type: "pause" });
-    dispatch({ type: "seek", index, tMs: t.context.timestampMs });
-    if (t.context.entityId) dispatch({ type: "select", id: t.context.entityId });
+    dispatch({ type: "seek", index, tMs: tMs ?? 0 });
+    if (entityId) dispatch({ type: "select", id: entityId });
+  };
+  const jumpToContext = (c: ReelContext) => jumpTo(c.sceneId, c.timestampMs, c.entityId);
+  const jumpToThread = (t: Thread) => jumpToContext(t.context);
+  const jumpToMoment = (href: string) => {
+    const link = parseDeepLink(href);
+    jumpTo(link.sceneId ?? scene.id, link.tMs ?? (link.sceneId ? 0 : state.tMs), link.entityId);
   };
   const source = manifest.source.provider === "none" ? undefined : manifest.source;
   const sourceHref = source?.repository ? `https://github.com/${source.repository}/tree/${source.headSha}` : undefined;
@@ -119,6 +169,12 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
           {manifest.subtitle && <p className="reel-subtitle">{manifest.subtitle}</p>}
         </div>
         <div className="top-actions">
+          {live && (
+            <button className="live-chip" onClick={() => setTab("ask")} title="Live session with your agent">
+              <span className="live-chip-label">Live</span>
+              <Presence live={live} />
+            </button>
+          )}
           {source && (
             <a className="sha-chip" href={sourceHref} target="_blank" rel="noopener noreferrer" title="Pinned source revision">
               {source.repository ? `${source.repository}@` : ""}
@@ -135,6 +191,11 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
       </header>
       <main className="layout">
         <section className="theater" aria-label="Reel player">
+          {live?.invalid && (
+            <p className="banner" role="alert">
+              The reel files changed but no longer validate — still showing the last good version. {live.invalid}
+            </p>
+          )}
           <div className="stage-frame">
             <Stage scene={scene} tMs={state.tMs} selectedId={state.selectedId} threadCounts={threadCounts} onSelect={(id) => dispatch({ type: "select", id })} />
             {!state.playing && state.tMs === 0 && state.index === 0 && !state.selectedId && (
@@ -161,6 +222,7 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
                 {t.label}
                 {t.id === "threads" && sceneThreads.length > 0 && <span className="tab-count">{sceneThreads.length}</span>}
                 {t.id === "inspect" && entity && <span className="tab-dot" />}
+                {t.id === "ask" && tab !== "ask" && seenAnswers !== undefined && answers > seenAnswers && <span className="tab-dot" aria-label="New answer" />}
               </button>
             ))}
           </nav>
@@ -176,7 +238,20 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
               onOpenThreads={() => setTab("threads")}
             />
           )}
-          {tab === "ask" && <AskPanel manifest={manifest} scene={scene} tMs={state.tMs} entity={entity} baseUrl={baseUrl(bundle)} />}
+          {tab === "ask" && (
+            <AskPanel
+              manifest={manifest}
+              scenes={scenes}
+              scene={scene}
+              tMs={state.tMs}
+              entity={entity}
+              baseUrl={baseUrl(bundle)}
+              live={live}
+              onAsking={() => dispatch({ type: "pause" })}
+              onJump={jumpToContext}
+              onMoment={jumpToMoment}
+            />
+          )}
           {tab === "threads" && (
             <ThreadsPanel manifest={manifest} threads={threads} syncedAt={bundle.threads?.syncedAt} scenes={scenes} sceneId={scene.id} onJump={jumpToThread} />
           )}
