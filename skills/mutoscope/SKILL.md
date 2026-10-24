@@ -2,7 +2,7 @@
 name: mutoscope
 description: Turn a source — a pull request, a local diff, a codebase, a concept, an incident — into an interactive, discussable animated reel (a self-contained HTML player that can also export to MP4), and answer viewer questions on published reels. Use when the user wants a visual walkthrough, explainer or "video" of a change, system or idea; wants to watch a reel and ask about it as it plays (live session); wants to publish or share a reel; or wants to check or answer reel questions (inbox).
 license: MIT
-compatibility: Requires Node.js >= 22. GitHub features (PR ingest, discussions, Pages) need an authenticated `gh` CLI. Snapshots and video export need Playwright Chromium; video export also needs ffmpeg.
+compatibility: Requires Node.js >= 22 (the CLI ships prebuilt in runtime/). GitHub features (PR ingest, discussions, Pages) need an authenticated `gh` CLI. Snapshots, video export and live-session frames need Chromium via `install-browser`; video export also needs ffmpeg.
 ---
 
 # mutoscope
@@ -28,7 +28,7 @@ All deterministic work goes through one CLI that ships inside this skill folder:
 node <this-skill-dir>/runtime/cli.mjs <command>   # referred to as `mutoscope` below
 ```
 
-If `runtime/cli.mjs` is missing, run `npm install && npm run build` in the mutoscope repository. `mutoscope help` lists every command.
+It is prebuilt and has no dependencies beyond Node.js 22. `mutoscope help` lists every command. If a command reports that Playwright or Chromium is missing, ask the user before running `mutoscope install-browser`: it downloads Playwright and Chromium (about 150 MB) into `~/.mutoscope/deps`. Until then, skip the visual check in Branch A step 6 and tell the user.
 
 ## Vocabulary
 

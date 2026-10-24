@@ -1,7 +1,7 @@
 {
   "name": "mutoscope",
   "version": "0.1.0",
-  "description": "Turn code changes, systems and ideas into interactive, discussable animated reels. A Claude Code skill + portable reel format + static player.",
+  "description": "Turn code changes, systems and ideas into interactive, discussable animated reels. A model-agnostic agent skill + CLI, portable reel format and static player.",
   "type": "module",
   "license": "MIT",
   "engines": {

@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      # The skill ships its built runtime so `npx skills add` works without a build step.
+      - name: Committed runtime matches the source
+        run: |
+          if ! git diff --exit-code --stat -- skills/mutoscope/runtime; then
+            echo "::error::skills/mutoscope/runtime is stale. Run 'npm run build' and commit the result."
+            exit 1
+          fi
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

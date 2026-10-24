@@ -34,27 +34,30 @@ The renderer is a pure function `sceneStateAt(scene, t)`: seeking, playback and 
 
 ## Install
 
-Requires Node.js ≥ 22. GitHub features need an authenticated [`gh`](https://cli.github.com); snapshots and video export need Playwright Chromium (and `ffmpeg` for MP4).
-
 ```bash
-git clone https://github.com/voidforall/mutoscope && cd mutoscope
-npm install && npx playwright install chromium
-npm run install-skill          # builds, then links skills/mutoscope into ~/.agents/skills (and ~/.claude/skills if present)
-node scripts/install-skill.mjs --target ~/.codex/skills   # or any other agent's skills directory
+npx skills add voidforall/mutoscope
 ```
 
-Then ask your agent for a walkthrough of a PR, a tour of a module, or an explainer — or call the CLI directly:
+That installs the skill for whichever agents you pick (Claude Code, Codex, Cursor, Gemini CLI, OpenCode, …). Add `-g` to install it for all your projects. The CLI ships prebuilt inside the skill folder, so the only requirement is **Node.js ≥ 22**. No `npm install` and no build step.
 
-```bash
-alias mutoscope="node $PWD/skills/mutoscope/runtime/cli.mjs"
-mutoscope help
-```
+Then ask your agent for a walkthrough of a PR, a tour of a module, or an explainer.
+
+Optional extras, only needed for some features:
+
+| For | Needs |
+|---|---|
+| PR ingest, discussions, publishing to Pages | an authenticated [`gh`](https://cli.github.com) |
+| `snapshot`, MP4 `export`, frame images in live sessions | `mutoscope install-browser` (one-time: Playwright + Chromium into `~/.mutoscope/deps`) |
+| MP4 `export` | `ffmpeg` on PATH |
+
+To call the CLI yourself: `alias mutoscope="node <skill-dir>/runtime/cli.mjs"`, then `mutoscope help`.
 
 ## Try the example
 
-`examples/spsc-evolution` walks through the progression from a mutex-guarded queue to a lock-free SPSC ring buffer in [CharlesFrasch/cppcon2023](https://github.com/CharlesFrasch/cppcon2023), pinned to a commit.
+`examples/spsc-evolution` walks through the progression from a mutex-guarded queue to a lock-free SPSC ring buffer in [CharlesFrasch/cppcon2023](https://github.com/CharlesFrasch/cppcon2023), pinned to a commit. From a clone of this repo:
 
 ```bash
+mutoscope watch    examples/spsc-evolution          # watch it and ask your agent about any moment
 mutoscope validate examples/spsc-evolution
 mutoscope preview  examples/spsc-evolution          # http://127.0.0.1:4870/
 mutoscope export   examples/spsc-evolution --out spsc.mp4
@@ -104,10 +107,15 @@ Entities: `component`, `edge`, `code-block`, `diff-panel`, `label`, `group` on a
 ## Development
 
 ```bash
+git clone https://github.com/voidforall/mutoscope && cd mutoscope
+npm install && npx playwright install chromium
+npm run install-skill                # build, then symlink skills/mutoscope into ~/.agents/skills (and ~/.claude/skills)
 npm run typecheck && npm test        # unit tests (vitest)
 npm run build && npm run test:e2e    # player end-to-end tests (Playwright)
 npm run check                        # all of the above
 ```
+
+The built runtime (`skills/mutoscope/runtime/`) is committed so the skill installs without a build. Run `npm run build` and commit the result with any source change; CI fails if they drift.
 
 Layout: `src/schema` (format), `src/core` (pure engine: timeline, geometry, validation, deep links, discussion codec), `src/player` (React player), `src/cli` (commands), `src/adapters/github`, `skills/mutoscope` (the skill: `SKILL.md`, recipes, references, built runtime). Design notes: [`docs/design.md`](docs/design.md).
 

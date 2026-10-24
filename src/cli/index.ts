@@ -3,6 +3,7 @@ import * as collab from "./commands/collab";
 import * as exportVideo from "./commands/export";
 import * as ingest from "./commands/ingest";
 import * as init from "./commands/init";
+import * as installBrowser from "./commands/install-browser";
 import * as live from "./commands/live";
 import * as preview from "./commands/preview";
 import * as publish from "./commands/publish";
@@ -35,6 +36,7 @@ const COMMANDS: Record<string, Command> = {
   end: live.end,
   sessions: live.sessions,
   "live-server": live.liveServerMain,
+  "install-browser": installBrowser.run,
 };
 
 const USAGE = [
@@ -49,6 +51,7 @@ const USAGE = [
   `  ${preview.help}`,
   `  ${snapshot.help}`,
   `  ${exportVideo.help}`,
+  `  ${installBrowser.help}`,
   "Watch with your agent",
   `  ${live.help}`,
   "Share",

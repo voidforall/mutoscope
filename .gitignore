@@ -1,5 +1,4 @@
 node_modules/
-skills/mutoscope/runtime/
 dist/
 test-results/
 playwright-report/
