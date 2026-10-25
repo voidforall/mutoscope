@@ -20,6 +20,7 @@ const TYPE_NAMES: Record<Entity["type"], string> = {
   label: "Note",
   group: "Group",
   "diff-panel": "Before / after",
+  quote: "Quote",
 };
 
 export function InspectPanel({ manifest, entity, units, threads, onAsk, onClear, onOpenThreads }: InspectPanelProps) {
@@ -43,8 +44,9 @@ export function InspectPanel({ manifest, entity, units, threads, onAsk, onClear,
             <Icon name="close" size={15} />
           </button>
         </div>
-        <h2 className="panel-title">{accessibleName(entity)}</h2>
+        <h2 className={`panel-title${entity.type === "quote" ? " is-quote" : ""}`}>{entity.type === "quote" ? `“${entity.text}”` : accessibleName(entity)}</h2>
         {"sublabel" in entity && entity.sublabel && <p className="mono-sub">{entity.sublabel}</p>}
+        {entity.type === "quote" && entity.attribution && <p className="mono-sub">— {entity.attribution}</p>}
         {entity.explanation ? <p className="prose">{entity.explanation}</p> : <p className="prose is-muted">No explanation was provided for this element.</p>}
       </section>
       {entity.sourceRefs.length > 0 && (

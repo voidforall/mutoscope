@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import { ReelBundle, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
 import { edgeLabelFits, edgeSegment, gridToRect, rectsOverlap } from "./geometry";
-import { CODE_FONT_READABLE, spanForFullSize, textFont, type TextEntity } from "./text-fit";
+import { CODE_FONT_READABLE, QUOTE_FONT_READABLE, quoteFont, spanForFullSize, textFont, type TextEntity } from "./text-fit";
 import { sceneStateAt } from "./timeline";
 
 export interface Issue {
@@ -70,7 +70,7 @@ function checkEntities(scene: Scene, p: string): Issue[] {
   return issues;
 }
 
-const BOXED: ReadonlySet<Entity["type"]> = new Set(["component", "code-block", "label", "diff-panel"]);
+const BOXED: ReadonlySet<Entity["type"]> = new Set(["component", "code-block", "label", "diff-panel", "quote"]);
 
 function checkTimeline(scene: Scene, p: string): Issue[] {
   const byId = new Map(scene.entities.map((e) => [e.id, e]));
@@ -111,7 +111,10 @@ export function findOverlaps(scene: Scene): Array<[string, string]> {
   const replacePairs = new Set(
     scene.timeline.flatMap((a) => (a.action === "replace" ? [`${a.target}|${a.with}`, `${a.with}|${a.target}`] : [])),
   );
-  const boxed = scene.entities.filter((e) => BOXED.has(e.type));
+  // Group frames extend past their children (label above, padding around), so they can collide too.
+  const boxed = scene.entities.filter((e) => BOXED.has(e.type) || e.type === "group");
+  const members = new Set(scene.entities.flatMap((e) => (e.type === "group" ? e.children.map((c) => `${e.id}|${c}`) : [])));
+  const related = (a: string, b: string) => members.has(`${a}|${b}`) || members.has(`${b}|${a}`);
   const found = new Set<string>();
   for (let t = 0; t <= scene.durationMs; t += OVERLAP_SAMPLE_MS) {
     const { entities } = sceneStateAt(scene, t);
@@ -120,7 +123,7 @@ export function findOverlaps(scene: Scene): Array<[string, string]> {
         const a = entities[boxed[i]!.id];
         const b = entities[boxed[j]!.id];
         const key = `${boxed[i]!.id}|${boxed[j]!.id}`;
-        if (!a?.box || !b?.box || a.opacity < 0.5 || b.opacity < 0.5 || replacePairs.has(key)) continue;
+        if (!a?.box || !b?.box || a.opacity < 0.5 || b.opacity < 0.5 || replacePairs.has(key) || related(boxed[i]!.id, boxed[j]!.id)) continue;
         if (rectsOverlap(a.box, b.box)) found.add(key);
       }
     }
@@ -155,6 +158,13 @@ export function findTextSizeIssues(scene: Scene, p: string): Issue[] {
       const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten its lines or split it";
       return { path: `${p}.entities`, message: `text in '${e.id}' shrinks to ${fmtPx(font)} to fit its box; ${fix}` };
     });
+  for (const e of scene.entities) {
+    if (e.type !== "quote") continue;
+    const font = quoteFont(e.text, Boolean(e.attribution), gridToRect(e.layout));
+    if (font < QUOTE_FONT_READABLE) {
+      issues.push({ path: `${p}.entities`, message: `quote '${e.id}' shrinks to ${fmtPx(font)} to fit its box; give it more room or quote less` });
+    }
+  }
   if (sized.length > 1) {
     const fonts = sized.map((s) => s.font);
     if (Math.max(...fonts) - Math.min(...fonts) > MAX_FONT_SPREAD) {

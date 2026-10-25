@@ -1,14 +1,20 @@
 import { validateBundle, type ValidationResult } from "../../core";
 import type { ReelBundle } from "../../schema";
+import { checkDocuments } from "./document-check";
 import { checkSourceRefs } from "./source-check";
 import { CliError, loadRawReel } from "./reel-files";
 
-/** Load + validate; with a repo root also verify refs and snippets against git. */
+/**
+ * Load + validate. Pinned web pages are always checked (anchors, verbatim
+ * quotes); with a repo root, code refs and snippets are checked against git.
+ */
 export async function validateReelDir(dir: string, repoRoot?: string): Promise<ValidationResult> {
   const result = validateBundle(await loadRawReel(dir));
-  if (!result.ok || !result.bundle || !repoRoot) return result;
-  const refIssues = await checkSourceRefs(result.bundle, repoRoot);
-  return refIssues.length ? { ...result, ok: false, errors: [...result.errors, ...refIssues] } : result;
+  if (!result.ok || !result.bundle) return result;
+  const docs = await checkDocuments(result.bundle, dir);
+  const refIssues = repoRoot ? await checkSourceRefs(result.bundle, repoRoot) : [];
+  const errors = [...result.errors, ...docs.errors, ...refIssues];
+  return { ...result, ok: errors.length === 0, errors, warnings: [...result.warnings, ...docs.warnings] };
 }
 
 export async function loadValidReel(dir: string): Promise<ReelBundle> {

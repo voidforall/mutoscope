@@ -29,6 +29,16 @@ export const NoSource = z.object({ provider: z.literal("none") });
 export const ReelSource = z.discriminatedUnion("provider", [GithubSource, GitSource, NoSource]);
 export type ReelSource = z.infer<typeof ReelSource>;
 
+/** A web page snapshotted by `mutoscope ingest url`; refs to it are checked against the snapshot. */
+export const PinnedDocument = z.object({
+  url: HttpsUrl,
+  title: z.string().max(200).optional(),
+  retrievedAt: z.string().datetime({ offset: true }),
+  /** sha256 of the snapshot text in source/web/. */
+  sha256: z.string().regex(/^[0-9a-f]{64}$/),
+});
+export type PinnedDocument = z.infer<typeof PinnedDocument>;
+
 export const GithubDiscussionsCollab = z.object({
   adapter: z.literal("github-discussions"),
   repository: RepoSlug,
@@ -54,6 +64,7 @@ export const Manifest = z.object({
   kicker: z.string().max(60).optional(),
   createdAt: z.string().datetime({ offset: true }),
   source: ReelSource,
+  documents: z.array(PinnedDocument).default([]),
   /** Scene a plain link opens on; defaults to the first scene. */
   entrySceneId: Id.optional(),
   collaboration: Collaboration.optional(),

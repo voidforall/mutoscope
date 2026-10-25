@@ -23,6 +23,8 @@ The file is one object with a `scenes` array, in playing order. The reel opens o
   | rowSpan | 2 | 3 | 4 | 5 | 6 |
   |---|---|---|---|---|---|
   | lines | 4 | 7 | 10 | 14 | 17 |
+
+- A `quote` sizes its text to the box. Give it about 1 column per 12 characters at 2 rows (for example, 6 × 2 for a 70-character line); `validate` warns when it would shrink too small.
 - Visible boxes must not overlap — `validate` warns at every sampled instant. Groups are the exception: they wrap their children automatically and need ~40 units of headroom above the children for their label, so leave the row above a grouped child empty or keep it ≥ 1 row away from other content.
 - Edges are straight lines aimed from one box's **centre** to the other's, clipped at their borders. So two boxes on the same row only get a horizontal edge when they also have the same `row` *and* `rowSpan` (likewise `col`/`colSpan` for vertical edges). Labelled edges need room: `validate` warns when an edge is too short for its label. Avoid diagonals crossing other boxes or labels.
 
@@ -37,7 +39,8 @@ Every entity has `id` (kebab-case, unique within the scene), optional `explanati
 | `code-block` | `code` (≤ 24 lines), `layout` | `label`, `language`, `startLine`, `highlightLines` (real line numbers), `lineNumbers` (default `true`) | the few lines that matter; with `lineNumbers: false`, any verbatim monospace text (a wire format, a log, a transcript) |
 | `diff-panel` | `before`, `after` (≤ 24 lines each), `layout` | `label`, `language` | before/after comparison; line diff is computed for you |
 | `label` | `text` (≤ 280), `layout` | `size` sm/md/lg/xl, `align` start/center | a takeaway sentence on stage |
-| `group` | `children` (component/code/label/diff ids) | `label` (≤ 40) | a boundary: cache line, process, team, layer |
+| `quote` | `text` (≤ 400, verbatim), `layout` | `attribution` (≤ 80) | the line from a source that carries the point; checked against pinned pages via its `url` sourceRef |
+| `group` | `children` (component/code/label/diff/quote ids) | `label` (≤ 40) | a boundary: cache line, process, team, layer |
 
 Tones carry meaning — use them consistently across the reel: `neutral` (default), `accent` (the protagonist of this scene), `added` (new / good path), `removed` (old / failing path), `warning` (contention, risk), `muted` (context).
 
@@ -82,7 +85,7 @@ Visibility rule: an entity whose first visibility action is `appear`/`connect` (
 
 ## Source refs
 
-`{ "kind": "code", "path": "repo/relative.ts", "startLine": 10, "endLine": 20, "revision": "head" }` — `revision` is `head` (default), `base` (needs `baseSha`) or a SHA. Links resolve to the pinned commit on GitHub. `{ "kind": "url", "url": "https://…", "title": "…" }` for docs and papers (https only).
+`{ "kind": "code", "path": "repo/relative.ts", "startLine": 10, "endLine": 20, "revision": "head" }` — `revision` is `head` (default), `base` (needs `baseSha`) or a SHA. Links resolve to the pinned commit on GitHub. `{ "kind": "url", "url": "https://…#section", "title": "…", "quote": "verbatim words" }` for web pages (https only). Pin pages with `mutoscope ingest url`. `validate` then checks that the `#section` anchor exists and that `quote` appears word for word in the snapshot ("…" joins separate passages). Evidence claims citing a pinned page should carry a quote.
 
 ## Layout patterns that read well
 

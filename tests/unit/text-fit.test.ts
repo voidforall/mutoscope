@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { codeBlockFont, CODE_FONT_MAX, findTextSizeIssues, gridToRect, resolveDeepLink, validateBundle } from "../../src/core";
+import { codeBlockFont, CODE_FONT_MAX, findOverlaps, findTextSizeIssues, gridToRect, resolveDeepLink, validateBundle } from "../../src/core";
 import { Scene } from "../../src/schema";
 import { exampleRaw } from "./fixtures";
 
@@ -49,5 +49,29 @@ describe("entry scene", () => {
     const raw = structuredClone(exampleRaw()) as any;
     raw.manifest.entrySceneId = "nope";
     expect(validateBundle(raw).errors.map((e) => e.path)).toContain("manifest.entrySceneId");
+  });
+});
+
+describe("group frames", () => {
+  const sceneOf = (belowRow: number) =>
+    Scene.parse({
+      id: "s", title: "S", durationMs: 4000, narration: "n", timeline: [],
+      entities: [
+        { id: "a", type: "component", label: "A", layout: { col: 1, row: 5, colSpan: 3, rowSpan: 2 } },
+        { id: "g", type: "group", label: "Where it breaks", children: ["a"] },
+        { id: "below", type: "component", label: "B", layout: { col: 1, row: belowRow, colSpan: 3, rowSpan: 1 } },
+      ],
+    });
+
+  it("count as overlapping a box that sits inside their padding", () => {
+    expect(findOverlaps(sceneOf(7))).toEqual([["g", "below"]]);
+  });
+
+  it("leave room once the box is a row away", () => {
+    expect(findOverlaps(sceneOf(8))).toEqual([]);
+  });
+
+  it("never overlap their own children", () => {
+    expect(findOverlaps(sceneOf(8)).flat()).not.toContain("a");
   });
 });

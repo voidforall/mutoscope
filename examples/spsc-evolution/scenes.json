@@ -841,9 +841,9 @@
         {
           "id": "align-code",
           "type": "code-block",
-          "label": "Fifo3.hpp:103-112",
+          "label": "Fifo3.hpp:103-109",
           "language": "cpp",
-          "code": "static constexpr auto hardware_destructive_interference_size = size_type{64};\n\n/// Loaded and stored by the push thread; loaded by the pop thread\nalignas(hardware_destructive_interference_size) CursorType pushCursor_;\n\n/// Loaded and stored by the pop thread; loaded by the push thread\nalignas(hardware_destructive_interference_size) CursorType popCursor_;\n\n// Padding to avoid false sharing with adjacent objects\nchar padding_[hardware_destructive_interference_size - sizeof(size_type)];",
+          "code": "static constexpr auto hardware_destructive_interference_size = size_type{64};\n\n/// Loaded and stored by the push thread; loaded by the pop thread\nalignas(hardware_destructive_interference_size) CursorType pushCursor_;\n\n/// Loaded and stored by the pop thread; loaded by the push thread\nalignas(hardware_destructive_interference_size) CursorType popCursor_;",
           "startLine": 103,
           "highlightLines": [
             106,
@@ -851,16 +851,16 @@
           ],
           "layout": {
             "col": 2,
-            "row": 5,
+            "row": 6,
             "colSpan": 10,
-            "rowSpan": 4
+            "rowSpan": 3
           },
           "sourceRefs": [
             {
               "kind": "code",
               "path": "Fifo3.hpp",
               "startLine": 103,
-              "endLine": 112
+              "endLine": 109
             }
           ]
         }
@@ -966,7 +966,7 @@
               "kind": "code",
               "path": "Fifo3.hpp",
               "startLine": 103,
-              "endLine": 112
+              "endLine": 109
             }
           ]
         },

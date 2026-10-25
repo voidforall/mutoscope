@@ -25,7 +25,7 @@ The analysis is the reel's memory: the storyboard draws from it, the Inspect pan
 
 ## Evidence discipline
 
-- `evidence` — directly visible in a cited source: code, tests, the PR description, a doc, a log line. Must carry `refs`; `validate` enforces it.
+- `evidence` — directly visible in a cited source: code, tests, the PR description, a doc, an article, a log line. Must carry `refs`; `validate` enforces it. For a pinned web page, include the supporting words as `quote` on the url ref; `validate` checks them against the snapshot.
 - `inference` — your reasoning: motivation not stated anywhere, performance effects not measured, intent read between the lines. Say so plainly; the player badges it.
 - A PR description is evidence of *what the author says*, not of behaviour. "The PR says X" can be evidence; "X is faster" needs a benchmark ref or is inference.
 - `confidence` is about the unit as a whole: `high` when its core claims are evidence, `low` when it rests on inference.

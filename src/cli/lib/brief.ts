@@ -21,6 +21,7 @@ export function answerBrief(bundle: ReelBundle, question: BriefQuestion, note: s
     note,
     question: { ...meta, text },
     pinnedSource: source.provider === "none" ? null : { repository: source.repository ?? null, headSha: source.headSha, baseSha: source.baseSha ?? null },
+    pinnedPages: bundle.manifest.documents.map((d) => ({ url: d.url, title: d.title ?? null, retrievedAt: d.retrievedAt, snapshot: "source/web/ in the reel directory" })),
     versionDrift: context.reelVersion !== bundle.manifest.version ? `asked on v${context.reelVersion}, local reel is v${bundle.manifest.version}` : null,
     anchor: context,
     scene: scene ? { id: scene.id, title: scene.title, narration: scene.narration, claims: scene.claims } : null,

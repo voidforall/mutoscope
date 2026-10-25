@@ -1,5 +1,5 @@
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
-import { codeBlockFont, diffLines, diffPanelFont, type EntityState, type Rect } from "../../core";
+import { codeBlockFont, diffLines, diffPanelFont, quoteFont, type EntityState, type Rect } from "../../core";
 import type { BoxedEntity, Entity } from "../../schema";
 import { emphasisStyle } from "./emphasis";
 
@@ -50,7 +50,7 @@ function NodeFrame({ entity, state, box, selected, threadCount, onSelect, childr
 }
 
 export function accessibleName(e: Entity): string {
-  if (e.type === "label") return e.text.slice(0, 60);
+  if (e.type === "label" || e.type === "quote") return e.text.slice(0, 60);
   return ("label" in e && e.label) || e.id;
 }
 
@@ -105,6 +105,15 @@ export function EntityNode(props: NodeProps) {
         </NodeFrame>
       );
     }
+    case "quote":
+      return (
+        <NodeFrame {...props}>
+          <blockquote className="quote-text" style={{ fontSize: quoteFont(entity.text, Boolean(entity.attribution), box) }}>
+            “{entity.text}”
+          </blockquote>
+          {entity.attribution && <span className="quote-attrib">— {entity.attribution}</span>}
+        </NodeFrame>
+      );
     case "diff-panel": {
       const d = diffLines(entity.before, entity.after);
       const fsRows = diffPanelFont(entity, box);

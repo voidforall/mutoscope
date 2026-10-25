@@ -2,7 +2,7 @@
 name: concept
 description: Explain an idea — an algorithm, protocol, data structure, paper or design pattern — as an animated, inspectable explainer.
 inputs: a topic or question, optionally documents, papers, URLs or code that ground it
-ingest: none — gather the sources the user named; cite them as url or code refs
+ingest: mutoscope ingest url <url> --reel <dir> for each web source; code is pinned like a codebase tour
 kinds: definition, mechanism, invariant, example, tradeoff, failure-mode, comparison
 ---
 
@@ -12,7 +12,8 @@ Teach one idea well. The viewer should be able to restate the mechanism and pred
 
 ## Ingest
 
-- Use the sources the user gave. If none, use well-known primary sources (papers, specs, official docs) and cite them as `url` refs; do not invent citations.
+- Use the sources the user gave. If none, use well-known primary sources (papers, specs, official docs); do not invent citations.
+- Pin each web source with `mutoscope ingest url <url> --reel <dir>` and read it from the snapshot it writes, so `url` refs can carry verbatim `quote`s that `validate` checks. For a single article or post the user wants explained, use the `article` recipe instead.
 - If example code grounds the concept, pin it like a codebase tour (`source.provider` `git`/`github` with `headSha`); otherwise `source: { "provider": "none" }` and only `url` refs.
 
 ## Analysis

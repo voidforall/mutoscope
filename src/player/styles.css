@@ -352,6 +352,29 @@ kbd {
 .label-text.size-xl { font-size: 46px; font-weight: 700; letter-spacing: -0.02em; }
 .label-text.align-center { text-align: center; }
 
+/* Pull quote: verbatim words from a pinned source. */
+.node-quote {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 26px 18px 32px;
+  border: none;
+  border-left: 5px solid var(--tone);
+  border-radius: 6px 16px 16px 6px;
+}
+.tone-neutral.node-quote { border-left-color: var(--accent); }
+.quote-text {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--ink);
+  text-wrap: pretty;
+  overflow: hidden;
+}
+.quote-attrib { font: 500 18px/1.2 var(--mono); color: var(--ink-2); }
+
 .node-code-block, .node-diff-panel {
   display: flex;
   flex-direction: column;
@@ -511,6 +534,7 @@ kbd {
   color: var(--ink-3);
 }
 .panel-title { margin: 0 0 8px; font-size: 19px; line-height: 1.25; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.panel-title.is-quote { font: italic 500 19px/1.4 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; letter-spacing: 0; }
 .section-label { margin: 0 0 10px; font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
 .prose { margin: 0; color: var(--ink-2); line-height: 1.6; text-wrap: pretty; }
 .prose.is-muted { color: var(--ink-3); font-style: italic; }
@@ -548,8 +572,18 @@ kbd {
   text-decoration: none;
 }
 a.ref:hover { border-color: var(--accent); color: var(--accent); }
-.ref-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ref-list > li { min-width: 0; max-width: 100%; }
+.ref-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ref.is-plain { color: var(--ink-2); }
+.ref-list li.has-quote { flex-basis: 100%; }
+.ref-quote {
+  margin: 6px 0 2px;
+  padding: 2px 0 2px 10px;
+  border-left: 2px solid var(--line-strong);
+  font: italic 13px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
 
 .chapters { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
 .chapter-btn {

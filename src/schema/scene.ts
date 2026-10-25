@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Id } from "./common";
 import { Claim } from "./analysis";
-import { SourceRef } from "./source-ref";
+import { MAX_QUOTE, SourceRef } from "./source-ref";
 
 /** Scenes are laid out on a fixed 12 x 8 grid over a 16:9 stage. */
 export const GRID_COLS = 12;
@@ -83,6 +83,16 @@ export const GroupEntity = z.object({
   children: z.array(Id).min(1),
 });
 
+/** Verbatim words from a source, shown as a pull quote. Checked against pinned documents. */
+export const QuoteEntity = z.object({
+  ...EntityBase,
+  type: z.literal("quote"),
+  text: z.string().trim().min(1).max(MAX_QUOTE),
+  /** Who said or wrote it, e.g. "Simon, the author". */
+  attribution: z.string().max(80).optional(),
+  layout: GridBox,
+});
+
 export const DiffPanelEntity = z.object({
   ...EntityBase,
   type: z.literal("diff-panel"),
@@ -100,10 +110,12 @@ export const Entity = z.discriminatedUnion("type", [
   LabelEntity,
   GroupEntity,
   DiffPanelEntity,
+  QuoteEntity,
 ]);
 export type Entity = z.infer<typeof Entity>;
 export type CodeBlockEntity = z.infer<typeof CodeBlockEntity>;
 export type DiffPanelEntity = z.infer<typeof DiffPanelEntity>;
+export type QuoteEntity = z.infer<typeof QuoteEntity>;
 export type EntityType = Entity["type"];
 export type BoxedEntity = Extract<Entity, { layout: GridBox }>;
 

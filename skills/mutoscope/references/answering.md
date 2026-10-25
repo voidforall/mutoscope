@@ -6,7 +6,7 @@ Viewers ask from inside the player; each question is a GitHub Discussion whose b
 
 1. **Inbox.** `mutoscope inbox <reel-dir>` lists open questions (`--all` includes answered and closed). *Done when you have shown the author the list and they picked one, or said to take them in order.*
 2. **Brief.** `mutoscope question <reel-dir> <n>` prints the question, the resolved scene and entity, related analysis units, the approved rationale and the pinned SHAs. If it reports `versionDrift`, answer about the version the viewer saw and say so.
-3. **Read the pinned source.** Use the SHAs from the brief: `git fetch origin <headSha>` if needed, then `git show <headSha>:<path>`. Read the referenced lines, their callers and tests. Do not check out branches or run code to answer.
+3. **Read the pinned source.** Use the SHAs from the brief: `git fetch origin <headSha>` if needed, then `git show <headSha>:<path>`. Read the referenced lines, their callers and tests. Do not check out branches or run code to answer. For `pinnedPages`, read the snapshots in the reel's `source/web/` and quote them; the live page may have changed since.
 4. **Draft** into a markdown file:
    - Answer first, in one or two sentences.
    - Then the support, citing pinned lines as links (`https://github.com/<repo>/blob/<sha>/<path>#L10-L20`).

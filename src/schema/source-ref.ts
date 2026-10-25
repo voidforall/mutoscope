@@ -28,10 +28,15 @@ export const CodeRef = z
   });
 export type CodeRef = z.infer<typeof CodeRef>;
 
+export const MAX_QUOTE = 400;
+
 export const UrlRef = z.object({
   kind: z.literal("url"),
+  /** May end in `#anchor`; for a pinned document, validate checks the anchor exists. */
   url: HttpsUrl,
   title: z.string().min(1).max(200).optional(),
+  /** Verbatim words from the page ("…" may join separate passages); validate checks them against the pinned snapshot. */
+  quote: z.string().trim().min(1).max(MAX_QUOTE).optional(),
 });
 export type UrlRef = z.infer<typeof UrlRef>;
 

@@ -37,7 +37,7 @@ Run `poll` in the foreground. If your harness can't keep a command running that 
 
 ## Writing the answer
 
-- Same evidence rules as [answering.md](answering.md). Read the pinned source with `git show <headSha>:<path>`, cite pinned lines as `https://github.com/<repo>/blob/<sha>/<path>#L10-L20`, and label anything you did not see in code, tests or the approved rationale as inference.
+- Same evidence rules as [answering.md](answering.md). Read the pinned source with `git show <headSha>:<path>` and cite pinned lines as `https://github.com/<repo>/blob/<sha>/<path>#L10-L20`. For an article reel, read the snapshot in `source/web/` and quote it. Label anything you did not see in the sources or the approved rationale as inference.
 - Answer first, in a sentence or two. The answer renders in a narrow side panel, so keep it short: a few short paragraphs or a list.
 - **Link moments in the reel** with relative links: `[the release store](?scene=happens-before&t=4000&entity=push-cursor)`. A click seeks the player there and selects the entity. Use scene and entity ids from the reel. `t` is in milliseconds within the scene.
 - Supported Markdown: paragraphs, `##` headings, `-` and `1.` lists, fenced code, `inline code`, **bold**, *italic*, and links. HTML is shown as text. Links other than `?scene=…` and `http(s)://…` are not clickable.
