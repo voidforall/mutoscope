@@ -50,3 +50,10 @@ for (const theme of ["light", "dark"] as const) {
     expect(await body.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
   });
 }
+
+test("code renders operators verbatim, without ligatures", async ({ page: p }) => {
+  await p.goto(`${page}?scene=drop-the-lock&t=12000`);
+  await p.waitForFunction(() => (window as any).mutoscope?.ready);
+  const ligatures = await p.locator(".code-lines").first().evaluate((el) => getComputedStyle(el).fontVariantLigatures);
+  expect(ligatures).toBe("none");
+});

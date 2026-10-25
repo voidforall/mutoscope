@@ -1,4 +1,4 @@
-import { resolveRevision, type Issue } from "../../core";
+import { isElision, resolveRevision, type Issue } from "../../core";
 import type { ReelBundle, SourceRef } from "../../schema";
 import { exec } from "./exec";
 
@@ -18,9 +18,7 @@ function* codeRefs(bundle: ReelBundle): Generator<[string, Extract<SourceRef, { 
 
 type CodeRef = Extract<SourceRef, { kind: "code" }>;
 
-/** A line standing for omitted code: "…" or "...", optionally inside a comment. */
-const ELISION = /^\s*(?:\/\/+|#|--|;+|\/\*+|\*)?\s*(?:\u2026|\.\.\.)\s*(?:\*+\/)?\s*$/;
-export const isElision = (line: string) => ELISION.test(line);
+export { isElision };
 
 export type ExcerptMatch = { readonly ok: true } | { readonly ok: false; readonly line: number; readonly text: string };
 

@@ -85,3 +85,17 @@ describe("stage text", () => {
     expect(findMarkdownInStageText(s, "p").map((i) => i.message)).toEqual([expect.stringContaining("'l' has Markdown")]);
   });
 });
+
+describe("component text", () => {
+  const comp = (label: string, sublabel: string | undefined, layout: object) => ({ id: "c", type: "component", label, ...(sublabel ? { sublabel } : {}), layout });
+
+  it("warns when a label or sublabel would be clipped by its box", () => {
+    const s = sceneWith([comp("Blocker task", "notifies victim, then spins", { col: 1, row: 1, colSpan: 2, rowSpan: 1 })]);
+    expect(findTextSizeIssues(s, "p").map((i) => i.message)).toEqual([expect.stringMatching(/component 'c' text doesn't fit its box.*colSpan 3/)]);
+  });
+
+  it("is quiet for text that fits", () => {
+    const s = sceneWith([comp("Worker A", "never yields", { col: 1, row: 1, colSpan: 2, rowSpan: 1 })]);
+    expect(findTextSizeIssues(s, "p")).toEqual([]);
+  });
+});

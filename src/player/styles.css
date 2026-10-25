@@ -32,6 +32,7 @@
   --radius: 14px;
   --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: "JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+  --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -114,6 +115,8 @@ body {
   color: var(--ink);
   font: 15px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
+  /* Code is quoted verbatim: "==" must not become a ligature. */
+  font-variant-ligatures: none;
 }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
@@ -366,7 +369,7 @@ kbd {
 .tone-neutral.node-quote { border-left-color: var(--accent); }
 .quote-text {
   margin: 0;
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  font-family: var(--serif);
   font-style: italic;
   line-height: 1.4;
   color: var(--ink);
@@ -421,6 +424,7 @@ kbd {
 .code-line.is-removed .ln { color: var(--t-removed); }
 .code-line.is-added { background: var(--t-added-soft); }
 .code-line.is-added .ln { color: var(--t-added); }
+.code-line.is-elided { background: none; color: var(--ink-3); font-style: italic; }
 .diff-cols { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .diff-col { min-width: 0; display: flex; flex-direction: column; padding-top: 10px; }
 .diff-col + .diff-col { border-left: 1px solid var(--line); }
@@ -536,7 +540,7 @@ kbd {
   color: var(--ink-3);
 }
 .panel-title { margin: 0 0 8px; font-size: 19px; line-height: 1.25; letter-spacing: -0.01em; overflow-wrap: anywhere; }
-.panel-title.is-quote { font: italic 500 19px/1.4 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; letter-spacing: 0; }
+.panel-title.is-quote { font: italic 500 19px/1.4 var(--serif); letter-spacing: 0; }
 .section-label { margin: 0 0 10px; font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
 .prose { margin: 0; color: var(--ink-2); line-height: 1.6; text-wrap: pretty; }
 .prose.is-muted { color: var(--ink-3); font-style: italic; }
@@ -582,7 +586,7 @@ a.ref:hover { border-color: var(--accent); color: var(--accent); }
   margin: 6px 0 2px;
   padding: 2px 0 2px 10px;
   border-left: 2px solid var(--line-strong);
-  font: italic 13px/1.5 "Iowan Old Style", Palatino, Georgia, serif;
+  font: italic 13px/1.5 var(--serif);
   color: var(--ink-2);
   overflow-wrap: anywhere;
 }

@@ -9,8 +9,9 @@ export interface Page {
   goto(url: string): Promise<unknown>;
   waitForFunction(fn: string): Promise<unknown>;
   evaluate(fn: string): Promise<unknown>;
-  screenshot(o: { type: "png" }): Promise<Buffer>;
-  locator(sel: string): { screenshot(o: { path: string }): Promise<unknown> };
+  screenshot(o: { type: "png"; fullPage?: boolean; path?: string }): Promise<Buffer>;
+  setContent(html: string): Promise<void>;
+  locator(sel: string): { screenshot(o: { path?: string }): Promise<Buffer> };
   on(event: "pageerror", fn: (e: Error) => void): void;
   emulateMedia(o: { colorScheme: string; reducedMotion: string }): Promise<void>;
 }

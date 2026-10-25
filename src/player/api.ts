@@ -7,7 +7,8 @@ import type { PlayerEvent, PlayerState } from "./state";
  * frame capture (video export) and embedding hosts.
  */
 export interface MutoscopeApi {
-  readonly ready: true;
+  /** True once the bundled fonts have loaded, so frames captured from here on are final. */
+  readonly ready: boolean;
   readonly durationMs: number;
   seek(sceneId: string, tMs: number): void;
   /** Seek on the reel-wide clock (used by video export). */
@@ -19,8 +20,11 @@ export interface MutoscopeApi {
 }
 
 export function installApi(scenes: readonly Scene[], get: () => PlayerState, dispatch: (e: PlayerEvent) => void): () => void {
+  let ready = false;
   const api: MutoscopeApi = {
-    ready: true,
+    get ready() {
+      return ready;
+    },
     durationMs: totalDuration(scenes),
     seekGlobal: (ms) => {
       const pos = locate(scenes, ms);
@@ -36,6 +40,10 @@ export function installApi(scenes: readonly Scene[], get: () => PlayerState, dis
     state: () => ({ ...get(), sceneId: scenes[get().index]!.id }),
   };
   (window as unknown as { mutoscope?: MutoscopeApi }).mutoscope = api;
+  const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+  void (fonts ? fonts.ready : Promise.resolve()).then(() => {
+    ready = true;
+  });
   return () => {
     delete (window as unknown as { mutoscope?: MutoscopeApi }).mutoscope;
   };

@@ -20152,6 +20152,7 @@ function renderReelHtml(bundle, playerJs, playerCss, live) {
     `script-src 'sha256-${sha256(js)}'`,
     `style-src 'sha256-${sha256(css)}'`,
     "img-src data:",
+    "font-src data:",
     ...live ? ["connect-src 'self'"] : [],
     "base-uri 'none'",
     "form-action 'none'"
@@ -20466,6 +20467,10 @@ function sceneStateAt(scene, tMs) {
   return { entities: withGroupBoxes(scene, end2.entities), camera: end2.camera };
 }
 
+// src/core/font-metrics.ts
+var INTER_SEMIBOLD = { "0": 0.67, "1": 0.43, "2": 0.63, "3": 0.64, "4": 0.67, "5": 0.62, "6": 0.64, "7": 0.58, "8": 0.65, "9": 0.64, " ": 0.24, "!": 0.33, '"': 0.54, "#": 0.65, "$": 0.65, "%": 1.01, "&": 0.67, "'": 0.33, "(": 0.38, ")": 0.38, "*": 0.55, "+": 0.68, ",": 0.33, "-": 0.47, ".": 0.33, "/": 0.38, ":": 0.33, ";": 0.34, "<": 0.68, "=": 0.68, ">": 0.68, "?": 0.55, "@": 1.01, "A": 0.74, "B": 0.66, "C": 0.74, "D": 0.72, "E": 0.61, "F": 0.59, "G": 0.75, "H": 0.75, "I": 0.28, "J": 0.58, "K": 0.71, "L": 0.57, "M": 0.93, "N": 0.76, "O": 0.77, "P": 0.65, "Q": 0.77, "R": 0.65, "S": 0.65, "T": 0.66, "U": 0.73, "V": 0.74, "W": 1.03, "X": 0.73, "Y": 0.72, "Z": 0.66, "[": 0.38, "\\": 0.38, "]": 0.38, "^": 0.48, "_": 0.47, "`": 0.36, "a": 0.58, "b": 0.63, "c": 0.59, "d": 0.63, "e": 0.59, "f": 0.39, "g": 0.63, "h": 0.62, "i": 0.27, "j": 0.27, "k": 0.57, "l": 0.27, "m": 0.91, "n": 0.62, "o": 0.61, "p": 0.63, "q": 0.63, "r": 0.4, "s": 0.55, "t": 0.36, "u": 0.62, "v": 0.59, "w": 0.84, "x": 0.57, "y": 0.6, "z": 0.57, "{": 0.46, "|": 0.37, "}": 0.46, "~": 0.68, "\xB7": 0.33, "\u2013": 0.5, "\u2014": 1, "\u2026": 0.98, "\u2019": 0.3, "\u201C": 0.52, "\u201D": 0.52, "\u2192": 1, "\xD7": 0.68, "\u2248": 0.55 };
+var SERIF_ITALIC = { "0": 0.54, "1": 0.54, "2": 0.54, "3": 0.54, "4": 0.54, "5": 0.54, "6": 0.54, "7": 0.54, "8": 0.54, "9": 0.54, " ": 0.23, "!": 0.31, '"': 0.46, "#": 0.57, "$": 0.52, "%": 0.93, "&": 0.7, "'": 0.26, "(": 0.39, ")": 0.39, "*": 0.48, "+": 0.53, ",": 0.3, "-": 0.31, ".": 0.3, "/": 0.34, ":": 0.3, ";": 0.3, "<": 0.53, "=": 0.53, ">": 0.53, "?": 0.46, "@": 0.88, "A": 0.68, "B": 0.62, "C": 0.61, "D": 0.7, "E": 0.6, "F": 0.57, "G": 0.67, "H": 0.77, "I": 0.37, "J": 0.36, "K": 0.69, "L": 0.58, "M": 0.94, "N": 0.75, "O": 0.67, "P": 0.57, "Q": 0.67, "R": 0.65, "S": 0.51, "T": 0.59, "U": 0.73, "V": 0.65, "W": 0.92, "X": 0.67, "Y": 0.59, "Z": 0.56, "[": 0.35, "\\": 0.33, "]": 0.35, "^": 0.53, "_": 0.51, "`": 0.4, "a": 0.55, "b": 0.52, "c": 0.43, "d": 0.56, "e": 0.44, "f": 0.33, "g": 0.51, "h": 0.58, "i": 0.32, "j": 0.28, "k": 0.5, "l": 0.3, "m": 0.87, "n": 0.6, "o": 0.53, "p": 0.54, "q": 0.52, "r": 0.43, "s": 0.38, "t": 0.35, "u": 0.6, "v": 0.51, "w": 0.78, "x": 0.56, "y": 0.52, "z": 0.49, "{": 0.39, "|": 0.29, "}": 0.39, "~": 0.53, "\xB7": 0.3, "\u2013": 0.51, "\u2014": 0.81, "\u2026": 0.82, "\u2019": 0.27, "\u201C": 0.49, "\u201D": 0.49, "\u2192": 1, "\xD7": 0.53, "\u2248": 0.55 };
+
 // src/core/line-diff.ts
 function diffLines(before, after) {
   const a = before.split("\n");
@@ -20490,6 +20495,8 @@ function diffLines(before, after) {
     after: b.map((text, i) => ({ kind: keptB.has(i) ? "same" : "added", text }))
   };
 }
+var ELISION = /^\s*(?:\/\/+|#|--|;+|\/\*+|\*)?\s*(?:\u2026|\.\.\.)\s*(?:\*+\/)?\s*$/;
+var isElision = (line) => ELISION.test(line);
 
 // src/core/text-fit.ts
 var CODE_FONT_MAX = 20;
@@ -20533,20 +20540,28 @@ function spanForFullSize(e) {
 var QUOTE_FONT_MAX = 34;
 var QUOTE_FONT_MIN = 14;
 var QUOTE_FONT_READABLE = 20;
-var QUOTE_CHAR_EM = 0.44;
 var QUOTE_LINE_EM = 1.4;
 var QUOTE_STEP = 0.5;
 var QUOTE_CHROME = { padX: 58, padY: 36, attribution: 34 };
-function wrappedLines(text, font, width) {
-  const perLine = Math.max(1, Math.floor(width / (font * QUOTE_CHAR_EM)));
+var UNKNOWN_EM = 0.9;
+var METRIC_MARGIN = 1.02;
+function proportionalEm(text, m = INTER_SEMIBOLD) {
+  let em = 0;
+  for (const ch of text) em += m[ch] ?? UNKNOWN_EM;
+  return em * METRIC_MARGIN;
+}
+function wrappedLines(text, font, width, style = {}) {
+  const advance = (s) => (style.monoEm === void 0 ? proportionalEm(s, style.metrics) : s.length * style.monoEm) * font;
+  const space = advance(" ");
   let lines = 1;
   let used = 0;
-  for (const word of text.split(/\s+/)) {
-    const need = (used === 0 ? 0 : 1) + word.length;
-    if (used + need <= perLine) used += need;
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const w = advance(word);
+    if (used > 0 && used + space + w <= width) used += space + w;
+    else if (used === 0 && w <= width) used = w;
     else {
-      lines += Math.ceil(word.length / perLine);
-      used = word.length % perLine;
+      lines += used === 0 ? Math.ceil(w / width) - 1 : Math.ceil(w / width);
+      used = w % width;
     }
   }
   return lines;
@@ -20556,9 +20571,29 @@ function quoteFont(text, attributed, box) {
   const h = box.h - QUOTE_CHROME.padY - (attributed ? QUOTE_CHROME.attribution : 0);
   const shown = `\u201C${text}\u201D`;
   for (let font = QUOTE_FONT_MAX; font > QUOTE_FONT_MIN; font -= QUOTE_STEP) {
-    if (wrappedLines(shown, font, w) * font * QUOTE_LINE_EM <= h) return font;
+    if (wrappedLines(shown, font, w, { metrics: SERIF_ITALIC }) * font * QUOTE_LINE_EM <= h) return font;
   }
   return QUOTE_FONT_MIN;
+}
+var COMPONENT = { padX: 32, padY: 24, squeeze: 4, gap: 6, maxLines: 2 };
+var TITLE = { font: 29, lineEm: 1.15 };
+var SUB = { font: 18, lineEm: 1.25, monoEm: 0.6 };
+function componentTextFits(e, box) {
+  const w = box.w - COMPONENT.padX;
+  const titleLines = wrappedLines(e.label, TITLE.font, w, { metrics: INTER_SEMIBOLD });
+  const subLines = e.sublabel ? wrappedLines(e.sublabel, SUB.font, w, { monoEm: SUB.monoEm }) : 0;
+  if (titleLines > COMPONENT.maxLines || subLines > COMPONENT.maxLines) return false;
+  const height = titleLines * TITLE.font * TITLE.lineEm + (subLines ? COMPONENT.gap + subLines * SUB.font * SUB.lineEm : 0);
+  return height <= box.h - COMPONENT.padY + COMPONENT.squeeze;
+}
+function componentSpanThatFits(e) {
+  const { col, row } = e.layout;
+  for (let rowSpan = e.layout.rowSpan; row + rowSpan - 1 <= GRID_ROWS; rowSpan++) {
+    for (let colSpan = e.layout.colSpan; col + colSpan - 1 <= GRID_COLS; colSpan++) {
+      if (componentTextFits(e, gridToRect({ col, row, colSpan, rowSpan }))) return { colSpan, rowSpan };
+    }
+  }
+  return void 0;
 }
 
 // src/core/validate.ts
@@ -20709,6 +20744,12 @@ function findTextSizeIssues(scene, p) {
     const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten its lines or split it";
     return { path: `${p}.entities`, message: `text in '${e.id}' shrinks to ${fmtPx(font)} to fit its box; ${fix}` };
   });
+  for (const e of scene.entities) {
+    if (e.type !== "component" || componentTextFits(e, gridToRect(e.layout))) continue;
+    const span = componentSpanThatFits(e);
+    const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten the label or sublabel";
+    issues.push({ path: `${p}.entities`, message: `component '${e.id}' text doesn't fit its box and will be cut off; ${fix}` });
+  }
   for (const e of scene.entities) {
     if (e.type !== "quote") continue;
     const font = quoteFont(e.text, Boolean(e.attribution), gridToRect(e.layout));
@@ -23841,8 +23882,6 @@ function* codeRefs(bundle) {
     for (const [ci, c2] of u.claims.entries()) yield* visit2(c2.refs, `analysis.units[${ui}].claims[${ci}].refs`);
   }
 }
-var ELISION = /^\s*(?:\/\/+|#|--|;+|\/\*+|\*)?\s*(?:\u2026|\.\.\.)\s*(?:\*+\/)?\s*$/;
-var isElision = (line) => ELISION.test(line);
 function matchExcerpt(excerpt, file2, start, end2) {
   const range = file2.slice(start - 1, end2).map((l) => l.trim());
   const chunks = [];
@@ -25521,6 +25560,7 @@ import { join as join20, resolve as resolve7 } from "node:path";
 import { pathToFileURL as pathToFileURL4 } from "node:url";
 var help11 = "snapshot <reel-dir> [--out <dir>] [--theme light|dark] [--at beats|end|mid|both]  PNGs for visual review";
 var AT = ["beats", "end", "mid", "both"];
+var TRANSITION_SHARE = 0.3;
 function captureTimes(scene, at) {
   const end2 = { name: "end", tMs: scene.durationMs };
   const mid = { name: "mid", tMs: Math.round(scene.durationMs / 2) };
@@ -25529,10 +25569,22 @@ function captureTimes(scene, at) {
   if (at === "both") return [mid, end2];
   const cues = [...scene.cues].sort((a, b) => a.atMs - b.atMs);
   if (cues.length === 0) return [end2];
-  return cues.map((c2, i) => ({
-    name: `beat${i + 1}`,
-    tMs: Math.max(c2.atMs, (cues[i + 1]?.atMs ?? scene.durationMs + 1) - 1)
-  }));
+  return cues.map((c2, i) => {
+    const end3 = cues[i + 1]?.atMs ?? scene.durationMs + 1;
+    const tail = end3 - (end3 - c2.atMs) * TRANSITION_SHARE;
+    const lead = scene.timeline.filter((a) => a.atMs >= tail && a.atMs < end3).reduce((t, a) => Math.min(t, a.atMs), end3);
+    return { name: `beat${i + 1}`, tMs: Math.max(c2.atMs, lead - 1) };
+  });
+}
+var SHEET_WIDTH = 1640;
+var escapeHtml3 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function sheetHtml(title, frames) {
+  const tiles = frames.map((f) => `<figure><img src="data:image/png;base64,${f.png.toString("base64")}"><figcaption>${escapeHtml3(f.name)} \xB7 ${(f.tMs / 1e3).toFixed(1)}s</figcaption></figure>`).join("");
+  return `<!doctype html><meta charset="utf-8"><style>
+body{margin:0;padding:16px;background:#2a2824;font:14px system-ui;color:#e8e2d6}
+h1{margin:0 0 12px;font-size:16px}main{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+figure{margin:0}img{width:100%;display:block;border-radius:6px}figcaption{margin-top:4px;color:#b8b0a2}
+</style><h1>${escapeHtml3(title)}</h1><main>${tiles}</main>`;
 }
 async function run11(argv) {
   const { values, positionals } = parse(argv, { out: { type: "string" }, theme: { type: "string" }, at: { type: "string" } });
@@ -25552,13 +25604,21 @@ async function run11(argv) {
     await page.emulateMedia({ colorScheme: values.theme === "light" ? "light" : "dark", reducedMotion: "reduce" });
     await page.goto(pathToFileURL4(join20(site, "index.html")).href);
     await page.waitForFunction("window.mutoscope && window.mutoscope.ready");
+    const sheetPage = await browser.newPage({ viewport: { width: SHEET_WIDTH, height: 600 }, deviceScaleFactor: 1 });
     for (const [i, scene] of bundle.scenes.entries()) {
+      const prefix = join20(outDir, `${String(i + 1).padStart(2, "0")}-${scene.id}`);
+      const frames = [];
       for (const { name: m, tMs: t } of captureTimes(scene, at)) {
         await page.evaluate(`window.mutoscope.pause(); window.mutoscope.seek(${JSON.stringify(scene.id)}, ${t})`);
         await page.evaluate("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))");
-        const file2 = join20(outDir, `${String(i + 1).padStart(2, "0")}-${scene.id}-${m}.png`);
-        await page.locator(".stage-frame").screenshot({ path: file2 });
+        const file2 = `${prefix}-${m}.png`;
+        frames.push({ name: m, tMs: t, png: await page.locator(".stage-frame").screenshot({ path: file2 }) });
         out(`${c.green("\u2713")} ${file2}`);
+      }
+      if (frames.length > 1) {
+        await sheetPage.setContent(sheetHtml(scene.title, frames));
+        await sheetPage.screenshot({ type: "png", fullPage: true, path: `${prefix}-sheet.png` });
+        out(`${c.green("\u2713")} ${prefix}-sheet.png ${c.dim(`(${frames.length} frames on one page)`)}`);
       }
     }
   } finally {

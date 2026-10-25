@@ -13,6 +13,19 @@ describe("snapshot capture times", () => {
     ]);
   });
 
+  it("captures before an early transition into the next beat", () => {
+    const t = scene({
+      durationMs: 12_000,
+      cues: [{ atMs: 0, text: "a" }, { atMs: 4000, text: "b" }],
+      timeline: [
+        { atMs: 500, action: "highlight", target: "a" },
+        { atMs: 3500, action: "disappear", target: "a" },
+        { atMs: 4000, action: "appear", target: "b" },
+      ],
+    });
+    expect(captureTimes(t, "beats")[0]).toEqual({ name: "beat1", tMs: 3499 });
+  });
+
   it("falls back to the last frame without captions, and keeps mid/end/both", () => {
     expect(captureTimes(scene({ durationMs: 12_000 }), "beats")).toEqual([{ name: "end", tMs: 12_000 }]);
     expect(captureTimes(s, "both").map((t) => t.tMs)).toEqual([6000, 12_000]);

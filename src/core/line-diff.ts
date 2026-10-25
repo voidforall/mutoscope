@@ -29,3 +29,8 @@ export function diffLines(before: string, after: string): { before: DiffLine[]; 
     after: b.map((text, i) => ({ kind: keptB.has(i) ? "same" : "added", text })),
   };
 }
+
+/** A line standing for omitted code in a quoted excerpt: "…" or "...", optionally inside a comment. */
+const ELISION = /^\s*(?:\/\/+|#|--|;+|\/\*+|\*)?\s*(?:\u2026|\.\.\.)\s*(?:\*+\/)?\s*$/;
+export const isElision = (line: string): boolean => ELISION.test(line);
+

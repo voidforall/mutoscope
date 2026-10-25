@@ -29,6 +29,7 @@ export function renderReelHtml(bundle: ReelBundle, playerJs: string, playerCss: 
     `script-src 'sha256-${sha256(js)}'`,
     `style-src 'sha256-${sha256(css)}'`,
     "img-src data:",
+    "font-src data:",
     ...(live ? ["connect-src 'self'"] : []),
     "base-uri 'none'",
     "form-action 'none'",

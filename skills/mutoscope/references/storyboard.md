@@ -58,7 +58,7 @@ Code snippets are quotes. Copy them from the pinned revision (`git show <sha>:<p
 | `connect` / `disconnect` | draw / undraw an **edge** | 700 / 400 |
 | `highlight` / `dim` / `restore` | emphasise / de-emphasise / back to normal | 400 |
 | `move` | slide a boxed entity to `"to": { box }` | 800 |
-| `replace` | fade `target` out while `"with": id` fades in **at the target's current box** (its own `layout` is ignored from then on); edges attached to `target` carry over to `with` | 700 |
+| `replace` | fade `target` out while `"with": id` fades in **at the target's current box** (its own `layout` is ignored from then on); edges attached to `target` carry over to `with`. If `with` belongs to a different group, that group's frame jumps to the new place: use `disappear` + `appear` (or `move`) to change groups | 700 |
 | `focus` | camera frames `target`; omit `target` to return to the full stage | 900 |
 
 Visibility rule: an entity whose first visibility action is `appear`/`connect` (or that is the `with` of a `replace`) starts hidden; everything else is visible from t = 0. Edges also fade with their endpoints, and a group with no `appear`/`disappear` of its own is visible exactly while any of its children is.

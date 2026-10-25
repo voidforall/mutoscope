@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import { ReelBundle, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
 import { edgeLabelFits, edgeSegment, gridToRect, padRect, rectsOverlap, segmentHitsRect, type Rect } from "./geometry";
-import { CODE_FONT_READABLE, QUOTE_FONT_READABLE, quoteFont, spanForFullSize, textFont, type TextEntity } from "./text-fit";
+import { CODE_FONT_READABLE, componentSpanThatFits, componentTextFits, QUOTE_FONT_READABLE, quoteFont, spanForFullSize, textFont, type TextEntity } from "./text-fit";
 import { edgeEnds, sceneStateAt } from "./timeline";
 
 export interface Issue {
@@ -199,6 +199,12 @@ export function findTextSizeIssues(scene: Scene, p: string): Issue[] {
       const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten its lines or split it";
       return { path: `${p}.entities`, message: `text in '${e.id}' shrinks to ${fmtPx(font)} to fit its box; ${fix}` };
     });
+  for (const e of scene.entities) {
+    if (e.type !== "component" || componentTextFits(e, gridToRect(e.layout))) continue;
+    const span = componentSpanThatFits(e);
+    const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten the label or sublabel";
+    issues.push({ path: `${p}.entities`, message: `component '${e.id}' text doesn't fit its box and will be cut off; ${fix}` });
+  }
   for (const e of scene.entities) {
     if (e.type !== "quote") continue;
     const font = quoteFont(e.text, Boolean(e.attribution), gridToRect(e.layout));

@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { ReelBundle } from "../schema";
 import { App } from "./App";
+import "./fonts.css";
 import "./styles.css";
 
 export const DATA_ELEMENT_ID = "mutoscope-reel";

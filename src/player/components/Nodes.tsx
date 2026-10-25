@@ -1,5 +1,5 @@
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
-import { codeBlockFont, diffLines, diffPanelFont, quoteFont, type EntityState, type Rect } from "../../core";
+import { codeBlockFont, diffLines, diffPanelFont, isElision, quoteFont, type EntityState, type Rect } from "../../core";
 import type { BoxedEntity, Entity } from "../../schema";
 import { emphasisStyle } from "./emphasis";
 
@@ -66,7 +66,8 @@ function CodeLines({ lines, start, highlight, fontSize, kinds, lineNumbers = tru
     <pre className={`code-lines${lineNumbers ? "" : " no-ln"}`} style={{ fontSize }}>
       {lines.map((line, i) => {
         const n = start + i;
-        const kind = kinds?.[i];
+        // An omission marker is neither added nor removed code: show it neutral, without a +/− gutter.
+        const kind = kinds && isElision(line) ? "elided" : kinds?.[i];
         const cls = `code-line${highlight.has(n) ? " is-hl" : ""}${kind && kind !== "same" ? ` is-${kind}` : ""}`;
         return (
           <span className={cls} key={i}>
