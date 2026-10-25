@@ -10,7 +10,7 @@ import { CliError } from "./reel-files";
  */
 export interface WebSnapshot {
   readonly title?: string;
-  /** Markdown-ish text: `#` headings with `{#anchor}`, `-` items, `>` quotes, fenced pre blocks. */
+  /** Markdown-ish text: `#` headings ending in `{#anchor}`, other anchored blocks starting with `{#anchor}`, `-` items, `>` quotes, fenced pre blocks. */
   readonly text: string;
   readonly anchors: readonly string[];
 }
@@ -65,6 +65,12 @@ const collapse = (s: string) => s.replace(/\s+/g, " ");
 class Writer {
   private readonly blocks: string[] = [];
   private line = "";
+  /** An anchor waiting for the next block that has text (a footnote <li id> wraps a <p>). */
+  private anchor = "";
+
+  mark(id: string): void {
+    this.anchor = `{#${id}} `;
+  }
 
   inline(s: string): void {
     this.line += s;
@@ -72,7 +78,10 @@ class Writer {
 
   flush(prefix = ""): void {
     const t = collapse(this.line).trim();
-    if (t) this.blocks.push(`${prefix}${t}`);
+    if (t) {
+      this.blocks.push(`${prefix}${this.anchor}${t}`);
+      this.anchor = "";
+    }
     this.line = "";
   }
 
@@ -103,11 +112,13 @@ function render(n: AnyNode, w: Writer, quoteDepth: number): void {
   if (n.name === "img") return n.attribs.alt ? w.inline(` [image: ${n.attribs.alt}] `) : undefined;
   if (n.name === "li") {
     w.flush(quote);
+    if (n.attribs.id) w.mark(n.attribs.id);
     for (const c of n.children) render(c, w, quoteDepth);
     return w.flush(`${quote}- `);
   }
   const block = BLOCK.has(n.name);
   if (block) w.flush(quote);
+  if (block && n.attribs.id) w.mark(n.attribs.id);
   const depth = n.name === "blockquote" ? quoteDepth + 1 : quoteDepth;
   for (const c of n.children) render(c, w, depth);
   if (block) w.flush("> ".repeat(depth));

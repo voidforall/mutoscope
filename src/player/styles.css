@@ -414,6 +414,8 @@ kbd {
   user-select: none;
 }
 .code-line .lt { min-width: 0; }
+/* Mirrors CODE_CHROME.plainLeftPad in core/text-fit.ts. */
+.code-lines.no-ln .code-line { padding-left: 16px; }
 .code-line.is-hl { background: var(--code-hl); box-shadow: inset 3px 0 0 var(--accent); }
 .code-line.is-removed { background: var(--t-removed-soft); }
 .code-line.is-removed .ln { color: var(--t-removed); }

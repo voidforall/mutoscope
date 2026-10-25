@@ -20322,6 +20322,7 @@ function initialStates(scene, timeline) {
     })
   );
 }
+var VISIBILITY_ACTIONS = /* @__PURE__ */ new Set(["appear", "disappear"]);
 function withGroupBoxes(scene, states) {
   const groups = scene.entities.filter((e) => e.type === "group");
   if (groups.length === 0) return states;
@@ -20336,7 +20337,9 @@ function withGroupBoxes(scene, states) {
       w: union2.w + 2 * GROUP_PADDING.x,
       h: union2.h + GROUP_PADDING.top + GROUP_PADDING.bottom
     };
-    if (prev) next[g.id] = { ...prev, box: box ?? null };
+    const ownVisibility = scene.timeline.some((a) => "target" in a && a.target === g.id && VISIBILITY_ACTIONS.has(a.action));
+    const opacity = ownVisibility ? prev?.opacity : Math.max(0, ...g.children.map((id) => next[id]?.opacity ?? 0));
+    if (prev) next[g.id] = { ...prev, box: box ?? null, opacity: opacity ?? prev.opacity };
   }
   return next;
 }
@@ -20457,7 +20460,7 @@ var CHAR_EM = 0.61;
 var LINE_EM = 1.5;
 var GUTTER_EM = 3.2;
 var TRAILING_CHARS = 4;
-var CODE_CHROME = { header: 38, pad: 28, rightPad: 14, diffColGap: 24, diffTag: 30 };
+var CODE_CHROME = { header: 38, pad: 28, rightPad: 14, plainLeftPad: 16, diffColGap: 24, diffTag: 30 };
 function fit(lines, width, height, gutter) {
   const longest = Math.max(1, ...lines.map((l) => l.length));
   const byWidth = width / (CHAR_EM * (longest + TRAILING_CHARS) + (gutter ? GUTTER_EM : 0));
@@ -20465,7 +20468,8 @@ function fit(lines, width, height, gutter) {
   return Math.max(CODE_FONT_MIN, Math.min(CODE_FONT_MAX, byWidth, byHeight));
 }
 function codeBlockFont(e, box) {
-  return fit(e.code.split("\n"), box.w - CODE_CHROME.pad - CODE_CHROME.rightPad, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
+  const width = box.w - CODE_CHROME.pad - CODE_CHROME.rightPad - (e.lineNumbers ? 0 : CODE_CHROME.plainLeftPad);
+  return fit(e.code.split("\n"), width, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
 }
 function diffPanelFont(e, box) {
   const d = diffLines(e.before, e.after);
@@ -20656,6 +20660,13 @@ function findTextSizeIssues(scene, p) {
   }
   return issues;
 }
+var MARKDOWN = /`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\s]+\)/;
+function findMarkdownInStageText(scene, p) {
+  return scene.entities.flatMap((e) => {
+    const texts = [e.type === "label" || e.type === "quote" ? e.text : void 0, "label" in e ? e.label : void 0, "sublabel" in e ? e.sublabel : void 0];
+    return texts.some((t) => t && MARKDOWN.test(t)) ? [{ path: `${p}.entities`, message: `'${e.id}' has Markdown in its text (backticks, ** or links); stage text is shown as-is, so write it plain` }] : [];
+  });
+}
 function checkScene(scene, index, manifest) {
   const p = `scenes[${index}]`;
   const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p)];
@@ -20668,6 +20679,7 @@ function checkScene(scene, index, manifest) {
     ...errors.length === 0 ? findOverlaps(scene).map(([a, b]) => ({ path: `${p}.entities`, message: `'${a}' and '${b}' overlap while visible` })) : [],
     ...errors.length === 0 ? findCrampedEdges(scene).map((id) => ({ path: `${p}.entities`, message: `edge '${id}' is too short to show its label; move its ends apart` })) : [],
     ...findTextSizeIssues(scene, p),
+    ...findMarkdownInStageText(scene, p),
     ...scene.entities.filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0).map((e) => ({ path: `${p}.entities`, message: `component '${e.id}' has no explanation or refs to inspect` }))
   ];
   return { errors: [...errors, ...refIssues], warnings };
@@ -20766,7 +20778,7 @@ function normalizeText(s) {
 }
 function plainSnapshot(markdown) {
   return markdown.split("\n").filter((l) => !/^\s*(?:> )*```/.test(l) && !l.startsWith("<!--")).map(
-    (l) => l.replace(/^(?:> )+/, "").replace(/^#{1,6} /, "").replace(/^- /, "").replace(/ ?\{#[^}]+\}$/, "")
+    (l) => l.replace(/^(?:> )+/, "").replace(/^#{1,6} /, "").replace(/^- /, "").replace(/^\{#[^}]+\} /, "").replace(/ ?\{#[^}]+\}$/, "")
   ).filter((l) => l.trim()).join("\n");
 }
 var ELLIPSIS = /\s*(?:…|\.\.\.)\s*/;
@@ -23490,12 +23502,20 @@ var collapse = (s) => s.replace(/\s+/g, " ");
 var Writer = class {
   blocks = [];
   line = "";
+  /** An anchor waiting for the next block that has text (a footnote <li id> wraps a <p>). */
+  anchor = "";
+  mark(id) {
+    this.anchor = `{#${id}} `;
+  }
   inline(s) {
     this.line += s;
   }
   flush(prefix = "") {
     const t = collapse(this.line).trim();
-    if (t) this.blocks.push(`${prefix}${t}`);
+    if (t) {
+      this.blocks.push(`${prefix}${this.anchor}${t}`);
+      this.anchor = "";
+    }
     this.line = "";
   }
   raw(block) {
@@ -23525,11 +23545,13 @@ ${quote}\`\`\``);
   if (n.name === "img") return n.attribs.alt ? w.inline(` [image: ${n.attribs.alt}] `) : void 0;
   if (n.name === "li") {
     w.flush(quote);
+    if (n.attribs.id) w.mark(n.attribs.id);
     for (const c2 of n.children) render(c2, w, quoteDepth);
     return w.flush(`${quote}- `);
   }
   const block = BLOCK.has(n.name);
   if (block) w.flush(quote);
+  if (block && n.attribs.id) w.mark(n.attribs.id);
   const depth = n.name === "blockquote" ? quoteDepth + 1 : quoteDepth;
   for (const c2 of n.children) render(c2, w, depth);
   if (block) w.flush("> ".repeat(depth));

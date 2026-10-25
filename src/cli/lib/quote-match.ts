@@ -25,6 +25,7 @@ export function plainSnapshot(markdown: string): string {
         .replace(/^(?:> )+/, "")
         .replace(/^#{1,6} /, "")
         .replace(/^- /, "")
+        .replace(/^\{#[^}]+\} /, "")
         .replace(/ ?\{#[^}]+\}$/, ""),
     )
     .filter((l) => l.trim())

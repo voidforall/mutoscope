@@ -18,7 +18,7 @@ const LINE_EM = 1.5;
 const GUTTER_EM = 3.2;
 /** Breathing room after the longest line, in characters. */
 const TRAILING_CHARS = 4;
-export const CODE_CHROME = { header: 38, pad: 28, rightPad: 14, diffColGap: 24, diffTag: 30 } as const;
+export const CODE_CHROME = { header: 38, pad: 28, rightPad: 14, plainLeftPad: 16, diffColGap: 24, diffTag: 30 } as const;
 
 function fit(lines: readonly string[], width: number, height: number, gutter: boolean): number {
   const longest = Math.max(1, ...lines.map((l) => l.length));
@@ -28,7 +28,8 @@ function fit(lines: readonly string[], width: number, height: number, gutter: bo
 }
 
 export function codeBlockFont(e: Pick<CodeBlockEntity, "code" | "lineNumbers">, box: Pick<Rect, "w" | "h">): number {
-  return fit(e.code.split("\n"), box.w - CODE_CHROME.pad - CODE_CHROME.rightPad, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
+  const width = box.w - CODE_CHROME.pad - CODE_CHROME.rightPad - (e.lineNumbers ? 0 : CODE_CHROME.plainLeftPad);
+  return fit(e.code.split("\n"), width, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
 }
 
 export function diffPanelFont(e: Pick<DiffPanelEntity, "before" | "after">, box: Pick<Rect, "w" | "h">): number {

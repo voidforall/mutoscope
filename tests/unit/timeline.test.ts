@@ -92,3 +92,32 @@ describe("captionAt", () => {
     expect(captionAt(sc, 3000)).toBe("two");
   });
 });
+
+describe("group visibility", () => {
+  const withGroup = (timeline: object[]) =>
+    scene({
+      entities: [
+        { id: "a", type: "component", label: "A", layout: { col: 1, row: 3 } },
+        { id: "b", type: "component", label: "B", layout: { col: 5, row: 3 } },
+        { id: "g", type: "group", label: "G", children: ["a", "b"] },
+      ],
+      timeline,
+    });
+
+  it("follows its children when it has no visibility actions of its own", () => {
+    const s = withGroup([{ atMs: 2000, action: "appear", target: "a" }, { atMs: 2000, action: "appear", target: "b" }]);
+    expect(sceneStateAt(s, 0).entities.g!.opacity).toBe(0);
+    expect(sceneStateAt(s, 9000).entities.g!.opacity).toBe(1);
+  });
+
+  it("is visible as soon as any child is", () => {
+    const s = withGroup([{ atMs: 2000, action: "appear", target: "b" }]);
+    expect(sceneStateAt(s, 0).entities.g!.opacity).toBe(1);
+  });
+
+  it("keeps its own appear/disappear when it has them", () => {
+    const s = withGroup([{ atMs: 5000, action: "appear", target: "g" }]);
+    expect(sceneStateAt(s, 1000).entities.g!.opacity).toBe(0);
+    expect(sceneStateAt(s, 9000).entities.g!.opacity).toBe(1);
+  });
+});

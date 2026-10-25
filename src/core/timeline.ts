@@ -65,7 +65,13 @@ function initialStates(scene: Scene, timeline: readonly Action[]): States {
   );
 }
 
-/** Group boxes wrap their children's current boxes. */
+const VISIBILITY_ACTIONS = new Set<Action["action"]>(["appear", "disappear"]);
+
+/**
+ * Group boxes wrap their children's current boxes. A group with no
+ * appear/disappear of its own follows its children (like edges follow their
+ * endpoints), so its frame never shows empty.
+ */
 function withGroupBoxes(scene: Scene, states: States): States {
   const groups = scene.entities.filter((e) => e.type === "group");
   if (groups.length === 0) return states;
@@ -80,7 +86,9 @@ function withGroupBoxes(scene: Scene, states: States): States {
       w: union.w + 2 * GROUP_PADDING.x,
       h: union.h + GROUP_PADDING.top + GROUP_PADDING.bottom,
     };
-    if (prev) next[g.id] = { ...prev, box: box ?? null };
+    const ownVisibility = scene.timeline.some((a) => "target" in a && a.target === g.id && VISIBILITY_ACTIONS.has(a.action));
+    const opacity = ownVisibility ? prev?.opacity : Math.max(0, ...g.children.map((id) => next[id]?.opacity ?? 0));
+    if (prev) next[g.id] = { ...prev, box: box ?? null, opacity: opacity ?? prev.opacity };
   }
   return next;
 }

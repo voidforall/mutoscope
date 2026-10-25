@@ -63,7 +63,7 @@ function CodeLines({ lines, start, highlight, fontSize, kinds, lineNumbers = tru
   lineNumbers?: boolean;
 }) {
   return (
-    <pre className="code-lines" style={{ fontSize }}>
+    <pre className={`code-lines${lineNumbers ? "" : " no-ln"}`} style={{ fontSize }}>
       {lines.map((line, i) => {
         const n = start + i;
         const kind = kinds?.[i];

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { codeBlockFont, CODE_FONT_MAX, findOverlaps, findTextSizeIssues, gridToRect, resolveDeepLink, validateBundle } from "../../src/core";
+import { codeBlockFont, CODE_FONT_MAX, findMarkdownInStageText, findOverlaps, findTextSizeIssues, gridToRect, resolveDeepLink, validateBundle } from "../../src/core";
 import { Scene } from "../../src/schema";
 import { exampleRaw } from "./fixtures";
 
@@ -73,5 +73,15 @@ describe("group frames", () => {
 
   it("never overlap their own children", () => {
     expect(findOverlaps(sceneOf(8)).flat()).not.toContain("a");
+  });
+});
+
+describe("stage text", () => {
+  it("warns about Markdown that would render literally", () => {
+    const s = sceneWith([
+      { id: "l", type: "label", text: "On M4, `man test` takes 2.5 s", layout: { col: 1, row: 1, colSpan: 6, rowSpan: 1 } },
+      { id: "c", type: "component", label: "Plain", sublabel: "a * b and 2*3", layout: { col: 1, row: 3 } },
+    ]);
+    expect(findMarkdownInStageText(s, "p").map((i) => i.message)).toEqual([expect.stringContaining("'l' has Markdown")]);
   });
 });

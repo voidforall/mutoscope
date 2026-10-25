@@ -175,6 +175,18 @@ export function findTextSizeIssues(scene: Scene, p: string): Issue[] {
   return issues;
 }
 
+const MARKDOWN = /`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\s]+\)/;
+
+/** Stage text is plain: backticks, bold markers and links would show literally. */
+export function findMarkdownInStageText(scene: Scene, p: string): Issue[] {
+  return scene.entities.flatMap((e) => {
+    const texts = [e.type === "label" || e.type === "quote" ? e.text : undefined, "label" in e ? e.label : undefined, "sublabel" in e ? e.sublabel : undefined];
+    return texts.some((t) => t && MARKDOWN.test(t))
+      ? [{ path: `${p}.entities`, message: `'${e.id}' has Markdown in its text (backticks, ** or links); stage text is shown as-is, so write it plain` }]
+      : [];
+  });
+}
+
 function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: Issue[]; warnings: Issue[] } {
   const p = `scenes[${index}]`;
   const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p)];
@@ -191,6 +203,7 @@ function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: 
       ? findCrampedEdges(scene).map((id) => ({ path: `${p}.entities`, message: `edge '${id}' is too short to show its label; move its ends apart` }))
       : []),
     ...findTextSizeIssues(scene, p),
+    ...findMarkdownInStageText(scene, p),
     ...scene.entities
       .filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0)
       .map((e) => ({ path: `${p}.entities`, message: `component '${e.id}' has no explanation or refs to inspect` })),

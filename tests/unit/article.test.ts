@@ -41,6 +41,12 @@ describe("web snapshots", () => {
     expect(snap.anchors).toEqual(expect.arrayContaining(["rows-in-parallel", "distilling", "fnref:1", "fn:1"]));
   });
 
+  it("marks other anchored blocks, like footnotes, at the start of their line", () => {
+    expect(snap.text).toContain("{#fn:1} Measured on an RTX 4090.");
+    expect(quoteFound(plainSnapshot(snap.text), "on an RTX 4090. Large")).toBe(false);
+    expect(quoteFound(plainSnapshot(snap.text), "Measured on an RTX 4090.")).toBe(true);
+  });
+
   it("keeps lists, block quotes and preformatted text recognisable", () => {
     expect(snap.text).toContain("- vim opened on row 3");
     expect(snap.text).toContain("> That's chance.");

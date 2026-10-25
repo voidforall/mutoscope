@@ -30,7 +30,7 @@ The file is one object with a `scenes` array, in playing order. The reel opens o
 
 ## Entities
 
-Every entity has `id` (kebab-case, unique within the scene), optional `explanation` (shown in the Inspect panel — write it for someone who paused here), `sourceRefs`, and `tone`.
+Every entity has `id` (kebab-case, unique within the scene), optional `explanation` (shown in the Inspect panel — write it for someone who paused here), `sourceRefs`, and `tone`. Text on stage is plain: no Markdown (backticks or `**` show literally; `validate` warns).
 
 | type | required fields | optional | use for |
 |---|---|---|---|
@@ -59,7 +59,7 @@ Code snippets are quotes. Copy them from the pinned revision (`git show <sha>:<p
 | `replace` | fade `target` out while `"with": id` fades in at the target's place | 700 |
 | `focus` | camera frames `target`; omit `target` to return to the full stage | 900 |
 
-Visibility rule: an entity whose first visibility action is `appear`/`connect` (or that is the `with` of a `replace`) starts hidden; everything else is visible from t = 0. Edges also fade with their endpoints.
+Visibility rule: an entity whose first visibility action is `appear`/`connect` (or that is the `with` of a `replace`) starts hidden; everything else is visible from t = 0. Edges also fade with their endpoints, and a group with no `appear`/`disappear` of its own is visible exactly while any of its children is.
 
 ## Scenes
 
@@ -78,7 +78,7 @@ Visibility rule: an entity whose first visibility action is `appear`/`connect` (
 ```
 
 - `title` ≤ 80 chars, `kicker` ≤ 30 (a chapter word: *Before*, *The change*, *Impact*).
-- Pacing: 12–25 s per scene, 3–6 scenes per reel. Narration ≤ 3 words per second of `durationMs`. One cue per beat; schedule the matching action at the cue's `atMs`.
+- Pacing: 12–25 s per scene. The recipe's story arc sets how many scenes (usually 3–7). Narration ≤ 3 words per second of `durationMs`. One cue per beat; schedule the matching action at the cue's `atMs`.
 - Build up, don't dump: bring entities in over the first ~3 s, then spend the scene on the *change* (highlight, connect, replace, focus). End every scene in a state worth pausing on — snapshots and viewers both land there.
 - `claims` are what the scene asserts. They render with Evidence / Inference badges, so the viewer can tell verified behaviour from your reasoning.
 - Put scenes in playing order; leave `manifest.entrySceneId` unset unless the reel should open somewhere other than the first scene.
