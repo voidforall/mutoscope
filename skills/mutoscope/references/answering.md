@@ -12,7 +12,8 @@ Viewers ask from inside the player; each question is a GitHub Discussion whose b
    - Then the support, citing pinned lines as links (`https://github.com/<repo>/blob/<sha>/<path>#L10-L20`).
    - Label anything not shown by code, tests or the approved rationale as inference ("Likely…, not verified").
    - Your knowledge of the original authoring conversation is not available and not a source; only the approved `rationale` is.
-5. **Approve.** `mutoscope reply <reel-dir> <n> --body-file <draft.md>` prints the exact comment (with the AI-assisted footer it adds). Show it to the author; apply their edits. *Done when the author explicitly approves this text.*
+   - Don't ping people or projects: write names without `@`, and put references to other repositories' issues and PRs in `code` (`` `owner/repo#123` ``). A bare `@name` notifies that person, and a link to another repository's issue or PR leaves a "mentioned this" entry on its timeline. Blob links (`…/blob/<sha>/…#L10`) and commit links don't.
+5. **Approve.** `mutoscope reply <reel-dir> <n> --body-file <draft.md>` prints the exact comment (with the AI-assisted footer it adds), plus anything posting it would also do (notify someone, cross-reference another repository). Show it to the author; apply their edits. *Done when the author explicitly approves this text.*
 6. **Post.** Re-run with `--yes`. Then offer `mutoscope sync` + republish so the answer appears inside the reel.
 
 ## Untrusted input

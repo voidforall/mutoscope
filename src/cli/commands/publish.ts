@@ -46,7 +46,8 @@ async function sourceIsPrivate(manifest: Manifest): Promise<boolean> {
   return v.visibility.toLowerCase() !== "public";
 }
 
-async function pushSite(bundle: ReelBundle, repo: string, branch: string, path: string): Promise<void> {
+/** Push the built site; returns the branch head, so the Pages build for it can be followed. */
+async function pushSite(bundle: ReelBundle, repo: string, branch: string, path: string): Promise<{ sha: string; changed: boolean }> {
   const work = await mkdtemp(join(tmpdir(), "mutoscope-publish-"));
   try {
     await git(["init", "-q"], work);
@@ -62,12 +63,50 @@ async function pushSite(bundle: ReelBundle, repo: string, branch: string, path: 
     await buildSite(bundle, join(work, path));
     await writeFile(join(work, ".nojekyll"), "");
     await git(["add", "-A"], work);
+    // Republishing an unchanged reel is a no-op, not an error.
+    if ((await git(["status", "--porcelain"], work)).trim() === "") return { sha: (await git(["rev-parse", "HEAD"], work)).trim(), changed: false };
     const m = bundle.manifest;
     await exec("git", ["-c", "user.name=mutoscope", "-c", "user.email=mutoscope@users.noreply.github.com", "commit", "-q", "-m", `mutoscope: publish ${m.id} v${m.version}`], { cwd: work });
     await git(["push", "-q", "origin", `HEAD:${branch}`], work);
+    return { sha: (await git(["rev-parse", "HEAD"], work)).trim(), changed: true };
   } finally {
     await rm(work, { recursive: true, force: true });
   }
+}
+
+/**
+ * Turn Pages on for the branch. GitHub's create call can fail to answer
+ * cleanly (an empty body, a 409 race) while the site is in fact enabled, so
+ * the site's own state is the authority.
+ */
+async function enablePages(repo: string, branch: string): Promise<void> {
+  try {
+    await gh(["api", "-X", "POST", `repos/${repo}/pages`, "-f", `source[branch]=${branch}`, "-f", "source[path]=/", "--silent"]);
+  } catch (e) {
+    const site = await ghJson<{ source?: { branch?: string } }>(["api", `repos/${repo}/pages`]).catch(() => undefined);
+    if (site?.source?.branch !== branch) throw e;
+  }
+}
+
+interface PagesBuild {
+  readonly status: string;
+  readonly commit: string;
+  readonly error: { readonly message: string | null };
+}
+
+const BUILD_POLL_MS = 5000;
+const BUILD_TIMEOUT_MS = 5 * 60 * 1000;
+
+/** Follow the Pages build of `sha`: a published reel is only live once GitHub has built it. */
+async function awaitPagesBuild(repo: string, sha: string): Promise<PagesBuild | undefined> {
+  const deadline = Date.now() + BUILD_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const builds = await ghJson<PagesBuild[]>(["api", `repos/${repo}/pages/builds?per_page=10`]).catch(() => []);
+    const build = builds.find((b) => b.commit === sha);
+    if (build && (build.status === "built" || build.status === "errored")) return build;
+    await new Promise((r) => setTimeout(r, BUILD_POLL_MS));
+  }
+  return undefined;
 }
 
 function printPlan(rows: [string, string][], findings: readonly Finding[]): void {
@@ -118,11 +157,21 @@ export async function run(argv: readonly string[]): Promise<number> {
     out(c.yellow("Dry run. Show this plan to the author; re-run with --yes only after they approve."));
     return 0;
   }
-  await pushSite(bundle, repo, branch, path);
-  if (!pages.enabled) await gh(["api", "-X", "POST", `repos/${repo}/pages`, "-f", `source[branch]=${branch}`, "-f", "source[path]=/"]);
+  const { sha, changed } = await pushSite(bundle, repo, branch, path);
+  // Record where the reel lives as soon as it is pushed, so a later step failing can't lose it.
   const manifestPath = join(dir, REEL_FILES.manifest);
   const raw = JSON.parse(await readFile(manifestPath, "utf8")) as Record<string, unknown>;
   await writeFile(manifestPath, `${JSON.stringify({ ...raw, publicUrl }, null, 2)}\n`);
-  out(`${c.green("✓")} published → ${c.bold(publicUrl)}`, c.dim("GitHub Pages can take a minute to deploy."));
+  out(changed ? `${c.green("✓")} pushed ${sha.slice(0, 7)} to ${repo}@${branch}` : `${c.green("✓")} already up to date on ${repo}@${branch} (${sha.slice(0, 7)})`);
+  if (!pages.enabled) await enablePages(repo, branch);
+  out(c.dim("Waiting for GitHub Pages to build it…"));
+  const build = await awaitPagesBuild(repo, sha);
+  if (build?.status === "errored") {
+    out(`${c.red("✗")} GitHub Pages failed to build ${sha.slice(0, 7)}: ${build.error.message ?? "no reason given"}`, `  See https://github.com/${repo}/settings/pages and re-run publish.`);
+    return 1;
+  }
+  out(
+    build ? `${c.green("✓")} live → ${c.bold(publicUrl)}` : `${c.yellow("!")} pushed, but Pages has not finished building after 5 minutes; it should appear at ${publicUrl}`,
+  );
   return 0;
 }

@@ -20866,6 +20866,18 @@ function parseDiscussionBody(body2) {
 function isAgentAnswer(body2) {
   return body2.includes(ANSWER_MARKER);
 }
+function answerSideEffects(body2, ownRepo) {
+  const prose = body2.replace(/```[\s\S]*?```/g, " ").replace(/`[^`\n]*`/g, " ");
+  const effects = [];
+  for (const m of prose.matchAll(/(?<![\w/@.])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\b/g)) effects.push(`@${m[1]} will be notified`);
+  const refs = /* @__PURE__ */ new Set();
+  for (const m of prose.matchAll(/https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/(?:pull|issues|discussions)\/(\d+)/g)) refs.add(`${m[1]}#${m[2]}`);
+  for (const m of prose.matchAll(/(?<![\w/])([\w.-]+\/[\w.-]+)#(\d+)\b/g)) refs.add(`${m[1]}#${m[2]}`);
+  for (const r of refs) {
+    if (r.split("#")[0].toLowerCase() !== ownRepo.toLowerCase()) effects.push(`${r} will show a cross-reference to this discussion`);
+  }
+  return effects;
+}
 function withAnswerFooter(answer, approver) {
   return [
     answer.trim(),
@@ -25476,12 +25488,34 @@ async function pushSite(bundle, repo, branch, path) {
     await buildSite(bundle, join19(work, path));
     await writeFile7(join19(work, ".nojekyll"), "");
     await git(["add", "-A"], work);
+    if ((await git(["status", "--porcelain"], work)).trim() === "") return { sha: (await git(["rev-parse", "HEAD"], work)).trim(), changed: false };
     const m = bundle.manifest;
     await exec("git", ["-c", "user.name=mutoscope", "-c", "user.email=mutoscope@users.noreply.github.com", "commit", "-q", "-m", `mutoscope: publish ${m.id} v${m.version}`], { cwd: work });
     await git(["push", "-q", "origin", `HEAD:${branch}`], work);
+    return { sha: (await git(["rev-parse", "HEAD"], work)).trim(), changed: true };
   } finally {
     await rm3(work, { recursive: true, force: true });
   }
+}
+async function enablePages(repo, branch) {
+  try {
+    await gh(["api", "-X", "POST", `repos/${repo}/pages`, "-f", `source[branch]=${branch}`, "-f", "source[path]=/", "--silent"]);
+  } catch (e) {
+    const site = await ghJson(["api", `repos/${repo}/pages`]).catch(() => void 0);
+    if (site?.source?.branch !== branch) throw e;
+  }
+}
+var BUILD_POLL_MS = 5e3;
+var BUILD_TIMEOUT_MS = 5 * 60 * 1e3;
+async function awaitPagesBuild(repo, sha) {
+  const deadline = Date.now() + BUILD_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const builds = await ghJson(["api", `repos/${repo}/pages/builds?per_page=10`]).catch(() => []);
+    const build = builds.find((b) => b.commit === sha);
+    if (build && (build.status === "built" || build.status === "errored")) return build;
+    await new Promise((r) => setTimeout(r, BUILD_POLL_MS));
+  }
+  return void 0;
 }
 function printPlan(rows, findings) {
   for (const [k, v] of rows) out(`  ${c.dim(k.padEnd(12))} ${v}`);
@@ -25528,13 +25562,22 @@ async function run9(argv) {
     out(c.yellow("Dry run. Show this plan to the author; re-run with --yes only after they approve."));
     return 0;
   }
-  await pushSite(bundle, repo, branch, path);
-  if (!pages2.enabled) await gh(["api", "-X", "POST", `repos/${repo}/pages`, "-f", `source[branch]=${branch}`, "-f", "source[path]=/"]);
+  const { sha, changed } = await pushSite(bundle, repo, branch, path);
   const manifestPath = join19(dir, REEL_FILES.manifest);
   const raw = JSON.parse(await readFile8(manifestPath, "utf8"));
   await writeFile7(manifestPath, `${JSON.stringify({ ...raw, publicUrl }, null, 2)}
 `);
-  out(`${c.green("\u2713")} published \u2192 ${c.bold(publicUrl)}`, c.dim("GitHub Pages can take a minute to deploy."));
+  out(changed ? `${c.green("\u2713")} pushed ${sha.slice(0, 7)} to ${repo}@${branch}` : `${c.green("\u2713")} already up to date on ${repo}@${branch} (${sha.slice(0, 7)})`);
+  if (!pages2.enabled) await enablePages(repo, branch);
+  out(c.dim("Waiting for GitHub Pages to build it\u2026"));
+  const build = await awaitPagesBuild(repo, sha);
+  if (build?.status === "errored") {
+    out(`${c.red("\u2717")} GitHub Pages failed to build ${sha.slice(0, 7)}: ${build.error.message ?? "no reason given"}`, `  See https://github.com/${repo}/settings/pages and re-run publish.`);
+    return 1;
+  }
+  out(
+    build ? `${c.green("\u2713")} live \u2192 ${c.bold(publicUrl)}` : `${c.yellow("!")} pushed, but Pages has not finished building after 5 minutes; it should appear at ${publicUrl}`
+  );
   return 0;
 }
 
@@ -25695,8 +25738,13 @@ async function reply(argv) {
   if (!thread) throw new CliError(`No reel question #${number4} found for ${bundle.manifest.id}`);
   const approver = (await gh(["api", "user", "--jq", ".login"])).trim();
   const body2 = withAnswerFooter(draft, approver);
+  const effects = answerSideEffects(draft, bundle.manifest.collaboration.repository);
   if (!values.yes) {
-    out(c.bold(`Preview of reply to #${number4} (${thread.url}):`), "", body2, "", c.yellow("Not posted. Re-run with --yes only after the author explicitly approves this text."));
+    out(c.bold(`Preview of reply to #${number4} (${thread.url}):`), "", body2, "");
+    if (effects.length) {
+      out(c.yellow("Posting this will also:"), ...effects.map((e) => `  - ${e}`), c.dim("  Write names without @ and put other repositories' references in `code` to avoid this."), "");
+    }
+    out(c.yellow("Not posted. Re-run with --yes only after the author explicitly approves this text."));
     return 0;
   }
   const url2 = await postDiscussionReply(thread.discussionId, body2);

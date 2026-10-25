@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ANSWER_MARKER,
+  answerSideEffects,
   buildContext,
   discussionBody,
   discussionTitle,
@@ -58,5 +59,24 @@ describe("discussion codec", () => {
     expect(body).toContain("AI-assisted");
     expect(body).toContain("@alice");
     expect(body.endsWith(ANSWER_MARKER)).toBe(true);
+  });
+});
+
+describe("answer side effects", () => {
+  it("flags @mentions and links that would notify people or other repositories", () => {
+    const body = [
+      "Thanks to @Darksonn for the idea, see https://github.com/tokio-rs/tokio/pull/7431#discussion_r1 and tokio-rs/tokio#8100.",
+      "Code `@not_a_mention` and `tokio-rs/tokio#1` are fine, so is ```\n@also-fine\n```.",
+      "Same-repo links are fine: https://github.com/acme/reels/discussions/3. Blob links too: https://github.com/tokio-rs/tokio/blob/abc/x.rs#L1",
+    ].join("\n");
+    expect(answerSideEffects(body, "acme/reels")).toEqual([
+      "@Darksonn will be notified",
+      "tokio-rs/tokio#7431 will show a cross-reference to this discussion",
+      "tokio-rs/tokio#8100 will show a cross-reference to this discussion",
+    ]);
+  });
+
+  it("is quiet for a reply that only names people and quotes code", () => {
+    expect(answerSideEffects("Darksonn suggested it (`tokio-rs/tokio#7431`).", "acme/reels")).toEqual([]);
   });
 });

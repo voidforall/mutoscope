@@ -100,6 +100,24 @@ export function isAgentAnswer(body: string): boolean {
   return body.includes(ANSWER_MARKER);
 }
 
+/**
+ * What posting `body` would do beyond answering: @mentions notify people, and
+ * links or `owner/repo#n` references to other repositories' issues and PRs put
+ * a cross-reference on their timelines. Code spans and blocks are inert.
+ */
+export function answerSideEffects(body: string, ownRepo: string): string[] {
+  const prose = body.replace(/```[\s\S]*?```/g, " ").replace(/`[^`\n]*`/g, " ");
+  const effects: string[] = [];
+  for (const m of prose.matchAll(/(?<![\w/@.])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))\b/g)) effects.push(`@${m[1]} will be notified`);
+  const refs = new Set<string>();
+  for (const m of prose.matchAll(/https:\/\/github\.com\/([\w.-]+\/[\w.-]+)\/(?:pull|issues|discussions)\/(\d+)/g)) refs.add(`${m[1]}#${m[2]}`);
+  for (const m of prose.matchAll(/(?<![\w/])([\w.-]+\/[\w.-]+)#(\d+)\b/g)) refs.add(`${m[1]}#${m[2]}`);
+  for (const r of refs) {
+    if (r.split("#")[0]!.toLowerCase() !== ownRepo.toLowerCase()) effects.push(`${r} will show a cross-reference to this discussion`);
+  }
+  return effects;
+}
+
 /** Every published answer carries a visible AI-assistance notice and a machine marker. */
 export function withAnswerFooter(answer: string, approver: string): string {
   return [

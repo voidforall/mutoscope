@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fetchReelThreads, postDiscussionReply, type DiscussionThread } from "../../adapters/github/discussions";
-import { withAnswerFooter } from "../../core";
+import { answerSideEffects, withAnswerFooter } from "../../core";
 import type { ReelBundle, ThreadsFile } from "../../schema";
 import { parse, positional } from "../lib/args";
 import { answerBrief } from "../lib/brief";
@@ -76,8 +76,13 @@ export async function reply(argv: readonly string[]): Promise<number> {
   if (!thread) throw new CliError(`No reel question #${number} found for ${bundle.manifest.id}`);
   const approver = (await gh(["api", "user", "--jq", ".login"])).trim();
   const body = withAnswerFooter(draft, approver);
+  const effects = answerSideEffects(draft, bundle.manifest.collaboration!.repository);
   if (!values.yes) {
-    out(c.bold(`Preview of reply to #${number} (${thread.url}):`), "", body, "", c.yellow("Not posted. Re-run with --yes only after the author explicitly approves this text."));
+    out(c.bold(`Preview of reply to #${number} (${thread.url}):`), "", body, "");
+    if (effects.length) {
+      out(c.yellow("Posting this will also:"), ...effects.map((e) => `  - ${e}`), c.dim("  Write names without @ and put other repositories' references in `code` to avoid this."), "");
+    }
+    out(c.yellow("Not posted. Re-run with --yes only after the author explicitly approves this text."));
     return 0;
   }
   const url = await postDiscussionReply(thread.discussionId, body);
