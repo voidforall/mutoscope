@@ -12,9 +12,9 @@ export async function validateReelDir(dir: string, repoRoot?: string): Promise<V
   const result = validateBundle(await loadRawReel(dir));
   if (!result.ok || !result.bundle) return result;
   const docs = await checkDocuments(result.bundle, dir);
-  const refIssues = repoRoot ? await checkSourceRefs(result.bundle, repoRoot) : [];
-  const errors = [...result.errors, ...docs.errors, ...refIssues];
-  return { ...result, ok: errors.length === 0, errors, warnings: [...result.warnings, ...docs.warnings] };
+  const code = repoRoot ? await checkSourceRefs(result.bundle, repoRoot) : { errors: [], warnings: [] };
+  const errors = [...result.errors, ...docs.errors, ...code.errors];
+  return { ...result, ok: errors.length === 0, errors, warnings: [...result.warnings, ...docs.warnings, ...code.warnings] };
 }
 
 export async function loadValidReel(dir: string): Promise<ReelBundle> {

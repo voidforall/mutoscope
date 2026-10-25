@@ -1,8 +1,8 @@
 import type { z } from "zod";
 import { ReelBundle, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
-import { edgeLabelFits, edgeSegment, gridToRect, rectsOverlap } from "./geometry";
+import { edgeLabelFits, edgeSegment, gridToRect, padRect, rectsOverlap, segmentHitsRect, type Rect } from "./geometry";
 import { CODE_FONT_READABLE, QUOTE_FONT_READABLE, quoteFont, spanForFullSize, textFont, type TextEntity } from "./text-fit";
-import { sceneStateAt } from "./timeline";
+import { edgeEnds, sceneStateAt } from "./timeline";
 
 export interface Issue {
   readonly path: string;
@@ -131,13 +131,54 @@ export function findOverlaps(scene: Scene): Array<[string, string]> {
   return [...found].map((k) => k.split("|") as [string, string]);
 }
 
+/** Where a group draws its label (see Group.tsx): 16px uppercase mono from (x + 18, y + 26). */
+function groupLabelRect(box: Rect, label: string): Rect {
+  return { x: box.x + 14, y: box.y + 6, w: label.length * 10.3 + 8, h: 26 };
+}
+
+/** Lines are drawn this far inside their endpoint boxes' borders; ignore grazing contact. */
+const CROSSING_INSET = 6;
+
+export interface EdgeCrossing {
+  readonly edge: string;
+  readonly crosses: string;
+  readonly what: "box" | "label";
+}
+
+/** Edges drawn through boxes they don't connect, or over a group's label, while both are visible. */
+export function findEdgeCrossings(scene: Scene): EdgeCrossing[] {
+  const edges = scene.entities.filter((e) => e.type === "edge");
+  const others = scene.entities.filter((e) => BOXED.has(e.type) || e.type === "group");
+  const found = new Map<string, EdgeCrossing>();
+  for (let t = 0; t <= scene.durationMs; t += OVERLAP_SAMPLE_MS) {
+    const { entities } = sceneStateAt(scene, t);
+    for (const e of edges) {
+      const state = entities[e.id];
+      const { from, to } = edgeEnds(scene, entities, e.id);
+      if (!state || !from?.box || !to?.box || state.draw < 0.95 || state.opacity * Math.min(from.opacity, to.opacity) < 0.5) continue;
+      const { a, b } = edgeSegment(from.box, to.box, 8);
+      for (const o of others) {
+        const os = entities[o.id];
+        if (!os?.box || os.opacity < 0.5 || os === from || os === to) continue;
+        const hit =
+          o.type === "group"
+            ? o.label !== undefined && segmentHitsRect(a, b, groupLabelRect(os.box, o.label)) && { what: "label" as const }
+            : segmentHitsRect(a, b, padRect(os.box, -CROSSING_INSET)) && { what: "box" as const };
+        if (hit) found.set(`${e.id}|${o.id}`, { edge: e.id, crosses: o.id, what: hit.what });
+      }
+    }
+  }
+  return [...found.values()];
+}
+
 /** Labelled edges too short (in the final frame) to show their label. */
 export function findCrampedEdges(scene: Scene): string[] {
   const { entities } = sceneStateAt(scene, scene.durationMs);
   return scene.entities.flatMap((e) => {
     if (e.type !== "edge" || !e.label) return [];
-    const from = entities[e.from]?.box;
-    const to = entities[e.to]?.box;
+    const ends = edgeEnds(scene, entities, e.id);
+    const from = ends.from?.box;
+    const to = ends.to?.box;
     if (!from || !to) return [];
     const { a, b } = edgeSegment(from, to, 8);
     return edgeLabelFits(e.label, Math.hypot(b.x - a.x, b.y - a.y)) ? [] : [e.id];
@@ -203,6 +244,12 @@ function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: 
       ? findCrampedEdges(scene).map((id) => ({ path: `${p}.entities`, message: `edge '${id}' is too short to show its label; move its ends apart` }))
       : []),
     ...findTextSizeIssues(scene, p),
+    ...(errors.length === 0
+      ? findEdgeCrossings(scene).map((c) => ({
+          path: `${p}.entities`,
+          message: c.what === "label" ? `edge '${c.edge}' runs over the label of group '${c.crosses}'; route it into the group from the side or below` : `edge '${c.edge}' runs through '${c.crosses}'; move one of them so the line goes around it`,
+        }))
+      : []),
     ...findMarkdownInStageText(scene, p),
     ...scene.entities
       .filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0)

@@ -98,3 +98,29 @@ export function edgeLabelFits(label: string, length: number): boolean {
 export function edgeSegment(from: Rect, to: Rect, gap = 6): { a: Point; b: Point } {
   return { a: exitPoint(from, center(to), gap), b: exitPoint(to, center(from), gap) };
 }
+
+/** Whether segment a→b passes through rectangle r (Liang–Barsky clipping). */
+export function segmentHitsRect(a: Point, b: Point, r: Rect): boolean {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let t0 = 0;
+  let t1 = 1;
+  const clips: Array<[number, number]> = [
+    [-dx, a.x - r.x],
+    [dx, r.x + r.w - a.x],
+    [-dy, a.y - r.y],
+    [dy, r.y + r.h - a.y],
+  ];
+  for (const [p, q] of clips) {
+    if (p === 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    const t = q / p;
+    if (p < 0) t0 = Math.max(t0, t);
+    else t1 = Math.min(t1, t);
+    if (t0 > t1) return false;
+  }
+  return true;
+}
+

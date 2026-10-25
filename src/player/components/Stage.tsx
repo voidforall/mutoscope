@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { STAGE, sceneStateAt } from "../../core";
+import { STAGE, edgeEnds, sceneStateAt } from "../../core";
 import type { BoxedEntity, Scene, Tone } from "../../schema";
 import { ArrowDefs, EdgeView } from "./Edge";
 import { GroupView } from "./Group";
@@ -41,14 +41,15 @@ export function Stage({ scene, tMs, selectedId, threadCounts, onSelect }: StageP
       })}
       {edges.map((e) => {
         const s = at(e.id);
+        const ends = edgeEnds(scene, state.entities, e.id);
         return (
           s && (
             <EdgeView
               key={e.id}
               entity={e}
               state={s}
-              from={at(e.from)}
-              to={at(e.to)}
+              from={ends.from}
+              to={ends.to}
               selected={selectedId === e.id}
               onSelect={onSelect}
             />

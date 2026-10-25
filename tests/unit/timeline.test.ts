@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { FULL_STAGE, captionAt, gridToRect, sceneStateAt } from "../../src/core";
+import { FULL_STAGE, captionAt, edgeEnds, gridToRect, sceneStateAt } from "../../src/core";
 import { scene } from "./fixtures";
 
 describe("sceneStateAt", () => {
@@ -119,5 +119,47 @@ describe("group visibility", () => {
     const s = withGroup([{ atMs: 5000, action: "appear", target: "g" }]);
     expect(sceneStateAt(s, 1000).entities.g!.opacity).toBe(0);
     expect(sceneStateAt(s, 9000).entities.g!.opacity).toBe(1);
+  });
+});
+
+describe("edges across replace", () => {
+  const s = scene({
+    entities: [
+      { id: "a", type: "component", label: "A", layout: { col: 1, row: 1 } },
+      { id: "b", type: "component", label: "B", layout: { col: 5, row: 1 } },
+      { id: "b2", type: "component", label: "B (after)", layout: { col: 5, row: 1 } },
+      { id: "ab", type: "edge", from: "a", to: "b" },
+    ],
+    timeline: [{ atMs: 2000, action: "replace", target: "b", with: "b2" }],
+  });
+
+  it("follow the replacement instead of fading out with the replaced box", () => {
+    const before = sceneStateAt(s, 1000);
+    expect(edgeEnds(s, before.entities, "ab").to?.opacity).toBe(1);
+    const after = sceneStateAt(s, 9000);
+    const ends = edgeEnds(s, after.entities, "ab");
+    expect(after.entities.b!.opacity).toBe(0);
+    expect(ends.to?.opacity).toBe(1);
+    expect(ends.to?.box).toEqual(after.entities.b2!.box);
+  });
+
+  it("stay visible through the cross-fade", () => {
+    const mid = sceneStateAt(s, 2350);
+    expect(edgeEnds(s, mid.entities, "ab").to!.opacity).toBeGreaterThanOrEqual(0.5);
+  });
+});
+
+describe("group boxes", () => {
+  it("wrap only the children that are visible", () => {
+    const s = scene({
+      entities: [
+        { id: "a", type: "component", label: "A", layout: { col: 1, row: 3 } },
+        { id: "far", type: "component", label: "Far", layout: { col: 9, row: 6 } },
+        { id: "g", type: "group", label: "G", children: ["a", "far"] },
+      ],
+      timeline: [{ atMs: 0, action: "disappear", target: "far", durationMs: 0 }],
+    });
+    const { entities } = sceneStateAt(s, 1000);
+    expect(entities.g!.box!.x + entities.g!.box!.w).toBeLessThan(gridToRect({ col: 9, row: 6, colSpan: 2, rowSpan: 1 }).x);
   });
 });

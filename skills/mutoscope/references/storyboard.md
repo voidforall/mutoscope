@@ -24,8 +24,10 @@ The file is one object with a `scenes` array, in playing order. The reel opens o
   |---|---|---|---|---|---|
   | lines | 4 | 7 | 10 | 14 | 17 |
 
+  A `diff-panel` shows before and after side by side, so each side gets half the width: at colSpan 12 about 48 characters per side (with its +/− gutter), at 8 about 27, at 6 about 17. Lines are budgeted as for code, minus one row of tags.
+
 - A `quote` sizes its text to the box. Give it about 1 column per 12 characters at 2 rows (for example, 6 × 2 for a 70-character line); `validate` warns when it would shrink too small.
-- Visible boxes must not overlap — `validate` warns at every sampled instant. Groups are the exception: they wrap their children automatically and need ~40 units of headroom above the children for their label, so leave the row above a grouped child empty or keep it ≥ 1 row away from other content.
+- Visible boxes must not overlap — `validate` warns at every sampled instant. A group's frame wraps its **visible** children as they are right now (a child that moves stretches the frame; hidden or replaced children don't count), plus ~40 units above for its label and ~22 around, and that frame must not overlap other boxes either: leave the row above a grouped child empty and keep other content ≥ 1 row away. Edges must not run through other boxes or over a group's label; `validate` warns about both.
 - Edges are straight lines aimed from one box's **centre** to the other's, clipped at their borders. So two boxes on the same row only get a horizontal edge when they also have the same `row` *and* `rowSpan` (likewise `col`/`colSpan` for vertical edges). Labelled edges need room: `validate` warns when an edge is too short for its label. Avoid diagonals crossing other boxes or labels.
 
 ## Entities
@@ -56,7 +58,7 @@ Code snippets are quotes. Copy them from the pinned revision (`git show <sha>:<p
 | `connect` / `disconnect` | draw / undraw an **edge** | 700 / 400 |
 | `highlight` / `dim` / `restore` | emphasise / de-emphasise / back to normal | 400 |
 | `move` | slide a boxed entity to `"to": { box }` | 800 |
-| `replace` | fade `target` out while `"with": id` fades in at the target's place | 700 |
+| `replace` | fade `target` out while `"with": id` fades in **at the target's current box** (its own `layout` is ignored from then on); edges attached to `target` carry over to `with` | 700 |
 | `focus` | camera frames `target`; omit `target` to return to the full stage | 900 |
 
 Visibility rule: an entity whose first visibility action is `appear`/`connect` (or that is the `with` of a `replace`) starts hidden; everything else is visible from t = 0. Edges also fade with their endpoints, and a group with no `appear`/`disappear` of its own is visible exactly while any of its children is.

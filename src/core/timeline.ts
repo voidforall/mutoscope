@@ -65,6 +65,7 @@ function initialStates(scene: Scene, timeline: readonly Action[]): States {
   );
 }
 
+const VISIBLE_OPACITY = 0.01;
 const VISIBILITY_ACTIONS = new Set<Action["action"]>(["appear", "disappear"]);
 
 /**
@@ -77,7 +78,11 @@ function withGroupBoxes(scene: Scene, states: States): States {
   if (groups.length === 0) return states;
   const next = { ...states };
   for (const g of groups) {
-    const boxes = g.children.map((id) => next[id]?.box).filter((b): b is Rect => b != null);
+    // Only children on stage count: a hidden or replaced child must not hold the frame open.
+    const boxes = g.children
+      .map((id) => next[id])
+      .filter((c): c is EntityState => c !== undefined && c.box !== null && c.opacity > VISIBLE_OPACITY)
+      .map((c) => c.box as Rect);
     const union = unionRects(boxes);
     const prev = next[g.id];
     const box = union && {
@@ -93,12 +98,37 @@ function withGroupBoxes(scene: Scene, states: States): States {
   return next;
 }
 
+/**
+ * The state an edge end attaches to. `replace` means "this becomes that", so
+ * an edge to a replaced box carries over to whatever replaced it: the end is
+ * the most visible entity in the replacement chain.
+ */
+function endpointState(scene: Scene, states: States, id: string): EntityState | undefined {
+  const chain = [id];
+  for (let i = 0; i < chain.length; i++) {
+    for (const a of scene.timeline) {
+      if (a.action === "replace" && a.target === chain[i] && !chain.includes(a.with)) chain.push(a.with);
+    }
+  }
+  return chain
+    .map((c) => states[c])
+    .filter((s): s is EntityState => s !== undefined && s.box !== null)
+    .reduce<EntityState | undefined>((best, s) => (!best || s.opacity > best.opacity ? s : best), undefined);
+}
+
+export function edgeEnds(scene: Scene, states: States, edgeId: string): { from?: EntityState; to?: EntityState } {
+  const edge = scene.entities.find((e) => e.id === edgeId);
+  if (!edge || edge.type !== "edge") return {};
+  return { from: endpointState(scene, states, edge.from), to: endpointState(scene, states, edge.to) };
+}
+
 /** The region a focus action frames: the entity box, or an edge's endpoints. */
 export function focusRegion(scene: Scene, states: States, targetId: string): Rect | null {
   const entity = scene.entities.find((e) => e.id === targetId);
   if (!entity) return null;
   if (entity.type === "edge") {
-    const ends = [states[entity.from]?.box, states[entity.to]?.box].filter((b): b is Rect => b != null);
+    const { from, to } = edgeEnds(scene, states, entity.id);
+    const ends = [from?.box, to?.box].filter((b): b is Rect => b != null);
     return unionRects(ends);
   }
   return states[targetId]?.box ?? null;

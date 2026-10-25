@@ -146,10 +146,13 @@ export function htmlToSnapshot(html: string): WebSnapshot {
   return { ...(title ? { title } : {}), text: w.done(), anchors };
 }
 
+const MAX_SLUG = 80;
+
+/** Readable and stable; long ones keep a hash suffix so two pages never share a file. */
 export function snapshotSlug(url: string): string {
   const u = new URL(url);
-  const slug = `${u.hostname}${u.pathname}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  return slug.slice(0, 80) || "page";
+  const slug = `${u.hostname}${u.pathname}`.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "page";
+  return slug.length <= MAX_SLUG ? slug : `${slug.slice(0, MAX_SLUG - 9)}-${sha256(url).slice(0, 8)}`;
 }
 
 export const sha256 = (s: string) => createHash("sha256").update(s, "utf8").digest("hex");
