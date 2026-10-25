@@ -1,8 +1,7 @@
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
-import { diffLines, type EntityState, type Rect } from "../../core";
+import { codeBlockFont, diffLines, diffPanelFont, type EntityState, type Rect } from "../../core";
 import type { BoxedEntity, Entity } from "../../schema";
 import { emphasisStyle } from "./emphasis";
-import { fitMono } from "./fit";
 
 interface NodeProps {
   readonly entity: BoxedEntity;
@@ -55,14 +54,13 @@ export function accessibleName(e: Entity): string {
   return ("label" in e && e.label) || e.id;
 }
 
-const CODE_CHROME = { header: 38, pad: 28, gutter: 3.2 };
-
-function CodeLines({ lines, start, highlight, fontSize, kinds }: {
+function CodeLines({ lines, start, highlight, fontSize, kinds, lineNumbers = true }: {
   lines: readonly string[];
   start: number;
   highlight: ReadonlySet<number>;
   fontSize: number;
   kinds?: readonly string[];
+  lineNumbers?: boolean;
 }) {
   return (
     <pre className="code-lines" style={{ fontSize }}>
@@ -72,7 +70,7 @@ function CodeLines({ lines, start, highlight, fontSize, kinds }: {
         const cls = `code-line${highlight.has(n) ? " is-hl" : ""}${kind && kind !== "same" ? ` is-${kind}` : ""}`;
         return (
           <span className={cls} key={i}>
-            <span className="ln">{kinds ? (kind === "removed" ? "−" : kind === "added" ? "+" : " ") : n}</span>
+            {lineNumbers && <span className="ln">{kinds ? (kind === "removed" ? "−" : kind === "added" ? "+" : " ") : n}</span>}
             <span className="lt">{line || " "}</span>
           </span>
         );
@@ -99,25 +97,17 @@ export function EntityNode(props: NodeProps) {
       );
     case "code-block": {
       const lines = entity.code.split("\n");
-      const fs = fitMono(
-        lines.map((l) => `${l}    `),
-        box.w - CODE_CHROME.pad - CODE_CHROME.gutter * 17,
-        box.h - CODE_CHROME.header - CODE_CHROME.pad,
-      );
+      const fs = codeBlockFont(entity, box);
       return (
         <NodeFrame {...props}>
           {entity.label && <span className="code-head">{entity.label}</span>}
-          <CodeLines lines={lines} start={entity.startLine} highlight={new Set(entity.highlightLines)} fontSize={fs} />
+          <CodeLines lines={lines} start={entity.startLine} highlight={new Set(entity.highlightLines)} fontSize={fs} lineNumbers={entity.lineNumbers} />
         </NodeFrame>
       );
     }
     case "diff-panel": {
       const d = diffLines(entity.before, entity.after);
-      const rows = Math.max(d.before.length, d.after.length);
-      const colWidth = (box.w - CODE_CHROME.pad - 24) / 2 - CODE_CHROME.gutter * 17;
-      const bodyHeight = box.h - CODE_CHROME.header - CODE_CHROME.pad - 30;
-      const widest = [...d.before, ...d.after].map((l) => `${l.text}  `);
-      const fsRows = Math.min(fitMono(widest, colWidth, Number.POSITIVE_INFINITY), bodyHeight / (rows * 1.5));
+      const fsRows = diffPanelFont(entity, box);
       return (
         <NodeFrame {...props}>
           {entity.label && <span className="code-head">{entity.label}</span>}

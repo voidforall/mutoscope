@@ -6,3 +6,4 @@ export * from "./source-links";
 export * from "./deeplink";
 export * from "./discussion";
 export * from "./line-diff";
+export * from "./text-fit";

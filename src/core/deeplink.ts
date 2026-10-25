@@ -23,7 +23,7 @@ export interface ResolvedLink {
 }
 
 /** Unknown scenes fall back to the entry scene; unknown entities are dropped. */
-export function resolveDeepLink(scenes: readonly Scene[], entrySceneId: string, link: DeepLink): ResolvedLink {
+export function resolveDeepLink(scenes: readonly Scene[], entrySceneId: string | undefined, link: DeepLink): ResolvedLink {
   const byId = (id: string | undefined) => (id ? scenes.findIndex((s) => s.id === id) : -1);
   const requested = byId(link.sceneId);
   const index = requested >= 0 ? requested : Math.max(0, byId(entrySceneId));

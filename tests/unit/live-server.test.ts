@@ -77,7 +77,7 @@ beforeAll(async () => {
   const { server } = createLiveServer({ agentToken: AGENT, build: "test", graceMs: 300 });
   await new Promise<void>((ok) => server.listen(0, "127.0.0.1", ok));
   port = (server.address() as AddressInfo).port;
-  close = () => new Promise((ok) => { server.closeAllConnections(); server.close(() => ok()); });
+  close = () => new Promise((ok) => { server.closeAllConnections(); if (server.listening) server.close(() => ok()); else ok(); });
 });
 
 afterAll(async () => {
@@ -159,3 +159,15 @@ describe("live poll lifecycle", () => {
     expect((await agent("/agent/open", { dir: reel, reopen: true })).status).toBe(200);
   });
 });
+
+describe("live server shutdown", () => {
+  it("tells a waiting poll the server stopped instead of dropping the connection", async () => {
+    const { sessionId, path } = await openSession();
+    await http("GET", path);
+    const waiting = agent("/agent/poll", { sessionId, timeoutMs: 5000 });
+    await new Promise((r) => setTimeout(r, 50));
+    await agent("/agent/stop", {});
+    expect((await waiting).body).toEqual({ status: "server_stopped" });
+  });
+});
+

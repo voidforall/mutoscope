@@ -37,10 +37,18 @@ export async function run(argv: readonly string[]): Promise<number> {
     ...(values.kicker ? { kicker: values.kicker } : {}),
     createdAt: new Date().toISOString(),
     source: { provider: "none" },
-    entrySceneId: "intro",
   });
   await mkdir(dir, { recursive: true });
   await writeFile(join(dir, REEL_FILES.manifest), `${JSON.stringify(manifest, null, 2)}\n`);
-  out(`${c.green("✓")} created ${join(dir, REEL_FILES.manifest)} (recipe: ${recipe})`);
+  const recipePath = known.find((r) => r.name === recipe)!.path;
+  out(
+    `${c.green("✓")} created ${join(dir, REEL_FILES.manifest)} (recipe: ${recipe})`,
+    "",
+    "Next:",
+    `  1. Follow the recipe's Ingest section: ${recipePath}`,
+    `  2. Write ${join(dir, REEL_FILES.analysis)}  — { "units": [...] }`,
+    `  3. Write ${join(dir, REEL_FILES.scenes)}    — { "scenes": [...] }; the first scene is where the reel opens`,
+    `  4. mutoscope validate ${dir}`,
+  );
   return 0;
 }

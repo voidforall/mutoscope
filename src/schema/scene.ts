@@ -62,6 +62,8 @@ export const CodeBlockEntity = z.object({
   startLine: z.number().int().positive().default(1),
   /** Real-file line numbers to emphasise. */
   highlightLines: z.array(z.number().int().positive()).default([]),
+  /** Show the line-number gutter; turn off for text that is not from a file (protocols, formats, transcripts). */
+  lineNumbers: z.boolean().default(true),
   layout: GridBox,
 });
 
@@ -100,6 +102,8 @@ export const Entity = z.discriminatedUnion("type", [
   DiffPanelEntity,
 ]);
 export type Entity = z.infer<typeof Entity>;
+export type CodeBlockEntity = z.infer<typeof CodeBlockEntity>;
+export type DiffPanelEntity = z.infer<typeof DiffPanelEntity>;
 export type EntityType = Entity["type"];
 export type BoxedEntity = Extract<Entity, { layout: GridBox }>;
 

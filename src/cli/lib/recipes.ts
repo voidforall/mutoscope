@@ -16,7 +16,9 @@ export interface RecipeInfo {
 /** Project recipes shadow user recipes, which shadow built-ins. */
 export function recipeDirs(cwd = process.cwd()): { dir: string; origin: RecipeInfo["origin"] }[] {
   const here = dirname(fileURLToPath(import.meta.url));
-  const builtIn = [resolve(here, "../recipes"), resolve(here, "../../../skills/mutoscope/recipes")].find((d) => existsSync(d));
+  // argv[1] keeps a symlinked install's path (~/.agents/skills/…); import.meta.url is the resolved target.
+  const launched = process.argv[1] ? dirname(process.argv[1]) : here;
+  const builtIn = [resolve(launched, "../recipes"), resolve(here, "../recipes"), resolve(here, "../../../skills/mutoscope/recipes")].find((d) => existsSync(d));
   return [
     { dir: join(cwd, ".mutoscope", "recipes"), origin: "project" as const },
     { dir: join(homedir(), ".mutoscope", "recipes"), origin: "user" as const },

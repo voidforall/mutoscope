@@ -19885,7 +19885,8 @@ var Manifest = external_exports.object({
   kicker: external_exports.string().max(60).optional(),
   createdAt: external_exports.string().datetime({ offset: true }),
   source: ReelSource,
-  entrySceneId: Id,
+  /** Scene a plain link opens on; defaults to the first scene. */
+  entrySceneId: Id.optional(),
   collaboration: Collaboration.optional(),
   /** Where the reel is (or will be) published; used for deep links in discussions. */
   publicUrl: HttpsUrl.optional()
@@ -19957,6 +19958,8 @@ var CodeBlockEntity = external_exports.object({
   startLine: external_exports.number().int().positive().default(1),
   /** Real-file line numbers to emphasise. */
   highlightLines: external_exports.array(external_exports.number().int().positive()).default([]),
+  /** Show the line-number gutter; turn off for text that is not from a file (protocols, formats, transcripts). */
+  lineNumbers: external_exports.boolean().default(true),
   layout: GridBox
 });
 var LabelEntity = external_exports.object({
@@ -20400,6 +20403,70 @@ function sceneStateAt(scene, tMs) {
   return { entities: withGroupBoxes(scene, end2.entities), camera: end2.camera };
 }
 
+// src/core/line-diff.ts
+function diffLines(before, after) {
+  const a = before.split("\n");
+  const b = after.split("\n");
+  const lcs = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = a.length - 1; i >= 0; i--) {
+    for (let j = b.length - 1; j >= 0; j--) {
+      lcs[i][j] = a[i] === b[j] ? lcs[i + 1][j + 1] + 1 : Math.max(lcs[i + 1][j], lcs[i][j + 1]);
+    }
+  }
+  const keptA = /* @__PURE__ */ new Set();
+  const keptB = /* @__PURE__ */ new Set();
+  for (let i = 0, j = 0; i < a.length && j < b.length; ) {
+    if (a[i] === b[j]) {
+      keptA.add(i++);
+      keptB.add(j++);
+    } else if (lcs[i + 1][j] >= lcs[i][j + 1]) i++;
+    else j++;
+  }
+  return {
+    before: a.map((text, i) => ({ kind: keptA.has(i) ? "same" : "removed", text })),
+    after: b.map((text, i) => ({ kind: keptB.has(i) ? "same" : "added", text }))
+  };
+}
+
+// src/core/text-fit.ts
+var CODE_FONT_MAX = 20;
+var CODE_FONT_MIN = 9;
+var CODE_FONT_READABLE = 15;
+var CHAR_EM = 0.61;
+var LINE_EM = 1.5;
+var GUTTER_EM = 3.2;
+var TRAILING_CHARS = 4;
+var CODE_CHROME = { header: 38, pad: 28, rightPad: 14, diffColGap: 24, diffTag: 30 };
+function fit(lines, width, height, gutter) {
+  const longest = Math.max(1, ...lines.map((l) => l.length));
+  const byWidth = width / (CHAR_EM * (longest + TRAILING_CHARS) + (gutter ? GUTTER_EM : 0));
+  const byHeight = height / (Math.max(1, lines.length) * LINE_EM);
+  return Math.max(CODE_FONT_MIN, Math.min(CODE_FONT_MAX, byWidth, byHeight));
+}
+function codeBlockFont(e, box) {
+  return fit(e.code.split("\n"), box.w - CODE_CHROME.pad - CODE_CHROME.rightPad, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
+}
+function diffPanelFont(e, box) {
+  const d = diffLines(e.before, e.after);
+  const rows = Math.max(d.before.length, d.after.length);
+  const colWidth = (box.w - CODE_CHROME.pad - CODE_CHROME.diffColGap) / 2 - CODE_CHROME.rightPad;
+  const bodyHeight = box.h - CODE_CHROME.header - CODE_CHROME.pad - CODE_CHROME.diffTag;
+  const lines = [...d.before, ...d.after].map((l) => l.text);
+  return Math.min(fit(lines, colWidth, Number.POSITIVE_INFINITY, true), bodyHeight / (rows * LINE_EM));
+}
+function textFont(e, box) {
+  return e.type === "code-block" ? codeBlockFont(e, box) : diffPanelFont(e, box);
+}
+function spanForFullSize(e) {
+  const { col, row } = e.layout;
+  for (let rowSpan = e.layout.rowSpan; row + rowSpan - 1 <= GRID_ROWS; rowSpan++) {
+    for (let colSpan = e.layout.colSpan; col + colSpan - 1 <= GRID_COLS; colSpan++) {
+      if (textFont(e, gridToRect({ col, row, colSpan, rowSpan })) >= CODE_FONT_MAX - 0.01) return { colSpan, rowSpan };
+    }
+  }
+  return void 0;
+}
+
 // src/core/validate.ts
 var READING_WORDS_PER_SECOND = 3;
 var OVERLAP_SAMPLE_MS = 250;
@@ -20510,6 +20577,25 @@ function findCrampedEdges(scene) {
     return edgeLabelFits(e.label, Math.hypot(b.x - a.x, b.y - a.y)) ? [] : [e.id];
   });
 }
+var fmtPx = (n) => `${Math.round(n)}px`;
+var MAX_FONT_SPREAD = 2;
+function findTextSizeIssues(scene, p) {
+  const texts = scene.entities.filter((e) => e.type === "code-block" || e.type === "diff-panel");
+  const sized = texts.map((e) => ({ e, font: textFont(e, gridToRect(e.layout)) }));
+  const issues = sized.filter(({ font }) => font < CODE_FONT_READABLE).map(({ e, font }) => {
+    const span = spanForFullSize(e);
+    const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten its lines or split it";
+    return { path: `${p}.entities`, message: `text in '${e.id}' shrinks to ${fmtPx(font)} to fit its box; ${fix}` };
+  });
+  if (sized.length > 1) {
+    const fonts = sized.map((s) => s.font);
+    if (Math.max(...fonts) - Math.min(...fonts) > MAX_FONT_SPREAD) {
+      const list = sized.map(({ e, font }) => `'${e.id}' ${fmtPx(font)}`).join(", ");
+      issues.push({ path: `${p}.entities`, message: `code renders at different sizes (${list}); widen the smaller ones or shorten their lines` });
+    }
+  }
+  return issues;
+}
 function checkScene(scene, index, manifest) {
   const p = `scenes[${index}]`;
   const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p)];
@@ -20521,6 +20607,7 @@ function checkScene(scene, index, manifest) {
     ...checkPacing(scene, p),
     ...errors.length === 0 ? findOverlaps(scene).map(([a, b]) => ({ path: `${p}.entities`, message: `'${a}' and '${b}' overlap while visible` })) : [],
     ...errors.length === 0 ? findCrampedEdges(scene).map((id) => ({ path: `${p}.entities`, message: `edge '${id}' is too short to show its label; move its ends apart` })) : [],
+    ...findTextSizeIssues(scene, p),
     ...scene.entities.filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0).map((e) => ({ path: `${p}.entities`, message: `component '${e.id}' has no explanation or refs to inspect` }))
   ];
   return { errors: [...errors, ...refIssues], warnings };
@@ -20534,7 +20621,7 @@ function validateBundle(input2) {
     path: "scenes",
     message: `duplicate scene id '${id}'`
   }));
-  if (!scenes.some((s) => s.id === manifest.entrySceneId)) {
+  if (manifest.entrySceneId !== void 0 && !scenes.some((s) => s.id === manifest.entrySceneId)) {
     errors.push({ path: "manifest.entrySceneId", message: `scene '${manifest.entrySceneId}' does not exist` });
   }
   const warnings = [];
@@ -21063,7 +21150,8 @@ import { dirname as dirname2, join as join9, resolve as resolve4 } from "node:pa
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 function recipeDirs(cwd = process.cwd()) {
   const here = dirname2(fileURLToPath2(import.meta.url));
-  const builtIn = [resolve4(here, "../recipes"), resolve4(here, "../../../skills/mutoscope/recipes")].find((d) => existsSync4(d));
+  const launched = process.argv[1] ? dirname2(process.argv[1]) : here;
+  const builtIn = [resolve4(launched, "../recipes"), resolve4(here, "../recipes"), resolve4(here, "../../../skills/mutoscope/recipes")].find((d) => existsSync4(d));
   return [
     { dir: join9(cwd, ".mutoscope", "recipes"), origin: "project" },
     { dir: join9(homedir2(), ".mutoscope", "recipes"), origin: "user" },
@@ -21121,13 +21209,21 @@ async function run6(argv) {
     recipe,
     ...values.kicker ? { kicker: values.kicker } : {},
     createdAt: (/* @__PURE__ */ new Date()).toISOString(),
-    source: { provider: "none" },
-    entrySceneId: "intro"
+    source: { provider: "none" }
   });
   await mkdir3(dir, { recursive: true });
   await writeFile4(join10(dir, REEL_FILES.manifest), `${JSON.stringify(manifest, null, 2)}
 `);
-  out(`${c.green("\u2713")} created ${join10(dir, REEL_FILES.manifest)} (recipe: ${recipe})`);
+  const recipePath = known.find((r) => r.name === recipe).path;
+  out(
+    `${c.green("\u2713")} created ${join10(dir, REEL_FILES.manifest)} (recipe: ${recipe})`,
+    "",
+    "Next:",
+    `  1. Follow the recipe's Ingest section: ${recipePath}`,
+    `  2. Write ${join10(dir, REEL_FILES.analysis)}  \u2014 { "units": [...] }`,
+    `  3. Write ${join10(dir, REEL_FILES.scenes)}    \u2014 { "scenes": [...] }; the first scene is where the reel opens`,
+    `  4. mutoscope validate ${dir}`
+  );
   return 0;
 }
 
@@ -21598,6 +21694,7 @@ var LiveSession = class _LiveSession {
 var MAX_POLL_MS = 60 * 60 * 1e3;
 var RELOAD_DEBOUNCE_MS = 250;
 var HEARTBEAT_MS = 2e4;
+var SHUTDOWN_GRACE_MS = 500;
 var WATCHED = new Set(Object.values(REEL_FILES));
 var OpenBody = external_exports.object({ dir: external_exports.string().min(1), reopen: external_exports.boolean().default(false) });
 var SessionBody = external_exports.object({ sessionId: external_exports.string().regex(/^[0-9a-f]{16}$/) });
@@ -21762,7 +21859,8 @@ function createLiveServer(opts) {
     for (const w of watchers.values()) w.close();
     for (const s of sessions2.values()) s.closeStreams();
     server.close(() => opts.onStop?.());
-    server.closeAllConnections();
+    server.closeIdleConnections();
+    setTimeout(() => server.closeAllConnections(), SHUTDOWN_GRACE_MS).unref();
   }
   server.on("close", () => clearInterval(idleCheck));
   return { server, sessions: sessions2 };

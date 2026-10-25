@@ -21,7 +21,7 @@
         },
         {
           "atMs": 12000,
-          "text": "Each thread only writes its own cursor \u2014 the lock is stricter than needed."
+          "text": "Each thread only writes its own cursor — the lock is stricter than needed."
         }
       ],
       "entities": [
@@ -50,7 +50,7 @@
             "rowSpan": 1
           },
           "tone": "warning",
-          "sublabel": "mutex_ \u00b7 shared by both",
+          "sublabel": "mutex_ · shared by both",
           "explanation": "A single mutex taken by push, pop and size via std::lock_guard.",
           "sourceRefs": [
             {
@@ -297,7 +297,7 @@
         {
           "id": "push-diff",
           "type": "diff-panel",
-          "label": "Mutex.hpp:39-48 \u2192 Fifo3.hpp:54-63",
+          "label": "Mutex.hpp:39-48 → Fifo3.hpp:54-63",
           "language": "cpp",
           "before": "auto push(T const& value) {\n    std::lock_guard<std::mutex> lock(mutex_);\n\n    if (full(pushCursor_, popCursor_)) {\n        return false;\n    }\n    new (&ring_[pushCursor_ % capacity_]) T(value);\n    ++pushCursor_;\n    return true;\n}",
           "after": "auto push(T const& value) {\n    auto pushCursor = pushCursor_.load(std::memory_order_relaxed);\n    auto popCursor = popCursor_.load(std::memory_order_acquire);\n    if (full(pushCursor, popCursor)) {\n        return false;\n    }\n    new (element(pushCursor)) T(value);\n    pushCursor_.store(pushCursor + 1, std::memory_order_release);\n    return true;\n}",
@@ -307,7 +307,7 @@
             "colSpan": 12,
             "rowSpan": 6
           },
-          "explanation": "Same contract \u2014 return false when full \u2014 but synchronisation moves from a lock to per-cursor atomics.",
+          "explanation": "Same contract — return false when full — but synchronisation moves from a lock to per-cursor atomics.",
           "sourceRefs": [
             {
               "kind": "code",
@@ -378,19 +378,19 @@
         },
         {
           "atMs": 2500,
-          "text": "\u2460 The producer constructs T in the slot."
+          "text": "① The producer constructs T in the slot."
         },
         {
           "atMs": 5500,
-          "text": "\u2461 Then it publishes: pushCursor_.store(+1, release)."
+          "text": "② Then it publishes: pushCursor_.store(+1, release)."
         },
         {
           "atMs": 9000,
-          "text": "\u2462 The consumer loads pushCursor_ with acquire."
+          "text": "③ The consumer loads pushCursor_ with acquire."
         },
         {
           "atMs": 12500,
-          "text": "\u2463 Only then does it read the slot \u2014 the write is guaranteed visible."
+          "text": "④ Only then does it read the slot — the write is guaranteed visible."
         }
       ],
       "entities": [
@@ -471,7 +471,7 @@
             "rowSpan": 1
           },
           "tone": "accent",
-          "sublabel": "std::atomic \u00b7 one writer",
+          "sublabel": "std::atomic · one writer",
           "explanation": "Written only by the producer (release), read by the consumer (acquire).",
           "sourceRefs": [
             {
@@ -490,7 +490,7 @@
           "style": "solid",
           "arrow": "end",
           "tone": "added",
-          "label": "\u2460 construct"
+          "label": "① construct"
         },
         {
           "id": "w-cursor",
@@ -500,7 +500,7 @@
           "style": "solid",
           "arrow": "end",
           "tone": "accent",
-          "label": "\u2461 release"
+          "label": "② release"
         },
         {
           "id": "r-cursor",
@@ -510,7 +510,7 @@
           "style": "solid",
           "arrow": "end",
           "tone": "accent",
-          "label": "\u2462 acquire"
+          "label": "③ acquire"
         },
         {
           "id": "r-slot",
@@ -520,12 +520,12 @@
           "style": "solid",
           "arrow": "end",
           "tone": "added",
-          "label": "\u2463 read"
+          "label": "④ read"
         },
         {
           "id": "hb",
           "type": "label",
-          "text": "release \u2192 acquire creates a happens-before edge: \u2460 is visible to \u2463.",
+          "text": "release → acquire creates a happens-before edge: ① is visible to ④.",
           "size": "md",
           "align": "center",
           "tone": "muted",
@@ -650,7 +650,7 @@
       "cues": [
         {
           "atMs": 0,
-          "text": "Two cores, two cursors \u2014 on one shared cache line."
+          "text": "Two cores, two cursors — on one shared cache line."
         },
         {
           "atMs": 3500,
@@ -726,7 +726,7 @@
             "rowSpan": 1
           },
           "tone": "removed",
-          "explanation": "Adjacent to pushCursor_ in Fifo2 \u2014 a write to either invalidates both.",
+          "explanation": "Adjacent to pushCursor_ in Fifo2 — a write to either invalidates both.",
           "sourceRefs": [
             {
               "kind": "code",
@@ -851,9 +851,9 @@
           ],
           "layout": {
             "col": 2,
-            "row": 6,
+            "row": 5,
             "colSpan": 10,
-            "rowSpan": 3
+            "rowSpan": 4
           },
           "sourceRefs": [
             {
@@ -998,7 +998,7 @@
         },
         {
           "atMs": 12000,
-          "text": "The second check decides: still full \u2192 return false."
+          "text": "The second check decides: still full → return false."
         }
       ],
       "entities": [

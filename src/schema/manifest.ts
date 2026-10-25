@@ -54,7 +54,8 @@ export const Manifest = z.object({
   kicker: z.string().max(60).optional(),
   createdAt: z.string().datetime({ offset: true }),
   source: ReelSource,
-  entrySceneId: Id,
+  /** Scene a plain link opens on; defaults to the first scene. */
+  entrySceneId: Id.optional(),
   collaboration: Collaboration.optional(),
   /** Where the reel is (or will be) published; used for deep links in discussions. */
   publicUrl: HttpsUrl.optional(),

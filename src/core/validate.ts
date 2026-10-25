@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import { ReelBundle, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
-import { edgeLabelFits, edgeSegment, rectsOverlap } from "./geometry";
+import { edgeLabelFits, edgeSegment, gridToRect, rectsOverlap } from "./geometry";
+import { CODE_FONT_READABLE, spanForFullSize, textFont, type TextEntity } from "./text-fit";
 import { sceneStateAt } from "./timeline";
 
 export interface Issue {
@@ -140,6 +141,30 @@ export function findCrampedEdges(scene: Scene): string[] {
   });
 }
 
+const fmtPx = (n: number) => `${Math.round(n)}px`;
+const MAX_FONT_SPREAD = 2;
+
+/** Code that shrinks to fit reads small, and blocks at different sizes look like a mistake. */
+export function findTextSizeIssues(scene: Scene, p: string): Issue[] {
+  const texts = scene.entities.filter((e): e is TextEntity => e.type === "code-block" || e.type === "diff-panel");
+  const sized = texts.map((e) => ({ e, font: textFont(e, gridToRect(e.layout)) }));
+  const issues: Issue[] = sized
+    .filter(({ font }) => font < CODE_FONT_READABLE)
+    .map(({ e, font }) => {
+      const span = spanForFullSize(e);
+      const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten its lines or split it";
+      return { path: `${p}.entities`, message: `text in '${e.id}' shrinks to ${fmtPx(font)} to fit its box; ${fix}` };
+    });
+  if (sized.length > 1) {
+    const fonts = sized.map((s) => s.font);
+    if (Math.max(...fonts) - Math.min(...fonts) > MAX_FONT_SPREAD) {
+      const list = sized.map(({ e, font }) => `'${e.id}' ${fmtPx(font)}`).join(", ");
+      issues.push({ path: `${p}.entities`, message: `code renders at different sizes (${list}); widen the smaller ones or shorten their lines` });
+    }
+  }
+  return issues;
+}
+
 function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: Issue[]; warnings: Issue[] } {
   const p = `scenes[${index}]`;
   const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p)];
@@ -155,6 +180,7 @@ function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: 
     ...(errors.length === 0
       ? findCrampedEdges(scene).map((id) => ({ path: `${p}.entities`, message: `edge '${id}' is too short to show its label; move its ends apart` }))
       : []),
+    ...findTextSizeIssues(scene, p),
     ...scene.entities
       .filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0)
       .map((e) => ({ path: `${p}.entities`, message: `component '${e.id}' has no explanation or refs to inspect` })),
@@ -172,7 +198,7 @@ export function validateBundle(input: unknown): ValidationResult {
     path: "scenes",
     message: `duplicate scene id '${id}'`,
   }));
-  if (!scenes.some((s) => s.id === manifest.entrySceneId)) {
+  if (manifest.entrySceneId !== undefined && !scenes.some((s) => s.id === manifest.entrySceneId)) {
     errors.push({ path: "manifest.entrySceneId", message: `scene '${manifest.entrySceneId}' does not exist` });
   }
   const warnings: Issue[] = [];

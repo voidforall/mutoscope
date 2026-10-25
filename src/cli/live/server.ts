@@ -25,6 +25,7 @@ export interface LiveServerOptions {
 const MAX_POLL_MS = 60 * 60 * 1000;
 const RELOAD_DEBOUNCE_MS = 250;
 const HEARTBEAT_MS = 20_000;
+const SHUTDOWN_GRACE_MS = 500;
 const WATCHED = new Set<string>(Object.values(REEL_FILES));
 
 const OpenBody = z.object({ dir: z.string().min(1), reopen: z.boolean().default(false) });
@@ -205,9 +206,11 @@ export function createLiveServer(opts: LiveServerOptions): { server: Server; ses
   function stop(): void {
     clearInterval(idleCheck);
     for (const w of watchers.values()) w.close();
+    // Answer waiting polls and end event streams first; cutting sockets right away would drop those responses.
     for (const s of sessions.values()) s.closeStreams();
     server.close(() => opts.onStop?.());
-    server.closeAllConnections();
+    server.closeIdleConnections();
+    setTimeout(() => server.closeAllConnections(), SHUTDOWN_GRACE_MS).unref();
   }
   server.on("close", () => clearInterval(idleCheck));
 
