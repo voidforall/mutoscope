@@ -81,7 +81,7 @@ export function proportionalEm(text: string, m: Metrics = INTER_SEMIBOLD): numbe
 }
 
 /** Lines `text` wraps to at `font` in `width`, word by word, like the browser. `monoEm` switches to fixed-width text. */
-function wrappedLines(text: string, font: number, width: number, style: { readonly metrics?: Metrics; readonly monoEm?: number } = {}): number {
+export function wrappedLines(text: string, font: number, width: number, style: { readonly metrics?: Metrics; readonly monoEm?: number } = {}): number {
   const advance = (s: string) => (style.monoEm === undefined ? proportionalEm(s, style.metrics) : s.length * style.monoEm) * font;
   const space = advance(" ");
   let lines = 1;

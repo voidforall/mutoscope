@@ -32,8 +32,8 @@ It is prebuilt and has no dependencies beyond Node.js 22. `mutoscope help` lists
 
 ## Vocabulary
 
-- **reel dir** — the authored files: `manifest.json`, `scenes.json`, optional `analysis.json`, `rationale.md`, `threads.json`; plus `source/` (ingested raw material, never published). Default location: `.mutoscope/reels/<id>/` in the current project.
-- **entity** — one inspectable thing on the stage: `component`, `edge`, `code-block`, `label`, `group`, `diff-panel`, `quote`.
+- **reel dir** — the authored files: `manifest.json`, `scenes.json`, optional `analysis.json`, `rationale.md`, `threads.json`, `assets/` (images, embedded and published with the reel); plus `source/` (ingested raw material, never published). Default location: `.mutoscope/reels/<id>/` in the current project.
+- **entity** — one inspectable thing on the stage. Diagrams: `component`, `edge`, `group`. Code and words: `code-block`, `diff-panel`, `label`, `quote`, `headline`. Data and media: `stat`, `chart`, `time-axis`, `table`, `image` (from the reel's `assets/`).
 - **cue** — a timed caption. **claim** — a sentence with `basis: evidence | inference`.
 - **thread** — a viewer question (a GitHub Discussion) anchored to scene + entity + time.
 

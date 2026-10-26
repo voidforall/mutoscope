@@ -10,6 +10,12 @@ import { loadValidReel } from "../lib/reel";
 import { CliError, REEL_FILES } from "../lib/reel-files";
 import { scanBundle, type Finding } from "../lib/safety";
 
+/** Images are published content too: name them in the plan the author approves. */
+function imageSummary(bundle: ReelBundle): string {
+  const srcs = Object.keys(bundle.assets ?? {});
+  return srcs.length ? `, ${srcs.length} image${srcs.length > 1 ? "s" : ""} (${srcs.join(", ")})` : "";
+}
+
 export const help =
   "publish <reel-dir> [--repo owner/repo] [--branch gh-pages] [--path reels/<id>] [--yes] [--allow-private-source]\n" +
   "                                                       Dry run unless --yes; pushes to GitHub Pages";
@@ -145,7 +151,7 @@ export async function run(argv: readonly string[]): Promise<number> {
       ["target", `${repo} (${info.visibility.toLowerCase()}) → branch ${branch}, /${path}/`],
       ["url", publicUrl],
       ["pages", pages.enabled ? "already enabled" : `will be enabled from ${branch}`],
-      ["contents", `${bundle.scenes.length} scenes, ${bundle.analysis ? "analysis, " : ""}${bundle.threads ? `${bundle.threads.threads.length} threads, ` : ""}${bundle.rationale ? "rationale" : "no rationale"}`],
+      ["contents", `${bundle.scenes.length} scenes, ${bundle.analysis ? "analysis, " : ""}${bundle.threads ? `${bundle.threads.threads.length} threads, ` : ""}${bundle.rationale ? "rationale" : "no rationale"}${imageSummary(bundle)}`],
     ],
     findings,
   );

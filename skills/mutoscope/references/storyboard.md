@@ -12,6 +12,7 @@ The file is one object with a `scenes` array, in playing order. The reel opens o
 
 - Stage: 1600 × 900 units (16:9), laid out on a **12-column × 8-row grid**.
 - A box is `{ "col": 1-12, "row": 1-8, "colSpan": n, "rowSpan": n }` (spans default to 2 × 1). It must stay inside the grid.
+- Or name a region instead of a box: `"layout": "left"`. Regions: `full`, `center` (8 × 6, centred), `heading` (rows 1–2), `body` (rows 3–6), `footer` (rows 7–8), `top` / `bottom` (half height), `left` / `right` (half width), `left-third` / `middle-third` / `right-third`, `left-two-thirds` / `right-two-thirds`, and the quarters `top-left`, `top-right`, `bottom-left`, `bottom-right`. Neighbouring regions never overlap. `move` accepts them too (`"to": "right"`).
 - One row is ~83 units tall: a component needs 1 row (title + sublabel) or 2 rows (more air).
 - Code and diff text shrinks to fit its box, and `validate` warns when it drops below readable size or when blocks in one scene end up at different sizes (it suggests the span that fits). At full size a code block holds:
 
@@ -43,6 +44,27 @@ Every entity has `id` (kebab-case, unique within the scene), optional `explanati
 | `label` | `text` (≤ 280), `layout` | `size` sm/md/lg/xl, `align` start/center | a takeaway sentence on stage |
 | `quote` | `text` (≤ 400, verbatim), `layout` | `attribution` (≤ 80) | the line from a source that carries the point; checked against pinned pages via its `url` sourceRef |
 | `group` | `children` (component/code/label/diff/quote ids) | `label` (≤ 40) | a boundary: cache line, process, team, layer |
+
+### Beyond boxes and arrows
+
+Not every scene is a diagram. Choose the form that carries the point: a sentence that should land gets a `headline`, a number that matters gets a `stat`, a trend gets a `chart`, a sequence of dates gets a `time-axis`, a real screen or figure gets an `image`, a comparison of a few attributes gets a `table`.
+
+| type | required fields | optional | use for |
+|---|---|---|---|
+| `headline` | `text` (≤ 160), `layout` | `eyebrow` (≤ 40, small caps line above), `size` lg/xl/display (max 48/72/112 px; shrinks to fit), `align` center/start, `reveal` fade/words/typewriter | title cards, chapter breaks, the thesis, a closing line |
+| `stat` | `value` (number), `label` (≤ 80), `layout` | `prefix` (≤ 4, "$"), `suffix` (≤ 10, "%", "×", " ms"), `decimals`, `from` (count-up start, default 0), `note` (≤ 60, "down from 2.1 s"), `countUp` (default true) | one figure per stat; three side by side make a scoreboard |
+| `chart` | `kind` bar/column/line/area, `categories` (≤ 16, ≤ 24 chars), `series` (1–4 × `{ name, values, tone? }`), `layout` | `title`, `unit` ("k", "%", " ms"), `min`/`max` (axis; default 0 to a rounded max), `highlight` (categories to emphasise; the rest mute), `valueLabels` (default true) | `column` for a few periods, `bar` for long category names or rankings, `line`/`area` for trends; at most ~8 categories reads well |
+| `time-axis` | `events` (1–12 × `{ at, label ≤ 40, when?, detail? ≤ 60, tone? }`), `layout` | `title`, `spans` (≤ 6 eras `{ from, to, label, tone? }`), `min`/`max` | history, how something evolved, an incident timeline; `at` is any increasing number (a year, a day, a version) and `when` is how it is printed |
+| `image` | `src` (`assets/…` png/jpg/webp/gif/svg), `alt` (≤ 200), `layout` | `fit` contain/cover, `caption` (≤ 140), `credit` (≤ 80), `callouts` (≤ 6 × `{ x, y, label, w?, h? }`, fractions of the image) | screenshots, figures from a paper, photos, product tours |
+| `table` | `columns` (≤ 6), `rows` (≤ 10, each cell ≤ 40 chars), `layout` | `title`, `highlightRows` (0-based), `align` (per column start/center/end) | a few options against a few attributes; numbers align `end` |
+
+Images live in the reel's `assets/` folder (≤ 5 MB each, 20 MB in all) and are embedded into the page, so nothing loads from the network. Put only images you may publish there: screenshots you took, figures with a `credit`, or files the user gave you. Never hotlink or invent one. A callout `{ "x": 0.7, "y": 0.2, "label": "Search" }` points at a spot; add `w`/`h` to outline a region. With `fit: "cover"` the picture is cropped, and `validate` warns when that hides a callout.
+
+**Builds.** Entities with parts build them in during their `appear`: `headline`/`label` with `reveal: "words"` or `"typewriter"`, a `stat` counting up, chart bars growing one after another and lines drawing left to right, time-axis events arriving as the line sweeps past, table rows sliding in, image callouts one by one. Without `durationMs` an appear lasts as long as the content needs (about 0.2 s a word, 1.6 s for a stat, 1.2 s + 0.15 s a bar). Set `durationMs` to pace it against the narration. `validate` warns when a build is still running at the scene's end.
+
+**Backdrop.** A scene's `backdrop` is `dots` (default), `plain`, `grid` (graph paper, good behind charts) or `spotlight` (a soft glow, good for title cards).
+
+`validate` warns when a headline shrinks below 28 px, a stat's number below 44 px, a chart cuts a category label or crowds its bars, time-axis labels collide, or a table runs out of room, and each warning says what to change.
 
 Tones carry meaning — use them consistently across the reel: `neutral` (default), `accent` (the protagonist of this scene), `added` (new / good path), `removed` (old / failing path), `warning` (contention, risk), `muted` (context).
 
@@ -96,3 +118,10 @@ Visibility rule: an entity whose first visibility action is `appear`/`connect` (
 - **Hand-off** — two actors on the outer columns, the shared thing in the middle, numbered edge labels (`① …`, `② …`) connected one cue at a time.
 - **Boundary** — `group`s around what shares a resource; move or replace members to show the boundary changing.
 - **Zoom** — `focus` on a code-block for its key beat, then `focus` with no target to pull back.
+- **Title card** — `backdrop: "spotlight"`, one `headline` (`size: "display"`, `reveal: "words"`, an `eyebrow`) in `center`, one quiet `label` below. Use it to open the reel and to break chapters.
+- **Scoreboard** — a `headline` in `heading`, then two to four `stat`s side by side in rows 3–6 (`left-third`/`middle-third`/`right-third` boxes trimmed to rows 3–6), each appearing on its cue.
+- **Chart + takeaway** — a `chart` in `top` or rows 1–6, a `label` in `footer` that says what the chart means; `highlight` the category the label is about.
+- **Split screen** — an `image` or `chart` in `left-two-thirds`, a `table` or `label`s in `right-third`.
+- **Timeline** — a `headline` in `heading`, a `time-axis` in rows 3–8; `spans` for eras; tone the event the scene is about `accent`.
+
+Vary the forms across a reel: a reel that is all boxes and arrows, or all charts, is harder to watch than one that alternates.

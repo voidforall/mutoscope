@@ -14,7 +14,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage();
 await page.goto(pathToFileURL(join(site, "index.html")).href);
 await page.waitForFunction(() => window.mutoscope?.ready);
-const fonts = { INTER_SEMIBOLD: "650 100px Inter", SERIF_ITALIC: 'italic 400 100px "Source Serif 4"' };
+const fonts = { INTER_SEMIBOLD: "650 100px Inter", INTER_BOLD: "750 100px Inter", INTER_REGULAR: "400 100px Inter", SERIF_ITALIC: 'italic 400 100px "Source Serif 4"' };
 const measured = await page.evaluate(async (fonts) => {
   const chars = [];
   for (let i = 32; i < 127; i++) chars.push(String.fromCharCode(i));

@@ -62,6 +62,8 @@ function baseUrl(bundle: ReelBundle): string {
   return bundle.manifest.publicUrl ?? (here.startsWith("http") ? here : "https://localhost/");
 }
 
+const NO_ASSETS = {};
+
 export function App({ bundle }: { readonly bundle: ReelBundle }) {
   const { manifest, scenes } = bundle;
   const [state, dispatch] = usePlayer(scenes, useMemo(() => initialState(bundle), [bundle]));
@@ -197,7 +199,7 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
             </p>
           )}
           <div className="stage-frame">
-            <Stage scene={scene} tMs={state.tMs} selectedId={state.selectedId} threadCounts={threadCounts} onSelect={(id) => dispatch({ type: "select", id })} />
+            <Stage scene={scene} tMs={state.tMs} selectedId={state.selectedId} threadCounts={threadCounts} onSelect={(id) => dispatch({ type: "select", id })} assets={bundle.assets ?? NO_ASSETS} />
             {!state.playing && state.tMs === 0 && state.index === 0 && !state.selectedId && (
               <button className="big-play" aria-label="Play reel" onClick={() => dispatch({ type: "play" })}>
                 <Icon name="play" size={34} />

@@ -11,7 +11,7 @@ export function VideoFrame({ bundle, state }: { readonly bundle: ReelBundle; rea
   return (
     <div className="video-frame">
       <div className="video-stage">
-        <Stage scene={scene} tMs={state.tMs} threadCounts={NO_THREADS} onSelect={() => undefined} />
+        <Stage scene={scene} tMs={state.tMs} threadCounts={NO_THREADS} onSelect={() => undefined} assets={bundle.assets ?? {}} />
       </div>
       <div className="video-band">
         <div className="scene-tag">

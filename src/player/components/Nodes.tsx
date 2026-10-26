@@ -1,58 +1,12 @@
-import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
-import { codeBlockFont, diffLines, diffPanelFont, isElision, quoteFont, type EntityState, type Rect } from "../../core";
-import type { BoxedEntity, Entity } from "../../schema";
-import { emphasisStyle } from "./emphasis";
+import { codeBlockFont, diffLines, diffPanelFont, isElision, quoteFont } from "../../core";
+import { NodeFrame, type NodeProps } from "./NodeFrame";
+import { ChartNode } from "./visuals/ChartNode";
+import { HeadlineNode, RevealText, StatNode } from "./visuals/TextNodes";
+import { ImageNode } from "./visuals/ImageNode";
+import { TableNode } from "./visuals/TableNode";
+import { TimeAxisNode } from "./visuals/TimeAxisNode";
 
-interface NodeProps {
-  readonly entity: BoxedEntity;
-  readonly state: EntityState;
-  readonly box: Rect;
-  readonly selected: boolean;
-  readonly threadCount: number;
-  readonly onSelect: (id: string) => void;
-}
-
-/** Bleed around each node so selection rings and thread badges are not clipped by the foreignObject. */
-const BLEED = 16;
-
-function NodeFrame({ entity, state, box, selected, threadCount, onSelect, children }: NodeProps & { children: ReactNode }) {
-  const select = (e: MouseEvent | KeyboardEvent) => {
-    e.stopPropagation();
-    onSelect(entity.id);
-  };
-  return (
-    <foreignObject
-      x={box.x - BLEED}
-      y={box.y - BLEED}
-      width={box.w + 2 * BLEED}
-      height={box.h + 2 * BLEED}
-      style={{ ...emphasisStyle(state, selected), ["--bleed" as string]: `${BLEED}px` }}
-    >
-      <div
-        className={`node node-${entity.type} tone-${entity.tone}${selected ? " is-selected" : ""}`}
-        data-entity={entity.id}
-        role="button"
-        tabIndex={state.opacity < 0.2 ? -1 : 0}
-        aria-label={`Inspect ${accessibleName(entity)}`}
-        aria-pressed={selected}
-        onClick={select}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && select(e)}
-      >
-        {children}
-        {threadCount > 0 && (
-          <span className="thread-dot" title={`${threadCount} discussion${threadCount > 1 ? "s" : ""}`}>
-            {threadCount}
-          </span>
-        )}
-      </div>
-    </foreignObject>
-  );
-}
-
-export function accessibleName(e: Entity): string {
-  if (e.type === "label" || e.type === "quote") return e.text.slice(0, 60);
-  return ("label" in e && e.label) || e.id;
-}
+export { accessibleName, type NodeProps } from "./NodeFrame";
 
 function CodeLines({ lines, start, highlight, fontSize, kinds, lineNumbers = true }: {
   lines: readonly string[];
@@ -93,7 +47,9 @@ export function EntityNode(props: NodeProps) {
     case "label":
       return (
         <NodeFrame {...props}>
-          <span className={`label-text size-${entity.size} align-${entity.align}`}>{entity.text}</span>
+          <span className={`label-text size-${entity.size} align-${entity.align}`}>
+            <RevealText text={entity.text} mode={entity.reveal} reveal={props.state.reveal} />
+          </span>
         </NodeFrame>
       );
     case "code-block": {
@@ -134,5 +90,17 @@ export function EntityNode(props: NodeProps) {
         </NodeFrame>
       );
     }
+    case "headline":
+      return <HeadlineNode {...props} entity={entity} />;
+    case "stat":
+      return <StatNode {...props} entity={entity} />;
+    case "chart":
+      return <ChartNode {...props} entity={entity} />;
+    case "time-axis":
+      return <TimeAxisNode {...props} entity={entity} />;
+    case "image":
+      return <ImageNode {...props} entity={entity} />;
+    case "table":
+      return <TableNode {...props} entity={entity} />;
   }
 }

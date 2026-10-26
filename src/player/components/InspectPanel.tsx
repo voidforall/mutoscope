@@ -2,6 +2,7 @@ import type { AnalysisUnit, Entity, Manifest, Thread } from "../../schema";
 import { Icon } from "./Icon";
 import { accessibleName } from "./Nodes";
 import { BasisBadge, RefList } from "./Refs";
+import { EntityData } from "./visuals/EntityData";
 
 interface InspectPanelProps {
   readonly manifest: Manifest;
@@ -21,6 +22,12 @@ const TYPE_NAMES: Record<Entity["type"], string> = {
   group: "Group",
   "diff-panel": "Before / after",
   quote: "Quote",
+  headline: "Headline",
+  stat: "Figure",
+  chart: "Chart",
+  "time-axis": "Timeline",
+  image: "Image",
+  table: "Table",
 };
 
 export function InspectPanel({ manifest, entity, units, threads, onAsk, onClear, onOpenThreads }: InspectPanelProps) {
@@ -49,6 +56,7 @@ export function InspectPanel({ manifest, entity, units, threads, onAsk, onClear,
         {entity.type === "quote" && entity.attribution && <p className="mono-sub">— {entity.attribution}</p>}
         {entity.explanation ? <p className="prose">{entity.explanation}</p> : <p className="prose is-muted">No explanation was provided for this element.</p>}
       </section>
+      <EntityData entity={entity} />
       {entity.sourceRefs.length > 0 && (
         <section className="panel-section">
           <h3 className="section-label">Source</h3>

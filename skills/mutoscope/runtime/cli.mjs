@@ -6,94 +6,20 @@ var __export = (target, all) => {
 };
 
 // src/cli/commands/build.ts
-import { join as join5 } from "node:path";
+import { join as join6 } from "node:path";
 
 // src/cli/lib/args.ts
 import { parseArgs } from "node:util";
 
 // src/cli/lib/reel-files.ts
-import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-var REEL_FILES = {
-  manifest: "manifest.json",
-  scenes: "scenes.json",
-  analysis: "analysis.json",
-  threads: "threads.json",
-  rationale: "rationale.md"
-};
-var CliError = class extends Error {
-  constructor(message, hint) {
-    super(message);
-    this.hint = hint;
-  }
-  hint;
-};
-async function readJson(path) {
-  try {
-    return JSON.parse(await readFile(path, "utf8"));
-  } catch (e) {
-    throw new CliError(`Could not parse ${path}: ${e.message}`);
-  }
-}
-async function loadRawReel(dir) {
-  const p = (f) => join(dir, f);
-  if (!existsSync(p(REEL_FILES.manifest))) {
-    throw new CliError(`No ${REEL_FILES.manifest} in ${dir}`, "Run `mutoscope init <dir> --recipe <name>` first.");
-  }
-  if (!existsSync(p(REEL_FILES.scenes))) {
-    throw new CliError(`No ${REEL_FILES.scenes} in ${dir}`, 'Write the storyboard to scenes.json ({ "scenes": [...] }).');
-  }
-  const scenesFile = await readJson(p(REEL_FILES.scenes));
-  return {
-    manifest: await readJson(p(REEL_FILES.manifest)),
-    scenes: scenesFile?.scenes,
-    ...existsSync(p(REEL_FILES.analysis)) ? { analysis: await readJson(p(REEL_FILES.analysis)) } : {},
-    ...existsSync(p(REEL_FILES.threads)) ? { threads: await readJson(p(REEL_FILES.threads)) } : {},
-    ...existsSync(p(REEL_FILES.rationale)) ? { rationale: await readFile(p(REEL_FILES.rationale), "utf8") } : {}
-  };
-}
-
-// src/cli/lib/args.ts
-function parse(argv, options) {
-  try {
-    return parseArgs({ args: [...argv], options, allowPositionals: true, strict: true });
-  } catch (e) {
-    throw new CliError(e.message);
-  }
-}
-function positional(list, i, name) {
-  const v = list[i];
-  if (!v) throw new CliError(`Missing <${name}>`);
-  return v;
-}
-
-// src/cli/lib/build.ts
-import { mkdir, writeFile } from "node:fs/promises";
-import { join as join3 } from "node:path";
-
-// src/cli/lib/assets.ts
 import { existsSync as existsSync2 } from "node:fs";
 import { readFile as readFile2 } from "node:fs/promises";
-import { dirname, join as join2, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-function candidates() {
-  const here = dirname(fileURLToPath(import.meta.url));
-  return [
-    process.env.MUTOSCOPE_PLAYER_DIR,
-    join2(here, "player"),
-    resolve(here, "../../../skills/mutoscope/runtime/player")
-  ].filter((p) => Boolean(p));
-}
-async function loadPlayerAssets() {
-  const dir = candidates().find((d) => existsSync2(join2(d, "player.js")) && existsSync2(join2(d, "player.css")));
-  if (!dir) throw new CliError("Player assets not found.", "Run `npm run build` in the mutoscope repo.");
-  const [js, css] = await Promise.all([readFile2(join2(dir, "player.js"), "utf8"), readFile2(join2(dir, "player.css"), "utf8")]);
-  return { js, css };
-}
+import { join as join2 } from "node:path";
 
-// src/cli/lib/html.ts
-import { createHash } from "node:crypto";
+// src/cli/lib/image-assets.ts
+import { existsSync } from "node:fs";
+import { readFile, realpath, stat } from "node:fs/promises";
+import { join, sep } from "node:path";
 
 // node_modules/zod/v4/classic/external.js
 var external_exports = {};
@@ -293,7 +219,7 @@ __export(external_exports, {
   optional: () => optional,
   output: () => output,
   overwrite: () => _overwrite,
-  parse: () => parse3,
+  parse: () => parse2,
   parseAsync: () => parseAsync2,
   partialRecord: () => partialRecord,
   pipe: () => pipe,
@@ -645,7 +571,7 @@ __export(core_exports2, {
   memoizer: () => memoizer,
   mergeValues: () => mergeValues,
   meta: () => meta,
-  parse: () => parse2,
+  parse: () => parse,
   parseAsync: () => parseAsync,
   parseURLObject: () => parseURLObject,
   prettifyError: () => prettifyError,
@@ -1865,7 +1791,7 @@ var _parse = (_Err) => {
   };
   return fn;
 };
-var parse2 = /* @__PURE__ */ _parse($ZodRealError);
+var parse = /* @__PURE__ */ _parse($ZodRealError);
 var _parseAsync = (_Err) => {
   const fn = async (schema, value, _ctx, params) => {
     const ctx = _ctx ? { ..._ctx, async: true } : { async: true };
@@ -5018,10 +4944,10 @@ var $ZodFunction = /* @__PURE__ */ $constructor("$ZodFunction", (inst, def) => {
       throw new Error("implement() must be called with a function");
     }
     return Object.defineProperty(function(...args) {
-      const parsedArgs = inst._def.input ? parse2(inst._def.input, args) : args;
+      const parsedArgs = inst._def.input ? parse(inst._def.input, args) : args;
       const result = Reflect.apply(func, this, parsedArgs);
       if (inst._def.output) {
-        return parse2(inst._def.output, result);
+        return parse(inst._def.output, result);
       }
       return result;
     }, "_zod", { value: inst._zod, enumerable: false });
@@ -17328,7 +17254,7 @@ var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, void 0
 });
 
 // node_modules/zod/v4/classic/parse.js
-var parse3 = /* @__PURE__ */ _parse(ZodRealError);
+var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
 var safeParseAsync2 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
@@ -17465,7 +17391,7 @@ var ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
     util_exports.own(this, "~standard", value);
   },
   parse: function _parse2(data, params) {
-    return parse3(this, data, params, { callee: _parse2 });
+    return parse2(this, data, params, { callee: _parse2 });
   },
   parseAsync: async function _parseAsync2(data, params) {
     return await parseAsync2(this, data, params, { callee: _parseAsync2 });
@@ -19926,7 +19852,7 @@ var Analysis = external_exports.object({
   units: external_exports.array(AnalysisUnit).min(1)
 });
 
-// src/schema/scene.ts
+// src/schema/stage.ts
 var GRID_COLS = 12;
 var GRID_ROWS = 8;
 var GridBox = external_exports.object({
@@ -19935,6 +19861,28 @@ var GridBox = external_exports.object({
   colSpan: external_exports.number().int().min(1).max(GRID_COLS).default(2),
   rowSpan: external_exports.number().int().min(1).max(GRID_ROWS).default(1)
 }).refine((b) => b.col + b.colSpan - 1 <= GRID_COLS, "box overflows the grid horizontally").refine((b) => b.row + b.rowSpan - 1 <= GRID_ROWS, "box overflows the grid vertically");
+var LAYOUT_PRESETS = {
+  full: { col: 1, row: 1, colSpan: 12, rowSpan: 8 },
+  center: { col: 3, row: 2, colSpan: 8, rowSpan: 6 },
+  heading: { col: 1, row: 1, colSpan: 12, rowSpan: 2 },
+  body: { col: 1, row: 3, colSpan: 12, rowSpan: 4 },
+  footer: { col: 1, row: 7, colSpan: 12, rowSpan: 2 },
+  left: { col: 1, row: 1, colSpan: 6, rowSpan: 8 },
+  right: { col: 7, row: 1, colSpan: 6, rowSpan: 8 },
+  top: { col: 1, row: 1, colSpan: 12, rowSpan: 4 },
+  bottom: { col: 1, row: 5, colSpan: 12, rowSpan: 4 },
+  "left-third": { col: 1, row: 1, colSpan: 4, rowSpan: 8 },
+  "middle-third": { col: 5, row: 1, colSpan: 4, rowSpan: 8 },
+  "right-third": { col: 9, row: 1, colSpan: 4, rowSpan: 8 },
+  "left-two-thirds": { col: 1, row: 1, colSpan: 8, rowSpan: 8 },
+  "right-two-thirds": { col: 5, row: 1, colSpan: 8, rowSpan: 8 },
+  "top-left": { col: 1, row: 1, colSpan: 6, rowSpan: 4 },
+  "top-right": { col: 7, row: 1, colSpan: 6, rowSpan: 4 },
+  "bottom-left": { col: 1, row: 5, colSpan: 6, rowSpan: 4 },
+  "bottom-right": { col: 7, row: 5, colSpan: 6, rowSpan: 4 }
+};
+var PRESET_NAMES = Object.keys(LAYOUT_PRESETS);
+var Layout = external_exports.union([GridBox, external_exports.enum(PRESET_NAMES).transform((name) => ({ ...LAYOUT_PRESETS[name] }))]);
 var Tone = external_exports.enum(["neutral", "accent", "added", "removed", "warning", "muted"]);
 var EntityBase = {
   id: Id,
@@ -19942,12 +19890,144 @@ var EntityBase = {
   sourceRefs: external_exports.array(SourceRef).default([]),
   tone: Tone.default("neutral")
 };
+var Reveal = external_exports.enum(["fade", "words", "typewriter"]);
+var Backdrop = external_exports.enum(["dots", "plain", "grid", "spotlight"]);
+
+// src/schema/visuals.ts
+var finite = external_exports.number().refine(Number.isFinite, "must be a finite number");
+var HeadlineEntity = external_exports.object({
+  ...EntityBase,
+  type: external_exports.literal("headline"),
+  text: external_exports.string().trim().min(1).max(160),
+  /** Small uppercase line above the text: a chapter, a date, a source. */
+  eyebrow: external_exports.string().trim().max(40).optional(),
+  size: external_exports.enum(["lg", "xl", "display"]).default("xl"),
+  align: external_exports.enum(["start", "center"]).default("center"),
+  reveal: Reveal.default("fade"),
+  layout: Layout
+});
+var StatEntity = external_exports.object({
+  ...EntityBase,
+  type: external_exports.literal("stat"),
+  value: finite,
+  from: finite.default(0),
+  /** Digits after the decimal point; defaults to as many as `value` has. */
+  decimals: external_exports.number().int().min(0).max(4).optional(),
+  prefix: external_exports.string().max(4).optional(),
+  suffix: external_exports.string().max(10).optional(),
+  label: external_exports.string().trim().min(1).max(80),
+  /** A short comparison under the label, such as "down from 1.2 s". */
+  note: external_exports.string().trim().max(60).optional(),
+  countUp: external_exports.boolean().default(true),
+  layout: Layout
+});
+var ChartSeries = external_exports.object({
+  name: external_exports.string().trim().min(1).max(30),
+  values: external_exports.array(finite).min(1).max(16),
+  tone: Tone.optional()
+});
+var ChartEntity = external_exports.object({
+  ...EntityBase,
+  type: external_exports.literal("chart"),
+  /** `bar` runs horizontally (long category names), `column` vertically, `line`/`area` over an ordered axis. */
+  kind: external_exports.enum(["bar", "column", "line", "area"]),
+  title: external_exports.string().trim().max(80).optional(),
+  /** Unit appended to values and the axis, such as "ms", "%", "k". */
+  unit: external_exports.string().max(12).optional(),
+  categories: external_exports.array(external_exports.string().trim().min(1).max(24)).min(1).max(16),
+  series: external_exports.array(ChartSeries).min(1).max(4),
+  /** Axis bounds; default to 0 (or the lowest value, if negative) and a rounded maximum. */
+  min: finite.optional(),
+  max: finite.optional(),
+  /** Categories to emphasise; the rest are muted. */
+  highlight: external_exports.array(external_exports.string()).default([]),
+  valueLabels: external_exports.boolean().default(true),
+  layout: Layout
+}).superRefine((c2, ctx) => {
+  c2.series.forEach((s, i) => {
+    if (s.values.length !== c2.categories.length) {
+      ctx.addIssue({ code: "custom", path: ["series", i, "values"], message: `has ${s.values.length} values for ${c2.categories.length} categories` });
+    }
+  });
+  for (const h of c2.highlight) {
+    if (!c2.categories.includes(h)) ctx.addIssue({ code: "custom", path: ["highlight"], message: `'${h}' is not a category` });
+  }
+  if ((c2.kind === "line" || c2.kind === "area") && c2.categories.length < 2) {
+    ctx.addIssue({ code: "custom", path: ["categories"], message: `a ${c2.kind} chart needs at least 2 categories` });
+  }
+  if (c2.min !== void 0 && c2.max !== void 0 && c2.min >= c2.max) ctx.addIssue({ code: "custom", path: ["max"], message: "max must be greater than min" });
+});
+var TimeEvent = external_exports.object({
+  /** Position on the axis: a year, a day number, a version — any increasing number. */
+  at: finite,
+  label: external_exports.string().trim().min(1).max(40),
+  /** What to print for the time; defaults to `at`. */
+  when: external_exports.string().trim().max(20).optional(),
+  detail: external_exports.string().trim().max(60).optional(),
+  tone: Tone.optional()
+});
+var TimeSpan = external_exports.object({ from: finite, to: finite, label: external_exports.string().trim().min(1).max(30), tone: Tone.optional() }).refine((s) => s.from < s.to, "a span's 'from' must be before its 'to'");
+var TimeAxisEntity = external_exports.object({
+  ...EntityBase,
+  type: external_exports.literal("time-axis"),
+  title: external_exports.string().trim().max(80).optional(),
+  events: external_exports.array(TimeEvent).min(1).max(12),
+  spans: external_exports.array(TimeSpan).max(6).default([]),
+  min: finite.optional(),
+  max: finite.optional(),
+  layout: Layout
+}).refine((t) => t.min === void 0 || t.max === void 0 || t.min < t.max, { message: "max must be greater than min", path: ["max"] });
+var IMAGE_SRC = /^assets\/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*\/)*[A-Za-z0-9_-][A-Za-z0-9._-]*\.(?:png|jpe?g|webp|gif|svg)$/i;
+var Callout = external_exports.object({
+  /** Point (or region's top-left corner) as a fraction of the image, 0..1 from the left / top. */
+  x: external_exports.number().min(0).max(1),
+  y: external_exports.number().min(0).max(1),
+  /** Region size as a fraction of the image; omit for a point. */
+  w: external_exports.number().gt(0).max(1).optional(),
+  h: external_exports.number().gt(0).max(1).optional(),
+  label: external_exports.string().trim().min(1).max(40)
+}).refine((c2) => c2.w === void 0 === (c2.h === void 0), "give a region both w and h, or neither").refine((c2) => c2.x + (c2.w ?? 0) <= 1.0001 && c2.y + (c2.h ?? 0) <= 1.0001, "region extends past the image");
+var ImageEntity = external_exports.object({
+  ...EntityBase,
+  type: external_exports.literal("image"),
+  /** Path inside the reel directory, under assets/ — never a URL, so nothing loads from the network. */
+  src: external_exports.string().regex(IMAGE_SRC, "src must be a .png, .jpg, .webp, .gif or .svg file under assets/"),
+  alt: external_exports.string().trim().min(1).max(200),
+  fit: external_exports.enum(["contain", "cover"]).default("contain"),
+  caption: external_exports.string().trim().max(140).optional(),
+  /** Where the image comes from: "Photo: NASA", "Figure 3 of the paper". */
+  credit: external_exports.string().trim().max(80).optional(),
+  callouts: external_exports.array(Callout).max(6).default([]),
+  layout: Layout
+});
+var TableEntity = external_exports.object({
+  ...EntityBase,
+  type: external_exports.literal("table"),
+  title: external_exports.string().trim().max(80).optional(),
+  columns: external_exports.array(external_exports.string().trim().min(1).max(24)).min(1).max(6),
+  rows: external_exports.array(external_exports.array(external_exports.string().trim().max(40))).min(1).max(10),
+  /** Zero-based row indexes to emphasise. */
+  highlightRows: external_exports.array(external_exports.number().int().min(0)).default([]),
+  /** Per-column alignment; numbers read best aligned to the end. */
+  align: external_exports.array(external_exports.enum(["start", "center", "end"])).optional(),
+  layout: Layout
+}).superRefine((t, ctx) => {
+  t.rows.forEach((r, i) => {
+    if (r.length !== t.columns.length) ctx.addIssue({ code: "custom", path: ["rows", i], message: `has ${r.length} cells for ${t.columns.length} columns` });
+  });
+  if (t.align && t.align.length !== t.columns.length) ctx.addIssue({ code: "custom", path: ["align"], message: `has ${t.align.length} entries for ${t.columns.length} columns` });
+  for (const h of t.highlightRows) {
+    if (h >= t.rows.length) ctx.addIssue({ code: "custom", path: ["highlightRows"], message: `row ${h} does not exist` });
+  }
+});
+
+// src/schema/scene.ts
 var ComponentEntity = external_exports.object({
   ...EntityBase,
   type: external_exports.literal("component"),
   label: external_exports.string().min(1).max(40),
   sublabel: external_exports.string().max(60).optional(),
-  layout: GridBox
+  layout: Layout
 });
 var EdgeEntity = external_exports.object({
   ...EntityBase,
@@ -19972,7 +20052,7 @@ var CodeBlockEntity = external_exports.object({
   highlightLines: external_exports.array(external_exports.number().int().positive()).default([]),
   /** Show the line-number gutter; turn off for text that is not from a file (protocols, formats, transcripts). */
   lineNumbers: external_exports.boolean().default(true),
-  layout: GridBox
+  layout: Layout
 });
 var LabelEntity = external_exports.object({
   ...EntityBase,
@@ -19980,7 +20060,8 @@ var LabelEntity = external_exports.object({
   text: external_exports.string().min(1).max(280),
   size: external_exports.enum(["sm", "md", "lg", "xl"]).default("md"),
   align: external_exports.enum(["start", "center"]).default("start"),
-  layout: GridBox
+  reveal: Reveal.default("fade"),
+  layout: Layout
 });
 var GroupEntity = external_exports.object({
   ...EntityBase,
@@ -19994,7 +20075,7 @@ var QuoteEntity = external_exports.object({
   text: external_exports.string().trim().min(1).max(MAX_QUOTE),
   /** Who said or wrote it, e.g. "Simon, the author". */
   attribution: external_exports.string().max(80).optional(),
-  layout: GridBox
+  layout: Layout
 });
 var DiffPanelEntity = external_exports.object({
   ...EntityBase,
@@ -20003,7 +20084,7 @@ var DiffPanelEntity = external_exports.object({
   language: external_exports.string().max(20).optional(),
   before: codeText,
   after: codeText,
-  layout: GridBox
+  layout: Layout
 });
 var Entity = external_exports.discriminatedUnion("type", [
   ComponentEntity,
@@ -20012,7 +20093,13 @@ var Entity = external_exports.discriminatedUnion("type", [
   LabelEntity,
   GroupEntity,
   DiffPanelEntity,
-  QuoteEntity
+  QuoteEntity,
+  HeadlineEntity,
+  StatEntity,
+  ChartEntity,
+  TimeAxisEntity,
+  ImageEntity,
+  TableEntity
 ]);
 var At = external_exports.number().int().min(0);
 var Duration = external_exports.number().int().min(0).max(1e4).optional();
@@ -20025,7 +20112,7 @@ var Action = external_exports.discriminatedUnion("action", [
   targetAction("restore"),
   targetAction("connect"),
   targetAction("disconnect"),
-  external_exports.object({ action: external_exports.literal("move"), atMs: At, target: Id, to: GridBox, durationMs: Duration }),
+  external_exports.object({ action: external_exports.literal("move"), atMs: At, target: Id, to: Layout, durationMs: Duration }),
   external_exports.object({ action: external_exports.literal("replace"), atMs: At, target: Id, with: Id, durationMs: Duration }),
   /** Camera: frame `target`, or the whole stage when target is omitted. */
   external_exports.object({ action: external_exports.literal("focus"), atMs: At, target: Id.optional(), durationMs: Duration })
@@ -20041,6 +20128,8 @@ var Scene = external_exports.object({
   kicker: external_exports.string().max(30).optional(),
   durationMs: external_exports.number().int().min(2e3).max(18e4),
   narration: external_exports.string().min(1).max(1200),
+  /** The surface behind the entities: dots (default), plain, grid (graph paper) or spotlight (a soft centre glow). */
+  backdrop: Backdrop.default("dots"),
   /** Timed captions; when absent the narration is shown as one caption. */
   cues: external_exports.array(Cue).default([]),
   entities: external_exports.array(Entity).min(1).max(24),
@@ -20087,13 +20176,22 @@ var ThreadsFile = external_exports.object({
 });
 
 // src/schema/reel.ts
+var IMAGE_MIME = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"];
+var Asset = external_exports.object({
+  mime: external_exports.enum(IMAGE_MIME),
+  width: external_exports.number().positive(),
+  height: external_exports.number().positive(),
+  dataUri: external_exports.string().regex(/^data:image\/(?:png|jpeg|webp|gif|svg\+xml);base64,[A-Za-z0-9+/]+={0,2}$/, "not a base64 image data URI")
+});
 var ReelBundle = external_exports.object({
   manifest: Manifest,
   scenes: external_exports.array(Scene).min(1),
   analysis: Analysis.optional(),
   threads: ThreadsFile.optional(),
   /** Author-approved design rationale (markdown), the only "memory" Q&A may use. */
-  rationale: external_exports.string().max(2e4).optional()
+  rationale: external_exports.string().max(2e4).optional(),
+  /** Images referenced by image entities, keyed by their `src`. Filled in by the CLI from assets/. */
+  assets: external_exports.record(external_exports.string().regex(IMAGE_SRC), Asset).optional()
 });
 
 // src/schema/live.ts
@@ -20138,7 +20236,227 @@ var LiveConfig = external_exports.object({
   token: external_exports.string().regex(/^[0-9a-f]{32,64}$/)
 });
 
+// src/cli/lib/image-assets.ts
+var MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+var MAX_TOTAL_IMAGE_BYTES = 20 * 1024 * 1024;
+var u16be = (b, o) => b.readUInt16BE(o);
+var u16le = (b, o) => b.readUInt16LE(o);
+var u24le = (b, o) => b[o] | b[o + 1] << 8 | b[o + 2] << 16;
+function png(b) {
+  if (b.length < 24 || !b.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))) return void 0;
+  return { mime: "image/png", width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
+}
+function gif(b) {
+  const sig = b.subarray(0, 6).toString("latin1");
+  if (b.length < 10 || sig !== "GIF87a" && sig !== "GIF89a") return void 0;
+  return { mime: "image/gif", width: u16le(b, 6), height: u16le(b, 8) };
+}
+function jpeg(b) {
+  if (b.length < 4 || b[0] !== 255 || b[1] !== 216) return void 0;
+  let o = 2;
+  while (o + 9 < b.length) {
+    if (b[o] !== 255) return void 0;
+    const marker = b[o + 1];
+    const len = u16be(b, o + 2);
+    if (marker >= 192 && marker <= 207 && marker !== 196 && marker !== 200 && marker !== 204) {
+      return { mime: "image/jpeg", height: u16be(b, o + 5), width: u16be(b, o + 7) };
+    }
+    o += 2 + len;
+  }
+  return void 0;
+}
+function webp(b) {
+  if (b.length < 30 || b.subarray(0, 4).toString("latin1") !== "RIFF" || b.subarray(8, 12).toString("latin1") !== "WEBP") return void 0;
+  const chunk = b.subarray(12, 16).toString("latin1");
+  if (chunk === "VP8 ") return { mime: "image/webp", width: u16le(b, 26) & 16383, height: u16le(b, 28) & 16383 };
+  if (chunk === "VP8L") {
+    return { mime: "image/webp", width: 1 + (b[21] | (b[22] & 63) << 8), height: 1 + ((b[22] & 192) >> 6 | b[23] << 2 | (b[24] & 15) << 10) };
+  }
+  if (chunk === "VP8X") return { mime: "image/webp", width: 1 + u24le(b, 24), height: 1 + u24le(b, 27) };
+  return void 0;
+}
+var svgLength = (v) => {
+  const m = v === void 0 ? null : /^\s*([\d.]+)\s*(px)?\s*$/.exec(v);
+  return m ? Number(m[1]) : void 0;
+};
+function svg(b, src) {
+  const text = b.toString("utf8");
+  const root = /<svg\b([^>]*)>/i.exec(text);
+  if (!root || !/^\s*(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(?:<!DOCTYPE[^>]*>\s*)?<svg\b/i.test(text)) return void 0;
+  if (/<script\b|<foreignObject\b|\son[a-z]+\s*=/i.test(text)) throw new CliError(`${src} contains scripts or event handlers`, "Use a plain SVG, or export it as PNG.");
+  const attr = (name) => new RegExp(`\\s${name}\\s*=\\s*["']([^"']*)["']`, "i").exec(root[1])?.[1];
+  const box = attr("viewBox")?.trim().split(/[\s,]+/).map(Number);
+  const width2 = svgLength(attr("width")) ?? box?.[2];
+  const height = svgLength(attr("height")) ?? box?.[3];
+  if (!width2 || !height || !Number.isFinite(width2) || !Number.isFinite(height)) throw new CliError(`${src} has no usable size`, "Give the <svg> element a viewBox or width and height in px.");
+  return { mime: "image/svg+xml", width: width2, height };
+}
+function stripMetadata(bytes, mime) {
+  if (mime === "image/jpeg") return stripJpeg(bytes);
+  if (mime === "image/png") return stripPng(bytes);
+  if (mime === "image/webp") return stripWebp(bytes);
+  return bytes;
+}
+function stripJpeg(b) {
+  const parts = [b.subarray(0, 2)];
+  let o = 2;
+  while (o + 4 <= b.length && b[o] === 255) {
+    const marker = b[o + 1];
+    if (marker === 218) break;
+    const end2 = o + 2 + u16be(b, o + 2);
+    if (marker !== 225 && marker !== 237 && marker !== 254) parts.push(b.subarray(o, end2));
+    o = end2;
+  }
+  parts.push(b.subarray(o));
+  return Buffer.concat(parts);
+}
+var PNG_METADATA = /* @__PURE__ */ new Set(["tEXt", "zTXt", "iTXt", "eXIf", "tIME"]);
+function stripPng(b) {
+  const parts = [b.subarray(0, 8)];
+  let o = 8;
+  while (o + 12 <= b.length) {
+    const end2 = o + 12 + b.readUInt32BE(o);
+    if (!PNG_METADATA.has(b.subarray(o + 4, o + 8).toString("latin1"))) parts.push(b.subarray(o, end2));
+    o = end2;
+  }
+  return Buffer.concat(parts);
+}
+function stripWebp(b) {
+  const chunks = [];
+  let o = 12;
+  while (o + 8 <= b.length) {
+    const size = b.readUInt32LE(o + 4);
+    const end2 = o + 8 + size + size % 2;
+    const id = b.subarray(o, o + 4).toString("latin1");
+    if (id === "VP8X") {
+      const vp8x = Buffer.from(b.subarray(o, end2));
+      vp8x[8] = vp8x[8] & ~12;
+      chunks.push(vp8x);
+    } else if (id !== "EXIF" && id !== "XMP ") chunks.push(b.subarray(o, end2));
+    o = end2;
+  }
+  const body2 = Buffer.concat(chunks);
+  const header = Buffer.from(b.subarray(0, 12));
+  header.writeUInt32LE(body2.length + 4, 4);
+  return Buffer.concat([header, body2]);
+}
+function sniffImage(bytes, src) {
+  const found = png(bytes) ?? jpeg(bytes) ?? gif(bytes) ?? webp(bytes) ?? svg(bytes, src);
+  if (!found || found.width <= 0 || found.height <= 0) throw new CliError(`${src} is not a PNG, JPEG, WebP, GIF or SVG image`, "Check the file; its extension alone does not count.");
+  return found;
+}
+function imageSources(scenes) {
+  if (!Array.isArray(scenes)) return [];
+  const srcs = scenes.flatMap((s) => {
+    const entities = s?.entities;
+    return Array.isArray(entities) ? entities.filter((e) => e?.type === "image" && typeof e.src === "string").map((e) => e.src) : [];
+  });
+  return [...new Set(srcs)].filter((s) => IMAGE_SRC.test(s));
+}
+async function loadImageAssets(reelDir, scenes) {
+  const srcs = imageSources(scenes);
+  if (srcs.length === 0) return {};
+  const root = await realpath(reelDir);
+  const out2 = {};
+  let total = 0;
+  for (const src of srcs) {
+    const path = join(reelDir, src);
+    if (!existsSync(path)) continue;
+    const real = await realpath(path);
+    if (!real.startsWith(join(root, "assets") + sep)) throw new CliError(`${src} resolves outside the reel's assets folder`, "Copy the file into assets/ instead of linking to it.");
+    const size = (await stat(real)).size;
+    if (size > MAX_IMAGE_BYTES) throw new CliError(`${src} is ${(size / 1048576).toFixed(1)} MB; images are limited to ${MAX_IMAGE_BYTES / 1048576} MB`, "Resize or compress it (a 1600 px wide JPEG or WebP is plenty).");
+    total += size;
+    if (total > MAX_TOTAL_IMAGE_BYTES) throw new CliError(`images add up to more than ${MAX_TOTAL_IMAGE_BYTES / 1048576} MB`, "Compress them or use fewer.");
+    const raw = await readFile(real);
+    const sniffed = sniffImage(raw, src);
+    const bytes = stripMetadata(raw, sniffed.mime);
+    out2[src] = { ...sniffed, dataUri: `data:${sniffed.mime};base64,${bytes.toString("base64")}` };
+  }
+  return out2;
+}
+
+// src/cli/lib/reel-files.ts
+var REEL_FILES = {
+  manifest: "manifest.json",
+  scenes: "scenes.json",
+  analysis: "analysis.json",
+  threads: "threads.json",
+  rationale: "rationale.md"
+};
+var CliError = class extends Error {
+  constructor(message, hint) {
+    super(message);
+    this.hint = hint;
+  }
+  hint;
+};
+async function readJson(path) {
+  try {
+    return JSON.parse(await readFile2(path, "utf8"));
+  } catch (e) {
+    throw new CliError(`Could not parse ${path}: ${e.message}`);
+  }
+}
+async function loadRawReel(dir) {
+  const p = (f) => join2(dir, f);
+  if (!existsSync2(p(REEL_FILES.manifest))) {
+    throw new CliError(`No ${REEL_FILES.manifest} in ${dir}`, "Run `mutoscope init <dir> --recipe <name>` first.");
+  }
+  if (!existsSync2(p(REEL_FILES.scenes))) {
+    throw new CliError(`No ${REEL_FILES.scenes} in ${dir}`, 'Write the storyboard to scenes.json ({ "scenes": [...] }).');
+  }
+  const scenesFile = await readJson(p(REEL_FILES.scenes));
+  return {
+    manifest: await readJson(p(REEL_FILES.manifest)),
+    scenes: scenesFile?.scenes,
+    ...existsSync2(p(REEL_FILES.analysis)) ? { analysis: await readJson(p(REEL_FILES.analysis)) } : {},
+    ...existsSync2(p(REEL_FILES.threads)) ? { threads: await readJson(p(REEL_FILES.threads)) } : {},
+    ...existsSync2(p(REEL_FILES.rationale)) ? { rationale: await readFile2(p(REEL_FILES.rationale), "utf8") } : {},
+    assets: await loadImageAssets(dir, scenesFile?.scenes)
+  };
+}
+
+// src/cli/lib/args.ts
+function parse3(argv, options) {
+  try {
+    return parseArgs({ args: [...argv], options, allowPositionals: true, strict: true });
+  } catch (e) {
+    throw new CliError(e.message);
+  }
+}
+function positional(list, i, name) {
+  const v = list[i];
+  if (!v) throw new CliError(`Missing <${name}>`);
+  return v;
+}
+
+// src/cli/lib/build.ts
+import { mkdir, writeFile } from "node:fs/promises";
+import { join as join4 } from "node:path";
+
+// src/cli/lib/assets.ts
+import { existsSync as existsSync3 } from "node:fs";
+import { readFile as readFile3 } from "node:fs/promises";
+import { dirname, join as join3, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+function candidates() {
+  const here = dirname(fileURLToPath(import.meta.url));
+  return [
+    process.env.MUTOSCOPE_PLAYER_DIR,
+    join3(here, "player"),
+    resolve(here, "../../../skills/mutoscope/runtime/player")
+  ].filter((p) => Boolean(p));
+}
+async function loadPlayerAssets() {
+  const dir = candidates().find((d) => existsSync3(join3(d, "player.js")) && existsSync3(join3(d, "player.css")));
+  if (!dir) throw new CliError("Player assets not found.", "Run `npm run build` in the mutoscope repo.");
+  const [js, css] = await Promise.all([readFile3(join3(dir, "player.js"), "utf8"), readFile3(join3(dir, "player.css"), "utf8")]);
+  return { js, css };
+}
+
 // src/cli/lib/html.ts
+import { createHash } from "node:crypto";
 function scriptSafeJson(value) {
   return JSON.stringify(value).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
 }
@@ -20193,7 +20511,7 @@ async function buildSite(bundle, outDir) {
     ...bundle.threads ? { "threads.json": JSON.stringify(bundle.threads, null, 2) } : {},
     ".nojekyll": ""
   };
-  await Promise.all(Object.entries(files).map(([name, content]) => writeFile(join3(outDir, name), content)));
+  await Promise.all(Object.entries(files).map(([name, content]) => writeFile(join4(outDir, name), content)));
   return Object.keys(files);
 }
 
@@ -20309,6 +20627,61 @@ function segmentHitsRect(a, b, r) {
 var easeInOutCubic = (p) => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
 var clamp01 = (v) => Math.min(1, Math.max(0, v));
 
+// src/core/build.ts
+function buildsIn(e) {
+  switch (e.type) {
+    case "headline":
+    case "label":
+      return e.reveal !== "fade";
+    case "stat":
+      return e.countUp;
+    case "chart":
+    case "time-axis":
+    case "table":
+      return true;
+    case "image":
+      return e.callouts.length > 0;
+    default:
+      return false;
+  }
+}
+var MAX_BUILD_MS = 8e3;
+var bounded = (ms, min = 800) => Math.round(Math.min(MAX_BUILD_MS, Math.max(min, ms)));
+var wordCount = (text) => text.split(/\s+/).filter(Boolean).length;
+function buildDurationMs(e) {
+  switch (e.type) {
+    case "headline":
+    case "label":
+      return e.reveal === "words" ? bounded(wordCount(e.text) * 220) : bounded([...e.text].length * 40);
+    case "stat":
+      return 1600;
+    case "chart":
+      return bounded(1200 + 150 * e.categories.length);
+    case "time-axis":
+      return bounded(800 + 350 * e.events.length);
+    case "table":
+      return bounded(500 + 220 * e.rows.length);
+    case "image":
+      return bounded(600 + 500 * e.callouts.length);
+    default:
+      return 500;
+  }
+}
+function partProgress(reveal, index, count) {
+  return clamp01((reveal * (count + 1) - index) / 2);
+}
+function decimalsOf(n) {
+  const s = String(n);
+  const dot = s.indexOf(".");
+  return dot < 0 || s.includes("e") ? 0 : Math.min(4, s.length - dot - 1);
+}
+function statText(e, reveal) {
+  const decimals = e.decimals ?? decimalsOf(e.value);
+  const v = e.countUp ? e.from + (e.value - e.from) * clamp01(reveal) : e.value;
+  const n = v.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return `${e.prefix ?? ""}${n}${e.suffix ?? ""}`;
+}
+
 // src/core/timeline.ts
 var DEFAULT_DURATION_MS = {
   appear: 500,
@@ -20340,6 +20713,7 @@ function initialStates(scene, timeline) {
         highlight: 0,
         dim: 0,
         draw: e.type === "edge" && hidden ? 0 : 1,
+        reveal: hidden && buildsIn(e) ? 0 : 1,
         box: "layout" in e ? gridToRect(e.layout) : null
       };
       return [e.id, state];
@@ -20396,22 +20770,31 @@ var update = (states, id, patch) => {
   const prev = states[id];
   return prev ? { ...states, [id]: { ...prev, ...patch(prev) } } : states;
 };
-function applyAction(scene, frame, action, p) {
-  const { entities } = frame;
+var BUILD_FADE_SHARE = 0.2;
+function applyAction(scene, frame2, action, p, linear) {
+  const { entities } = frame2;
   if (action.action === "focus") {
     const region = action.target ? focusRegion(scene, withGroupBoxes(scene, entities), action.target) : null;
     const target = region ? cameraFor(region) : FULL_STAGE;
-    return { ...frame, camera: lerpRect(frame.camera, target, p) };
+    return { ...frame2, camera: lerpRect(frame2.camera, target, p) };
   }
   const id = action.target;
   switch (action.action) {
-    case "appear":
-      return { ...frame, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, p) })) };
+    case "appear": {
+      const entity = scene.entities.find((e) => e.id === id);
+      if (entity && buildsIn(entity)) {
+        return {
+          ...frame2,
+          entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, clamp01(linear / BUILD_FADE_SHARE)), reveal: lerp(s.reveal, 1, linear) }))
+        };
+      }
+      return { ...frame2, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, p) })) };
+    }
     case "disappear":
-      return { ...frame, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 0, p) })) };
+      return { ...frame2, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 0, p) })) };
     case "connect":
       return {
-        ...frame,
+        ...frame2,
         entities: update(entities, id, (s) => ({
           opacity: lerp(s.opacity, 1, Math.min(1, p * 3)),
           draw: lerp(s.draw, 1, p)
@@ -20419,27 +20802,27 @@ function applyAction(scene, frame, action, p) {
       };
     case "disconnect":
       return {
-        ...frame,
+        ...frame2,
         entities: update(entities, id, (s) => ({ draw: lerp(s.draw, 0, p), opacity: lerp(s.opacity, 0, p) }))
       };
     case "highlight":
       return {
-        ...frame,
+        ...frame2,
         entities: update(entities, id, (s) => ({ highlight: lerp(s.highlight, 1, p), dim: lerp(s.dim, 0, p) }))
       };
     case "dim":
       return {
-        ...frame,
+        ...frame2,
         entities: update(entities, id, (s) => ({ dim: lerp(s.dim, 1, p), highlight: lerp(s.highlight, 0, p) }))
       };
     case "restore":
       return {
-        ...frame,
+        ...frame2,
         entities: update(entities, id, (s) => ({ dim: lerp(s.dim, 0, p), highlight: lerp(s.highlight, 0, p) }))
       };
     case "move": {
       const to = gridToRect(action.to);
-      return { ...frame, entities: update(entities, id, (s) => ({ box: s.box ? lerpRect(s.box, to, p) : to })) };
+      return { ...frame2, entities: update(entities, id, (s) => ({ box: s.box ? lerpRect(s.box, to, p) : to })) };
     }
     case "replace": {
       const place = entities[id]?.box ?? null;
@@ -20448,27 +20831,40 @@ function applyAction(scene, frame, action, p) {
         opacity: lerp(s.opacity, 1, p),
         box: place ?? s.box
       }));
-      return { ...frame, entities: incoming };
+      return { ...frame2, entities: incoming };
     }
   }
 }
 function orderedTimeline(scene) {
   return scene.timeline.map((a, i) => ({ a, i })).sort((x, y) => x.a.atMs - y.a.atMs || x.i - y.i).map(({ a }) => a);
 }
-function actionProgress(action, tMs) {
-  const duration3 = action.durationMs ?? DEFAULT_DURATION_MS[action.action];
+function actionDuration(scene, action) {
+  if (action.durationMs !== void 0) return action.durationMs;
+  if (action.action === "appear") {
+    const entity = scene.entities.find((e) => e.id === action.target);
+    if (entity && buildsIn(entity)) return buildDurationMs(entity);
+  }
+  return DEFAULT_DURATION_MS[action.action];
+}
+function actionLinearProgress(scene, action, tMs) {
+  const duration3 = actionDuration(scene, action);
   if (duration3 === 0) return tMs >= action.atMs ? 1 : 0;
-  return easeInOutCubic(clamp01((tMs - action.atMs) / duration3));
+  return clamp01((tMs - action.atMs) / duration3);
+}
+function actionProgress(scene, action, tMs) {
+  return easeInOutCubic(actionLinearProgress(scene, action, tMs));
 }
 function sceneStateAt(scene, tMs) {
   const timeline = orderedTimeline(scene);
   const start = { entities: initialStates(scene, timeline), camera: FULL_STAGE };
-  const end2 = timeline.filter((a) => a.atMs <= tMs).reduce((frame, action) => applyAction(scene, frame, action, actionProgress(action, tMs)), start);
+  const end2 = timeline.filter((a) => a.atMs <= tMs).reduce((frame2, action) => applyAction(scene, frame2, action, actionProgress(scene, action, tMs), actionLinearProgress(scene, action, tMs)), start);
   return { entities: withGroupBoxes(scene, end2.entities), camera: end2.camera };
 }
 
 // src/core/font-metrics.ts
 var INTER_SEMIBOLD = { "0": 0.67, "1": 0.43, "2": 0.63, "3": 0.64, "4": 0.67, "5": 0.62, "6": 0.64, "7": 0.58, "8": 0.65, "9": 0.64, " ": 0.24, "!": 0.33, '"': 0.54, "#": 0.65, "$": 0.65, "%": 1.01, "&": 0.67, "'": 0.33, "(": 0.38, ")": 0.38, "*": 0.55, "+": 0.68, ",": 0.33, "-": 0.47, ".": 0.33, "/": 0.38, ":": 0.33, ";": 0.34, "<": 0.68, "=": 0.68, ">": 0.68, "?": 0.55, "@": 1.01, "A": 0.74, "B": 0.66, "C": 0.74, "D": 0.72, "E": 0.61, "F": 0.59, "G": 0.75, "H": 0.75, "I": 0.28, "J": 0.58, "K": 0.71, "L": 0.57, "M": 0.93, "N": 0.76, "O": 0.77, "P": 0.65, "Q": 0.77, "R": 0.65, "S": 0.65, "T": 0.66, "U": 0.73, "V": 0.74, "W": 1.03, "X": 0.73, "Y": 0.72, "Z": 0.66, "[": 0.38, "\\": 0.38, "]": 0.38, "^": 0.48, "_": 0.47, "`": 0.36, "a": 0.58, "b": 0.63, "c": 0.59, "d": 0.63, "e": 0.59, "f": 0.39, "g": 0.63, "h": 0.62, "i": 0.27, "j": 0.27, "k": 0.57, "l": 0.27, "m": 0.91, "n": 0.62, "o": 0.61, "p": 0.63, "q": 0.63, "r": 0.4, "s": 0.55, "t": 0.36, "u": 0.62, "v": 0.59, "w": 0.84, "x": 0.57, "y": 0.6, "z": 0.57, "{": 0.46, "|": 0.37, "}": 0.46, "~": 0.68, "\xB7": 0.33, "\u2013": 0.5, "\u2014": 1, "\u2026": 0.98, "\u2019": 0.3, "\u201C": 0.52, "\u201D": 0.52, "\u2192": 1, "\xD7": 0.68, "\u2248": 0.55 };
+var INTER_BOLD = { "0": 0.68, "1": 0.44, "2": 0.63, "3": 0.65, "4": 0.68, "5": 0.63, "6": 0.66, "7": 0.58, "8": 0.66, "9": 0.66, " ": 0.23, "!": 0.35, '"': 0.57, "#": 0.65, "$": 0.66, "%": 1.02, "&": 0.68, "'": 0.35, "(": 0.38, ")": 0.38, "*": 0.57, "+": 0.68, ",": 0.34, "-": 0.47, ".": 0.34, "/": 0.39, ":": 0.34, ";": 0.35, "<": 0.68, "=": 0.68, ">": 0.68, "?": 0.57, "@": 1.03, "A": 0.76, "B": 0.66, "C": 0.74, "D": 0.72, "E": 0.61, "F": 0.59, "G": 0.75, "H": 0.75, "I": 0.28, "J": 0.59, "K": 0.73, "L": 0.57, "M": 0.94, "N": 0.76, "O": 0.77, "P": 0.65, "Q": 0.78, "R": 0.66, "S": 0.66, "T": 0.67, "U": 0.73, "V": 0.76, "W": 1.05, "X": 0.75, "Y": 0.74, "Z": 0.67, "[": 0.38, "\\": 0.39, "]": 0.38, "^": 0.49, "_": 0.48, "`": 0.37, "a": 0.58, "b": 0.63, "c": 0.59, "d": 0.63, "e": 0.6, "f": 0.4, "g": 0.64, "h": 0.63, "i": 0.28, "j": 0.28, "k": 0.59, "l": 0.28, "m": 0.92, "n": 0.63, "o": 0.62, "p": 0.63, "q": 0.63, "r": 0.41, "s": 0.57, "t": 0.37, "u": 0.63, "v": 0.61, "w": 0.86, "x": 0.59, "y": 0.61, "z": 0.58, "{": 0.48, "|": 0.38, "}": 0.48, "~": 0.68, "\xB7": 0.34, "\u2013": 0.5, "\u2014": 1, "\u2026": 1.03, "\u2019": 0.32, "\u201C": 0.56, "\u201D": 0.55, "\u2192": 1, "\xD7": 0.68, "\u2248": 0.55 };
+var INTER_REGULAR = { "0": 0.63, "1": 0.41, "2": 0.61, "3": 0.62, "4": 0.65, "5": 0.59, "6": 0.62, "7": 0.57, "8": 0.62, "9": 0.62, " ": 0.28, "!": 0.29, '"': 0.47, "#": 0.63, "$": 0.64, "%": 0.98, "&": 0.64, "'": 0.3, "(": 0.36, ")": 0.36, "*": 0.5, "+": 0.66, ",": 0.29, "-": 0.46, ".": 0.29, "/": 0.36, ":": 0.29, ";": 0.3, "<": 0.66, "=": 0.66, ">": 0.66, "?": 0.51, "@": 0.97, "A": 0.69, "B": 0.65, "C": 0.73, "D": 0.72, "E": 0.6, "F": 0.59, "G": 0.75, "H": 0.74, "I": 0.27, "J": 0.57, "K": 0.67, "L": 0.57, "M": 0.9, "N": 0.75, "O": 0.76, "P": 0.64, "Q": 0.76, "R": 0.64, "S": 0.64, "T": 0.65, "U": 0.74, "V": 0.69, "W": 0.99, "X": 0.68, "Y": 0.68, "Z": 0.63, "[": 0.36, "\\": 0.36, "]": 0.36, "^": 0.47, "_": 0.46, "`": 0.32, "a": 0.56, "b": 0.61, "c": 0.57, "d": 0.61, "e": 0.58, "f": 0.37, "g": 0.61, "h": 0.59, "i": 0.24, "j": 0.24, "k": 0.55, "l": 0.24, "m": 0.88, "n": 0.59, "o": 0.6, "p": 0.61, "q": 0.61, "r": 0.38, "s": 0.53, "t": 0.33, "u": 0.59, "v": 0.56, "w": 0.82, "x": 0.55, "y": 0.56, "z": 0.55, "{": 0.43, "|": 0.33, "}": 0.43, "~": 0.66, "\xB7": 0.29, "\u2013": 0.5, "\u2014": 1, "\u2026": 0.86, "\u2019": 0.26, "\u201C": 0.44, "\u201D": 0.44, "\u2192": 1, "\xD7": 0.66, "\u2248": 0.55 };
 var SERIF_ITALIC = { "0": 0.54, "1": 0.54, "2": 0.54, "3": 0.54, "4": 0.54, "5": 0.54, "6": 0.54, "7": 0.54, "8": 0.54, "9": 0.54, " ": 0.23, "!": 0.31, '"': 0.46, "#": 0.57, "$": 0.52, "%": 0.93, "&": 0.7, "'": 0.26, "(": 0.39, ")": 0.39, "*": 0.48, "+": 0.53, ",": 0.3, "-": 0.31, ".": 0.3, "/": 0.34, ":": 0.3, ";": 0.3, "<": 0.53, "=": 0.53, ">": 0.53, "?": 0.46, "@": 0.88, "A": 0.68, "B": 0.62, "C": 0.61, "D": 0.7, "E": 0.6, "F": 0.57, "G": 0.67, "H": 0.77, "I": 0.37, "J": 0.36, "K": 0.69, "L": 0.58, "M": 0.94, "N": 0.75, "O": 0.67, "P": 0.57, "Q": 0.67, "R": 0.65, "S": 0.51, "T": 0.59, "U": 0.73, "V": 0.65, "W": 0.92, "X": 0.67, "Y": 0.59, "Z": 0.56, "[": 0.35, "\\": 0.33, "]": 0.35, "^": 0.53, "_": 0.51, "`": 0.4, "a": 0.55, "b": 0.52, "c": 0.43, "d": 0.56, "e": 0.44, "f": 0.33, "g": 0.51, "h": 0.58, "i": 0.32, "j": 0.28, "k": 0.5, "l": 0.3, "m": 0.87, "n": 0.6, "o": 0.53, "p": 0.54, "q": 0.52, "r": 0.43, "s": 0.38, "t": 0.35, "u": 0.6, "v": 0.51, "w": 0.78, "x": 0.56, "y": 0.52, "z": 0.49, "{": 0.39, "|": 0.29, "}": 0.39, "~": 0.53, "\xB7": 0.3, "\u2013": 0.51, "\u2014": 0.81, "\u2026": 0.82, "\u2019": 0.27, "\u201C": 0.49, "\u201D": 0.49, "\u2192": 1, "\xD7": 0.53, "\u2248": 0.55 };
 
 // src/core/line-diff.ts
@@ -20507,15 +20903,15 @@ var LINE_EM = 1.5;
 var GUTTER_EM = 3.2;
 var TRAILING_CHARS = 4;
 var CODE_CHROME = { header: 38, pad: 28, rightPad: 14, plainLeftPad: 16, diffColGap: 24, diffTag: 30 };
-function fit(lines, width, height, gutter) {
+function fit(lines, width2, height, gutter) {
   const longest = Math.max(1, ...lines.map((l) => l.length));
-  const byWidth = width / (CHAR_EM * (longest + TRAILING_CHARS) + (gutter ? GUTTER_EM : 0));
+  const byWidth = width2 / (CHAR_EM * (longest + TRAILING_CHARS) + (gutter ? GUTTER_EM : 0));
   const byHeight = height / (Math.max(1, lines.length) * LINE_EM);
   return Math.max(CODE_FONT_MIN, Math.min(CODE_FONT_MAX, byWidth, byHeight));
 }
 function codeBlockFont(e, box) {
-  const width = box.w - CODE_CHROME.pad - CODE_CHROME.rightPad - (e.lineNumbers ? 0 : CODE_CHROME.plainLeftPad);
-  return fit(e.code.split("\n"), width, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
+  const width2 = box.w - CODE_CHROME.pad - CODE_CHROME.rightPad - (e.lineNumbers ? 0 : CODE_CHROME.plainLeftPad);
+  return fit(e.code.split("\n"), width2, box.h - CODE_CHROME.header - CODE_CHROME.pad, e.lineNumbers);
 }
 function diffPanelFont(e, box) {
   const d = diffLines(e.before, e.after);
@@ -20550,18 +20946,18 @@ function proportionalEm(text, m = INTER_SEMIBOLD) {
   for (const ch of text) em += m[ch] ?? UNKNOWN_EM;
   return em * METRIC_MARGIN;
 }
-function wrappedLines(text, font, width, style = {}) {
+function wrappedLines(text, font, width2, style = {}) {
   const advance = (s) => (style.monoEm === void 0 ? proportionalEm(s, style.metrics) : s.length * style.monoEm) * font;
   const space = advance(" ");
   let lines = 1;
   let used = 0;
   for (const word of text.split(/\s+/).filter(Boolean)) {
     const w = advance(word);
-    if (used > 0 && used + space + w <= width) used += space + w;
-    else if (used === 0 && w <= width) used = w;
+    if (used > 0 && used + space + w <= width2) used += space + w;
+    else if (used === 0 && w <= width2) used = w;
     else {
-      lines += used === 0 ? Math.ceil(w / width) - 1 : Math.ceil(w / width);
-      used = w % width;
+      lines += used === 0 ? Math.ceil(w / width2) - 1 : Math.ceil(w / width2);
+      used = w % width2;
     }
   }
   return lines;
@@ -20594,6 +20990,371 @@ function componentSpanThatFits(e) {
     }
   }
   return void 0;
+}
+
+// src/core/chart-layout.ts
+var CHART = { pad: 22, title: 26, titleH: 40, legendH: 30, legend: 15, swatch: 12, label: 17, value: 16, tick: 14, tickEm: 0.6, gap: 10, labelH: 30 };
+var SERIES_TONES = ["accent", "neutral", "added", "warning"];
+var MIN_BAR = 4;
+function niceStep(raw) {
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  return ([1, 2, 2.5, 5, 10].find((m) => m * mag >= raw) ?? 10) * mag;
+}
+function niceDomain(values, min, max) {
+  let lo = min ?? Math.min(0, ...values);
+  let hi = max ?? Math.max(0, ...values);
+  if (hi === lo) hi = lo + 1;
+  const step = niceStep((hi - lo) / 5);
+  lo = min ?? Math.floor(lo / step + 1e-9) * step;
+  hi = max ?? Math.ceil(hi / step - 1e-9) * step;
+  const ticks = [];
+  for (let t = Math.ceil(lo / step - 1e-9) * step; t <= hi + step * 1e-9; t += step) ticks.push(Number(t.toPrecision(12)));
+  return { min: lo, max: hi, step, ticks };
+}
+function formatValue(v, unit = "") {
+  if (v === 0) return "0";
+  const abs = Math.abs(v);
+  const [n, s] = abs >= 1e9 ? [v / 1e9, "B"] : abs >= 1e6 ? [v / 1e6, "M"] : abs >= 1e4 ? [v / 1e3, "k"] : [v, ""];
+  const text = Number(n.toPrecision(3)).toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return `${text}${s}${unit}`;
+}
+var width = (text, font, bold = false) => proportionalEm(text, bold ? INTER_SEMIBOLD : INTER_REGULAR) * font;
+function fitText(text, font, max) {
+  if (width(text, font) <= max) return { text, truncated: false };
+  const chars = [...text];
+  while (chars.length > 1 && width(`${chars.join("").trimEnd()}\u2026`, font) > max) chars.pop();
+  return { text: `${chars.join("").trimEnd()}\u2026`, truncated: true };
+}
+var seriesTone = (c2, i) => c2.series[i]?.tone ?? SERIES_TONES[i % SERIES_TONES.length];
+function frame(c2, box) {
+  let top = CHART.pad;
+  const titleY = c2.title ? top + CHART.title * 0.8 : void 0;
+  if (c2.title) top += CHART.titleH;
+  const legendY = c2.series.length > 1 ? top + CHART.legendH / 2 : void 0;
+  if (c2.series.length > 1) top += CHART.legendH;
+  return { top: Math.min(top, box.h / 2), ...titleY !== void 0 ? { titleY } : {}, ...legendY !== void 0 ? { legendY } : {} };
+}
+function chartLayout(c2, box, reveal) {
+  const domain2 = niceDomain(c2.series.flatMap((s) => s.values), c2.min, c2.max);
+  const head = frame(c2, box);
+  const legend = c2.series.reduce((acc, s, i) => {
+    const prev = acc.at(-1);
+    const x = prev ? prev.x + CHART.swatch + 6 + width(prev.name, CHART.legend) + 22 : CHART.pad;
+    return [...acc, { name: s.name, tone: seriesTone(c2, i), x }];
+  }, []);
+  const muted = (i) => c2.highlight.length > 0 && !c2.highlight.includes(c2.categories[i]);
+  const common = { domain: domain2, legend, ...head.titleY !== void 0 ? { titleY: head.titleY } : {}, ...head.legendY !== void 0 ? { legendY: head.legendY } : {} };
+  return c2.kind === "bar" ? { ...common, ...horizontal(c2, box, head.top, domain2, reveal, muted) } : { ...common, ...vertical(c2, box, head.top, domain2, reveal, muted) };
+}
+function vertical(c2, box, top, d, reveal, muted) {
+  const tickTexts = d.ticks.map((t) => formatValue(t, c2.unit));
+  const tickW = Math.max(...tickTexts.map((t) => t.length)) * CHART.tick * CHART.tickEm + CHART.gap;
+  const valueRoom = c2.valueLabels ? CHART.value + 8 : 6;
+  const plot = { x: CHART.pad + tickW, y: top + valueRoom, w: box.w - 2 * CHART.pad - tickW, h: box.h - top - valueRoom - CHART.pad - CHART.labelH };
+  const n = c2.categories.length;
+  const yOf = (v) => plot.y + plot.h - (v - d.min) / (d.max - d.min) * plot.h;
+  const base = yOf(Math.min(Math.max(0, d.min), d.max));
+  const ticks = d.ticks.map((t, i) => ({ text: tickTexts[i], x: plot.x - CHART.gap, y: yOf(t) + CHART.tick * 0.35, anchor: "end" }));
+  const gridlines = d.ticks.map((t) => ({ x1: plot.x, y1: yOf(t), x2: plot.x + plot.w, y2: yOf(t) }));
+  const line = c2.kind === "line" || c2.kind === "area";
+  const slot = line ? plot.w / Math.max(1, n - 1) : plot.w / n;
+  const xOf = (i) => line ? plot.x + i * slot : plot.x + slot * (i + 0.5);
+  const labels = c2.categories.map((cat, i) => {
+    const room = line && (i === 0 || i === n - 1) ? slot : slot - 8;
+    const fit2 = fitText(cat, CHART.label, Math.max(room, 12));
+    const anchor2 = line && n > 1 && i === 0 ? "start" : line && n > 1 && i === n - 1 ? "end" : "middle";
+    return { text: fit2.text, full: cat, x: xOf(i), y: plot.y + plot.h + CHART.labelH * 0.8, anchor: anchor2, truncated: fit2.truncated, muted: muted(i) };
+  });
+  if (line) {
+    const lines = c2.series.map((s, si) => {
+      const points = s.values.map((v, i) => ({ x: xOf(i), y: yOf(v) }));
+      const last = points.at(-1);
+      const endLabel = c2.valueLabels && reveal >= 0.999 ? { text: formatValue(s.values.at(-1), c2.unit), x: last.x, y: last.y - 12 } : void 0;
+      return { series: si, name: s.name, tone: seriesTone(c2, si), points, baseY: base, ...endLabel ? { endLabel } : {} };
+    });
+    return { plot, bars: [], lines, labels, ticks, gridlines };
+  }
+  const group = slot * 0.72;
+  const barW = Math.max(MIN_BAR, group / c2.series.length);
+  const bars = c2.series.flatMap(
+    (s, si) => s.values.map((v, i) => {
+      const p = easeInOutCubic(partProgress(reveal, i, n));
+      const end2 = yOf(v);
+      const y = Math.min(base, base + (end2 - base) * p);
+      const h = Math.abs(end2 - base) * p;
+      const x = xOf(i) - group / 2 + si * barW;
+      const label = c2.valueLabels && c2.series.length <= 2 && p >= 0.999 ? { text: formatValue(v, c2.unit), x: x + barW / 2, y: v >= 0 ? end2 - 8 : end2 + CHART.value + 4, anchor: "middle" } : void 0;
+      return { x, y, w: barW, h, category: i, series: si, tone: seriesTone(c2, si), muted: muted(i), ...label ? { label } : {} };
+    })
+  );
+  return { plot, bars, lines: [], labels, ticks, gridlines };
+}
+function horizontal(c2, box, top, d, reveal, muted) {
+  const inner = box.w - 2 * CHART.pad;
+  const labelCol = Math.min(Math.max(...c2.categories.map((t) => width(t, CHART.label))) + CHART.gap * 2, inner * 0.38);
+  const valueRoom = c2.valueLabels ? Math.max(...c2.series.flatMap((s) => s.values.map((v) => width(formatValue(v, c2.unit), CHART.value)))) + CHART.gap : 0;
+  const plot = { x: CHART.pad + labelCol, y: top, w: inner - labelCol - valueRoom, h: box.h - top - CHART.pad - CHART.labelH };
+  const n = c2.categories.length;
+  const slot = plot.h / n;
+  const xOf = (v) => plot.x + (v - d.min) / (d.max - d.min) * plot.w;
+  const base = xOf(Math.min(Math.max(0, d.min), d.max));
+  const ticks = d.ticks.map((t) => ({ text: formatValue(t, c2.unit), x: xOf(t), y: plot.y + plot.h + CHART.labelH * 0.8, anchor: "middle" }));
+  const gridlines = d.ticks.map((t) => ({ x1: xOf(t), y1: plot.y, x2: xOf(t), y2: plot.y + plot.h }));
+  const labels = c2.categories.map((cat, i) => {
+    const fit2 = fitText(cat, CHART.label, labelCol - CHART.gap * 2);
+    return { text: fit2.text, full: cat, x: plot.x - CHART.gap, y: plot.y + slot * (i + 0.5) + CHART.label * 0.35, anchor: "end", truncated: fit2.truncated, muted: muted(i) };
+  });
+  const group = slot * 0.66;
+  const barH = Math.max(MIN_BAR, group / c2.series.length);
+  const bars = c2.series.flatMap(
+    (s, si) => s.values.map((v, i) => {
+      const p = easeInOutCubic(partProgress(reveal, i, n));
+      const end2 = xOf(v);
+      const x = Math.min(base, base + (end2 - base) * p);
+      const w = Math.abs(end2 - base) * p;
+      const y = plot.y + slot * (i + 0.5) - group / 2 + si * barH;
+      const label = c2.valueLabels && p >= 0.999 ? { text: formatValue(v, c2.unit), x: Math.max(base, end2) + 8, y: y + barH / 2 + CHART.value * 0.35, anchor: "start" } : void 0;
+      return { x, y, w, h: barH, category: i, series: si, tone: seriesTone(c2, si), muted: muted(i), ...label ? { label } : {} };
+    })
+  );
+  return { plot, bars, lines: [], labels, ticks, gridlines };
+}
+
+// src/core/time-axis-layout.ts
+var TIME_AXIS = {
+  pad: 22,
+  titleH: 40,
+  title: 26,
+  inset: 28,
+  when: 15,
+  whenEm: 0.6,
+  label: 19,
+  detail: 15,
+  lineGap: 4,
+  stem: 26,
+  laneGap: 12,
+  hGap: 14,
+  /** Eras are thick segments of the axis itself, labelled just below it. */
+  spanBar: 10,
+  span: 13,
+  spanLabelGap: 22,
+  spanLabelH: 20,
+  dot: 7
+};
+var MAX_STEM = 90;
+var lanesFor = (k) => {
+  const first = k % 2 === 0;
+  return [
+    { above: first, far: false },
+    { above: !first, far: false },
+    { above: first, far: true },
+    { above: !first, far: true }
+  ];
+};
+var blockSize = (when, label, detail) => ({
+  w: Math.max(when.length * TIME_AXIS.when * TIME_AXIS.whenEm, proportionalEm(label, INTER_SEMIBOLD) * TIME_AXIS.label, detail ? proportionalEm(detail, INTER_REGULAR) * TIME_AXIS.detail : 0),
+  h: TIME_AXIS.when * 1.25 + TIME_AXIS.lineGap + TIME_AXIS.label * 1.2 + (detail ? TIME_AXIS.lineGap + TIME_AXIS.detail * 1.3 : 0)
+});
+var fmtAt = (n) => Number.isInteger(n) ? String(n) : String(Number(n.toPrecision(6)));
+function timeAxisLayout(t, box) {
+  const top = TIME_AXIS.pad + (t.title ? TIME_AXIS.titleH : 0);
+  const bottom = box.h - TIME_AXIS.pad;
+  const axisY = (top + bottom) / 2;
+  const x1 = TIME_AXIS.pad + TIME_AXIS.inset;
+  const x2 = box.w - TIME_AXIS.pad - TIME_AXIS.inset;
+  const values = [...t.events.map((e) => e.at), ...t.spans.flatMap((s) => [s.from, s.to])];
+  let lo = t.min ?? Math.min(...values);
+  let hi = t.max ?? Math.max(...values);
+  if (hi === lo) {
+    lo -= 1;
+    hi += 1;
+  }
+  const fracOf = (v) => clamp01((v - lo) / (hi - lo));
+  const xOf = (v) => x1 + fracOf(v) * (x2 - x1);
+  const spans = t.spans.map((s) => {
+    const x = xOf(s.from);
+    const w = xOf(s.to) - x;
+    const text = fitText(s.label.toUpperCase(), TIME_AXIS.span, Math.max(w - 12, 10)).text;
+    const tw = text.length * TIME_AXIS.span * 0.62;
+    const labelRect = { x: x + w / 2 - tw / 2, y: axisY + TIME_AXIS.spanLabelGap - TIME_AXIS.span, w: tw, h: TIME_AXIS.spanLabelH };
+    return { label: s.label, ...s.tone ? { tone: s.tone } : {}, x, w, text, labelRect };
+  });
+  const belowStart = spans.length ? TIME_AXIS.spanLabelGap + TIME_AXIS.spanLabelH : 0;
+  const tallest = Math.max(...t.events.map((e) => blockSize(e.when ?? fmtAt(e.at), e.label, e.detail).h));
+  const room = (bottom - top) / 2 - belowStart - 2 * tallest - TIME_AXIS.laneGap;
+  const stem = Math.min(Math.max(TIME_AXIS.stem, room * 0.85), MAX_STEM);
+  const order = t.events.map((e, index) => ({ e, index })).sort((a, b) => a.e.at - b.e.at || a.index - b.index);
+  const placed = [];
+  const collisions = [];
+  order.forEach(({ e, index }, k) => {
+    const when = e.when ?? fmtAt(e.at);
+    const size = blockSize(when, e.label, e.detail);
+    const x = xOf(e.at);
+    const bx = Math.min(Math.max(x - size.w / 2, TIME_AXIS.pad), box.w - TIME_AXIS.pad - size.w);
+    const candidates2 = lanesFor(k).map((lane) => {
+      const near = stem + (lane.above ? 0 : belowStart);
+      const offset = lane.far ? near + size.h + TIME_AXIS.laneGap : near;
+      const y = lane.above ? axisY - offset - size.h : axisY + offset;
+      const block2 = { x: bx, y, w: size.w, h: size.h };
+      const inside = y >= top - 0.5 && y + size.h <= bottom + 0.5;
+      const padded = { x: bx - TIME_AXIS.hGap / 2, y, w: size.w + TIME_AXIS.hGap, h: size.h };
+      const strikes = lane.above ? [] : spans.filter((sp) => x >= sp.labelRect.x - 4 && x <= sp.labelRect.x + sp.labelRect.w + 4);
+      const hits = [...placed.filter((p) => rectsOverlap(padded, p.block)).map((p) => p.label), ...strikes.map((sp) => sp.label)];
+      return { lane, block: block2, inside, hits };
+    });
+    const free = candidates2.find((c2) => c2.inside && c2.hits.length === 0);
+    const chosen = free ?? candidates2.filter((c2) => c2.inside).sort((a, b) => a.hits.length - b.hits.length)[0] ?? candidates2[0];
+    if (!free) collisions.push([chosen.hits[0] ?? e.label, e.label]);
+    placed.push({ index, label: e.label, when, ...e.detail ? { detail: e.detail } : {}, ...e.tone ? { tone: e.tone } : {}, frac: fracOf(e.at), x, above: chosen.lane.above, block: chosen.block });
+  });
+  return {
+    axis: { x1, x2, y: axisY },
+    ...t.title ? { titleY: TIME_AXIS.pad + TIME_AXIS.title * 0.8 } : {},
+    events: placed.sort((a, b) => a.index - b.index),
+    spans,
+    collisions
+  };
+}
+
+// src/core/visual-fit.ts
+var HEADLINE_FONT = { lg: 48, xl: 72, display: 112 };
+var HEADLINE_FONT_MIN = 16;
+var HEADLINE_FONT_READABLE = 28;
+var HEADLINE = { padX: 32, padY: 20, lineEm: 1.08, eyebrow: 40, step: 1 };
+function headlineFont(e, box) {
+  const w = box.w - HEADLINE.padX;
+  const h = box.h - HEADLINE.padY - (e.eyebrow ? HEADLINE.eyebrow : 0);
+  for (let font = HEADLINE_FONT[e.size]; font > HEADLINE_FONT_MIN; font -= HEADLINE.step) {
+    if (wrappedLines(e.text, font, w, { metrics: INTER_BOLD }) * font * HEADLINE.lineEm <= h) return font;
+  }
+  return HEADLINE_FONT_MIN;
+}
+var STAT_FONT_MAX = 140;
+var STAT_FONT_MIN = 20;
+var STAT_FONT_READABLE = 44;
+var STAT = { padX: 40, padY: 28, gap: 10, label: 24, labelLineEm: 1.3, note: 18, noteLineEm: 1.35, maxLabelLines: 2 };
+var tabularEm = (s) => proportionalEm(s.replace(/[0-9]/g, "0"), INTER_BOLD);
+function statFit(e, box) {
+  const w = box.w - STAT.padX;
+  const labelLines = wrappedLines(e.label, STAT.label, w, { metrics: INTER_REGULAR });
+  const noteH = e.note ? STAT.gap + STAT.note * STAT.noteLineEm : 0;
+  const textH = STAT.gap + labelLines * STAT.label * STAT.labelLineEm + noteH;
+  const widest = Math.max(tabularEm(statText(e, 0)), tabularEm(statText(e, 1)));
+  const byWidth = w / widest;
+  const byHeight = box.h - STAT.padY - textH;
+  const valueFont = Math.max(STAT_FONT_MIN, Math.min(STAT_FONT_MAX, byWidth, byHeight));
+  return { valueFont, labelLines, fits: labelLines <= STAT.maxLabelLines && byHeight >= STAT_FONT_MIN };
+}
+var TABLE = { font: 18, header: 15, padX: 14, rowH: 42, headerH: 40, title: 34, outer: 8 };
+function tableLayout(e, box) {
+  const inner = box.w - 2 * TABLE.outer;
+  const natural = e.columns.map((c2, i) => {
+    const head = proportionalEm(c2.toUpperCase(), INTER_SEMIBOLD) * TABLE.header * 1.06;
+    const cells = e.rows.map((r) => proportionalEm(r[i] ?? "", INTER_REGULAR) * TABLE.font);
+    return Math.max(head, ...cells) + 2 * TABLE.padX;
+  });
+  const total = natural.reduce((a, b) => a + b, 0);
+  const scale = inner / total;
+  const colWidths = natural.map((n) => n * scale);
+  const titleH = e.title ? TABLE.title : 0;
+  const height = titleH + TABLE.headerH + e.rows.length * TABLE.rowH + 2 * TABLE.outer;
+  return { colWidths, titleH, overflowX: total > inner + 0.5, overflowY: height > box.h + 0.5 };
+}
+var IMAGE = { pad: 10, caption: 30, captionFont: 17 };
+function imageRect(e, asset, box) {
+  const captioned = Boolean(e.caption || e.credit);
+  const frame2 = { x: IMAGE.pad, y: IMAGE.pad, w: box.w - 2 * IMAGE.pad, h: box.h - 2 * IMAGE.pad - (captioned ? IMAGE.caption : 0) };
+  const scale = (e.fit === "cover" ? Math.max : Math.min)(frame2.w / asset.width, frame2.h / asset.height);
+  const w = asset.width * scale;
+  const h = asset.height * scale;
+  return { frame: frame2, image: { x: frame2.x + (frame2.w - w) / 2, y: frame2.y + (frame2.h - h) / 2, w, h } };
+}
+function calloutPoint(c2, frame2, image) {
+  const region = c2.w !== void 0 && c2.h !== void 0 ? { x: image.x + c2.x * image.w, y: image.y + c2.y * image.h, w: c2.w * image.w, h: c2.h * image.h } : void 0;
+  const x = region ? region.x + region.w / 2 : image.x + c2.x * image.w;
+  const y = region ? region.y : image.y + c2.y * image.h;
+  const visible = x >= frame2.x && x <= frame2.x + frame2.w && y >= frame2.y && y <= frame2.y + frame2.h;
+  return { x, y, ...region ? { region } : {}, visible };
+}
+
+// src/core/validate-visuals.ts
+var px = (n) => `${Math.round(n)}px`;
+var MIN_BAR_WIDTH = 6;
+function entityIssues(e, assets) {
+  const errors = [];
+  const warnings = [];
+  if (!("layout" in e)) return { errors, warnings };
+  const box = gridToRect(e.layout);
+  switch (e.type) {
+    case "headline": {
+      const font = headlineFont(e, box);
+      if (font < HEADLINE_FONT_READABLE) warnings.push(`headline '${e.id}' shrinks to ${px(font)} to fit its box; give it more room or shorten it`);
+      break;
+    }
+    case "stat": {
+      const fit2 = statFit(e, box);
+      if (!fit2.fits) warnings.push(`stat '${e.id}' label doesn't fit under the number; give it more room or shorten the label`);
+      else if (fit2.valueFont < STAT_FONT_READABLE) warnings.push(`stat '${e.id}' number shrinks to ${px(fit2.valueFont)}; give it more room`);
+      break;
+    }
+    case "chart": {
+      const l = chartLayout(e, box, 1);
+      const cut = l.labels.filter((x) => x.truncated).map((x) => `'${x.full}'`);
+      if (cut.length) warnings.push(`chart '${e.id}' cuts category labels ${cut.join(", ")}; widen it, use kind "bar" for long names, or shorten them`);
+      if (l.bars.some((b) => (e.kind === "column" ? b.w : b.h) < MIN_BAR_WIDTH)) {
+        warnings.push(`chart '${e.id}' bars are thinner than ${MIN_BAR_WIDTH}px; give it more room or fewer categories`);
+      }
+      if (l.plot.w < 80 || l.plot.h < 60) warnings.push(`chart '${e.id}' leaves too little room for the plot; give it more room`);
+      break;
+    }
+    case "time-axis": {
+      const l = timeAxisLayout(e, box);
+      for (const [a, b] of l.collisions) {
+        warnings.push(a === b ? `time-axis '${e.id}' has no room for the label of '${b}'; give it more rows` : `time-axis '${e.id}' labels '${a}' and '${b}' collide; widen the axis, give it more rows, or shorten labels`);
+      }
+      break;
+    }
+    case "table": {
+      const l = tableLayout(e, box);
+      if (l.overflowX) warnings.push(`table '${e.id}' is too narrow for its cells; widen it or shorten the text`);
+      if (l.overflowY) warnings.push(`table '${e.id}' has more rows than fit; give it more rows or split it`);
+      break;
+    }
+    case "image": {
+      const asset = assets[e.src];
+      if (!asset) {
+        errors.push(`image '${e.id}': ${e.src} is not in the reel's assets folder`);
+        break;
+      }
+      const { frame: frame2, image } = imageRect(e, asset, box);
+      e.callouts.forEach((c2, i) => {
+        if (!calloutPoint(c2, frame2, image).visible) warnings.push(`image '${e.id}' callout ${i + 1} ('${c2.label}') is cropped out by fit "cover"; use fit "contain" or move it`);
+      });
+      break;
+    }
+  }
+  return { errors, warnings };
+}
+function unfinishedBuilds(scene) {
+  const byId = new Map(scene.entities.map((e) => [e.id, e]));
+  return scene.timeline.flatMap((a) => {
+    if (a.action !== "appear") return [];
+    const e = byId.get(a.target);
+    if (!e || !buildsIn(e)) return [];
+    const end2 = a.atMs + actionDuration(scene, a);
+    return end2 > scene.durationMs ? [`'${e.id}' is still building at the end of the scene (until ${end2}ms); appear it earlier or give it a shorter durationMs`] : [];
+  });
+}
+function findVisualIssues(scene, p, assets) {
+  const errors = [];
+  const warnings = [];
+  scene.entities.forEach((e, i) => {
+    const r = entityIssues(e, assets);
+    errors.push(...r.errors.map((message) => ({ path: `${p}.entities[${i}]`, message })));
+    warnings.push(...r.warnings.map((message) => ({ path: `${p}.entities`, message })));
+  });
+  warnings.push(...unfinishedBuilds(scene).map((message) => ({ path: `${p}.timeline`, message })));
+  return { errors, warnings };
 }
 
 // src/core/validate.ts
@@ -20642,7 +21403,7 @@ function checkEntities(scene, p) {
   });
   return issues;
 }
-var BOXED = /* @__PURE__ */ new Set(["component", "code-block", "label", "diff-panel", "quote"]);
+var isBoxed = (e) => "layout" in e;
 function checkTimeline(scene, p) {
   const byId = new Map(scene.entities.map((e) => [e.id, e]));
   return scene.timeline.flatMap((a, i) => {
@@ -20654,7 +21415,7 @@ function checkTimeline(scene, p) {
     if (target && (a.action === "connect" || a.action === "disconnect") && target.type !== "edge") {
       issues.push({ path: ap, message: `${a.action} targets edges; '${a.target}' is a ${target.type}` });
     }
-    if (target && a.action === "move" && !BOXED.has(target.type)) {
+    if (target && a.action === "move" && !isBoxed(target)) {
       issues.push({ path: ap, message: `cannot move a ${target.type}` });
     }
     if (a.action === "replace") {
@@ -20679,7 +21440,7 @@ function findOverlaps(scene) {
   const replacePairs = new Set(
     scene.timeline.flatMap((a) => a.action === "replace" ? [`${a.target}|${a.with}`, `${a.with}|${a.target}`] : [])
   );
-  const boxed = scene.entities.filter((e) => BOXED.has(e.type) || e.type === "group");
+  const boxed = scene.entities.filter((e) => isBoxed(e) || e.type === "group");
   const members2 = new Set(scene.entities.flatMap((e) => e.type === "group" ? e.children.map((c2) => `${e.id}|${c2}`) : []));
   const related = (a, b) => members2.has(`${a}|${b}`) || members2.has(`${b}|${a}`);
   const found = /* @__PURE__ */ new Set();
@@ -20703,7 +21464,7 @@ function groupLabelRect(box, label) {
 var CROSSING_INSET = 6;
 function findEdgeCrossings(scene) {
   const edges = scene.entities.filter((e) => e.type === "edge");
-  const others = scene.entities.filter((e) => BOXED.has(e.type) || e.type === "group");
+  const others = scene.entities.filter((e) => isBoxed(e) || e.type === "group");
   const found = /* @__PURE__ */ new Map();
   for (let t = 0; t <= scene.durationMs; t += OVERLAP_SAMPLE_MS) {
     const { entities } = sceneStateAt(scene, t);
@@ -20769,13 +21530,22 @@ function findTextSizeIssues(scene, p) {
 var MARKDOWN = /`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\s]+\)/;
 function findMarkdownInStageText(scene, p) {
   return scene.entities.flatMap((e) => {
-    const texts = [e.type === "label" || e.type === "quote" ? e.text : void 0, "label" in e ? e.label : void 0, "sublabel" in e ? e.sublabel : void 0];
+    const texts = [
+      "text" in e ? e.text : void 0,
+      "label" in e ? e.label : void 0,
+      "sublabel" in e ? e.sublabel : void 0,
+      "title" in e ? e.title : void 0,
+      "eyebrow" in e ? e.eyebrow : void 0,
+      "caption" in e ? e.caption : void 0,
+      "note" in e ? e.note : void 0
+    ];
     return texts.some((t) => t && MARKDOWN.test(t)) ? [{ path: `${p}.entities`, message: `'${e.id}' has Markdown in its text (backticks, ** or links); stage text is shown as-is, so write it plain` }] : [];
   });
 }
-function checkScene(scene, index, manifest) {
+function checkScene(scene, index, manifest, assets) {
   const p = `scenes[${index}]`;
-  const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p)];
+  const visuals = findVisualIssues(scene, p, assets);
+  const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p), ...visuals.errors];
   const refIssues = [
     ...scene.entities.flatMap((e, i) => checkRefs(e.sourceRefs, manifest, `${p}.entities[${i}].sourceRefs`)),
     ...scene.claims.flatMap((c2, i) => checkRefs(c2.refs, manifest, `${p}.claims[${i}].refs`))
@@ -20790,6 +21560,7 @@ function checkScene(scene, index, manifest) {
       message: c2.what === "label" ? `edge '${c2.edge}' runs over the label of group '${c2.crosses}'; route it into the group from the side or below` : `edge '${c2.edge}' runs through '${c2.crosses}'; move one of them so the line goes around it`
     })) : [],
     ...findMarkdownInStageText(scene, p),
+    ...visuals.warnings,
     ...scene.entities.filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0).map((e) => ({ path: `${p}.entities`, message: `component '${e.id}' has no explanation or refs to inspect` }))
   ];
   return { errors: [...errors, ...refIssues], warnings };
@@ -20811,7 +21582,7 @@ function validateBundle(input2) {
     warnings.push({ path: "manifest.publicUrl", message: "questions will not carry a deep link until publicUrl is set" });
   }
   scenes.forEach((s, i) => {
-    const r = checkScene(s, i, manifest);
+    const r = checkScene(s, i, manifest, bundle.assets ?? {});
     errors.push(...r.errors);
     warnings.push(...r.warnings);
   });
@@ -20889,9 +21660,9 @@ function stripAnswerFooter(body2) {
 }
 
 // src/cli/lib/document-check.ts
-import { existsSync as existsSync3 } from "node:fs";
-import { readdir, readFile as readFile3 } from "node:fs/promises";
-import { join as join4 } from "node:path";
+import { existsSync as existsSync4 } from "node:fs";
+import { readdir, readFile as readFile4 } from "node:fs/promises";
+import { join as join5 } from "node:path";
 
 // src/cli/lib/quote-match.ts
 function normalizeText(s) {
@@ -23742,17 +24513,17 @@ async function fetchPage(url2) {
 // src/cli/lib/document-check.ts
 var MAX_LISTED_ANCHORS = 12;
 async function loadSnapshots(reelDir, errors) {
-  const dir = join4(reelDir, "source", WEB_DIR);
+  const dir = join5(reelDir, "source", WEB_DIR);
   const byKey = /* @__PURE__ */ new Map();
-  if (!existsSync3(dir)) return byKey;
+  if (!existsSync4(dir)) return byKey;
   for (const f of (await readdir(dir)).filter((n) => n.endsWith(".json"))) {
-    const meta3 = JSON.parse(await readFile3(join4(dir, f), "utf8"));
-    const mdPath = join4(dir, f.replace(/\.json$/, ".md"));
-    if (!existsSync3(mdPath)) {
+    const meta3 = JSON.parse(await readFile4(join5(dir, f), "utf8"));
+    const mdPath = join5(dir, f.replace(/\.json$/, ".md"));
+    if (!existsSync4(mdPath)) {
       errors.push({ path: `source/${WEB_DIR}/${f}`, message: "snapshot text is missing; re-run `mutoscope ingest url`" });
       continue;
     }
-    const md = await readFile3(mdPath, "utf8");
+    const md = await readFile4(mdPath, "utf8");
     if (sha2562(md) !== meta3.sha256) {
       errors.push({ path: `source/${WEB_DIR}/${f}`, message: "snapshot text was edited after ingest; re-run `mutoscope ingest url` instead of editing it" });
     }
@@ -24025,17 +24796,17 @@ async function loadValidReel(dir) {
 // src/cli/commands/build.ts
 var help = "build <reel-dir> [--out <dir>]                        Bundle into a static site (default <reel-dir>/dist)";
 async function run2(argv) {
-  const { values, positionals } = parse(argv, { out: { type: "string" } });
+  const { values, positionals } = parse3(argv, { out: { type: "string" } });
   const dir = positional(positionals, 0, "reel-dir");
-  const outDir = values.out ?? join5(dir, "dist");
+  const outDir = values.out ?? join6(dir, "dist");
   const files = await buildSite(await loadValidReel(dir), outDir);
-  out(`${c.green("\u2713")} built ${files.length} files \u2192 ${join5(outDir, "index.html")}`);
+  out(`${c.green("\u2713")} built ${files.length} files \u2192 ${join6(outDir, "index.html")}`);
   return 0;
 }
 
 // src/cli/commands/collab.ts
-import { readFile as readFile4, writeFile as writeFile2 } from "node:fs/promises";
-import { join as join6 } from "node:path";
+import { readFile as readFile5, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join7 } from "node:path";
 
 // src/adapters/github/discussions.ts
 var PAGE = 50;
@@ -24109,7 +24880,7 @@ async function postDiscussionReply(discussionId, body2) {
 var help2 = 'collab setup <reel-dir> --repo owner/repo [--category "Walkthrough Q&A"] [--enable]';
 var DEFAULT_CATEGORY = "Walkthrough Q&A";
 async function run3(argv) {
-  const { values, positionals } = parse(argv, {
+  const { values, positionals } = parse3(argv, {
     repo: { type: "string" },
     category: { type: "string" },
     enable: { type: "boolean" }
@@ -24137,8 +24908,8 @@ async function run3(argv) {
     );
     return 1;
   }
-  const path = join6(dir, REEL_FILES.manifest);
-  const manifest = Manifest.parse(JSON.parse(await readFile4(path, "utf8")));
+  const path = join7(dir, REEL_FILES.manifest);
+  const manifest = Manifest.parse(JSON.parse(await readFile5(path, "utf8")));
   const next = {
     ...manifest,
     collaboration: { adapter: "github-discussions", repository: repo, category: found.name, categorySlug: found.slug }
@@ -24153,15 +24924,15 @@ async function run3(argv) {
 import { spawn } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join as join8, resolve as resolve3 } from "node:path";
+import { join as join9, resolve as resolve3 } from "node:path";
 import { pathToFileURL as pathToFileURL2 } from "node:url";
 
 // src/cli/lib/browser.ts
 import { homedir } from "node:os";
 import { createRequire } from "node:module";
-import { join as join7, resolve as resolve2 } from "node:path";
+import { join as join8, resolve as resolve2 } from "node:path";
 import { pathToFileURL } from "node:url";
-var depsDir = () => resolve2(process.env.MUTOSCOPE_DEPS_DIR ?? join7(homedir(), ".mutoscope", "deps"));
+var depsDir = () => resolve2(process.env.MUTOSCOPE_DEPS_DIR ?? join8(homedir(), ".mutoscope", "deps"));
 async function loadPlaywright() {
   for (const mod of ["playwright", "@playwright/test"]) {
     try {
@@ -24170,7 +24941,7 @@ async function loadPlaywright() {
     }
   }
   try {
-    const entry = createRequire(join7(depsDir(), "package.json")).resolve("playwright");
+    const entry = createRequire(join8(depsDir(), "package.json")).resolve("playwright");
     const mod = await import(pathToFileURL(entry).href);
     return mod.chromium ? mod : mod.default;
   } catch {
@@ -24206,19 +24977,19 @@ function startEncoder(file2, fps) {
   return { write, finish: () => (ff.stdin.end(), done) };
 }
 async function run4(argv) {
-  const { values, positionals } = parse(argv, { out: { type: "string" }, fps: { type: "string" }, theme: { type: "string" } });
+  const { values, positionals } = parse3(argv, { out: { type: "string" }, fps: { type: "string" }, theme: { type: "string" } });
   const dir = positional(positionals, 0, "reel-dir");
   const bundle = await loadValidReel(dir);
   const fps = Number(values.fps ?? 30);
   if (!Number.isInteger(fps) || fps < 1 || fps > 60) throw new CliError("--fps must be an integer between 1 and 60");
-  const file2 = resolve3(values.out ?? join8(dir, `${bundle.manifest.id}.mp4`));
-  const site = await mkdtemp(join8(tmpdir(), "mutoscope-export-"));
+  const file2 = resolve3(values.out ?? join9(dir, `${bundle.manifest.id}.mp4`));
+  const site = await mkdtemp(join9(tmpdir(), "mutoscope-export-"));
   await buildSite(bundle, site);
   const browser = await launchBrowser();
   try {
     const page = await browser.newPage({ viewport: FRAME, deviceScaleFactor: 1 });
     await page.emulateMedia({ colorScheme: values.theme === "light" ? "light" : "dark", reducedMotion: "reduce" });
-    await page.goto(`${pathToFileURL2(join8(site, "index.html")).href}?mode=video`);
+    await page.goto(`${pathToFileURL2(join9(site, "index.html")).href}?mode=video`);
     await page.waitForFunction("window.mutoscope && window.mutoscope.ready");
     const total = Number(await page.evaluate("window.mutoscope.durationMs"));
     const frames = Math.ceil(total / 1e3 * fps) + 1;
@@ -24239,9 +25010,9 @@ async function run4(argv) {
 }
 
 // src/cli/commands/ingest.ts
-import { existsSync as existsSync5 } from "node:fs";
-import { mkdir as mkdir3, readFile as readFile6, writeFile as writeFile4 } from "node:fs/promises";
-import { join as join10 } from "node:path";
+import { existsSync as existsSync6 } from "node:fs";
+import { mkdir as mkdir3, readFile as readFile7, writeFile as writeFile4 } from "node:fs/promises";
+import { join as join11 } from "node:path";
 
 // src/cli/lib/change-size.ts
 var MAX_FILES = 40;
@@ -24262,22 +25033,22 @@ function scanPaths(files) {
 }
 
 // src/cli/lib/pin.ts
-import { existsSync as existsSync4 } from "node:fs";
-import { mkdir as mkdir2, readFile as readFile5, writeFile as writeFile3 } from "node:fs/promises";
-import { join as join9 } from "node:path";
+import { existsSync as existsSync5 } from "node:fs";
+import { mkdir as mkdir2, readFile as readFile6, writeFile as writeFile3 } from "node:fs/promises";
+import { join as join10 } from "node:path";
 var SOURCE_DIR = "source";
 async function readManifest(reelDir) {
-  const path = join9(reelDir, REEL_FILES.manifest);
-  if (!existsSync4(path)) throw new CliError(`No manifest in ${reelDir}`, "Run `mutoscope init` first.");
-  return Manifest.parse(JSON.parse(await readFile5(path, "utf8")));
+  const path = join10(reelDir, REEL_FILES.manifest);
+  if (!existsSync5(path)) throw new CliError(`No manifest in ${reelDir}`, "Run `mutoscope init` first.");
+  return Manifest.parse(JSON.parse(await readFile6(path, "utf8")));
 }
 async function writeManifest(reelDir, manifest) {
-  await writeFile3(join9(reelDir, REEL_FILES.manifest), `${JSON.stringify(manifest, null, 2)}
+  await writeFile3(join10(reelDir, REEL_FILES.manifest), `${JSON.stringify(manifest, null, 2)}
 `);
 }
 async function pinSnapshots(reelDir, drafts) {
   const manifest = await readManifest(reelDir);
-  const dir = join9(reelDir, SOURCE_DIR, WEB_DIR);
+  const dir = join10(reelDir, SOURCE_DIR, WEB_DIR);
   await mkdir2(dir, { recursive: true });
   const retrievedAt = (/* @__PURE__ */ new Date()).toISOString();
   const written = [];
@@ -24286,11 +25057,11 @@ async function pinSnapshots(reelDir, drafts) {
     const md = [SNAPSHOT_BANNER, `<!-- ${d.url} \xB7 retrieved ${retrievedAt} -->`, "", ...d.title ? [`# ${d.title}`, ""] : [], d.text, ""].join("\n");
     const slug = snapshotSlug(d.url);
     const meta3 = { url: d.url, finalUrl: d.finalUrl ?? d.url, ...d.title ? { title: d.title } : {}, retrievedAt, sha256: sha2562(md), anchors: d.anchors };
-    await writeFile3(join9(dir, `${slug}.md`), md);
-    await writeFile3(join9(dir, `${slug}.json`), `${JSON.stringify(meta3, null, 2)}
+    await writeFile3(join10(dir, `${slug}.md`), md);
+    await writeFile3(join10(dir, `${slug}.json`), `${JSON.stringify(meta3, null, 2)}
 `);
     docs.push({ url: d.url, ...d.title ? { title: d.title.slice(0, 200) } : {}, retrievedAt, sha256: meta3.sha256 });
-    written.push({ draft: d, file: join9(dir, `${slug}.md`) });
+    written.push({ draft: d, file: join10(dir, `${slug}.md`) });
   }
   const keys = new Set(docs.map((d) => documentKey(d.url)));
   await writeManifest(reelDir, { ...manifest, documents: [...manifest.documents.filter((d) => !keys.has(documentKey(d.url))), ...docs] });
@@ -24357,9 +25128,9 @@ var help4 = [
   "ingest url <https-url> --reel <dir>                       Pin a web page (article, post, docs) for quoting"
 ].join("\n  ");
 async function updateManifest(reelDir, source, defaults) {
-  const path = join10(reelDir, REEL_FILES.manifest);
-  if (!existsSync5(path)) throw new CliError(`No manifest in ${reelDir}`, "Run `mutoscope init` first.");
-  const current = Manifest.parse(JSON.parse(await readFile6(path, "utf8")));
+  const path = join11(reelDir, REEL_FILES.manifest);
+  if (!existsSync6(path)) throw new CliError(`No manifest in ${reelDir}`, "Run `mutoscope init` first.");
+  const current = Manifest.parse(JSON.parse(await readFile7(path, "utf8")));
   const next = {
     ...current,
     source,
@@ -24371,7 +25142,7 @@ async function updateManifest(reelDir, source, defaults) {
 }
 function report(reelDir, files) {
   const verdict = sizeVerdict(files);
-  out(`${c.green("\u2713")} wrote ${join10(reelDir, SOURCE_DIR)}/ \u2014 ${files.length} files, +${verdict.additions} \u2212${verdict.deletions}`);
+  out(`${c.green("\u2713")} wrote ${join11(reelDir, SOURCE_DIR)}/ \u2014 ${files.length} files, +${verdict.additions} \u2212${verdict.deletions}`);
   if (verdict.warning) out(`${c.yellow("warn")}    ${verdict.warning}`);
   for (const s of scanPaths(files)) out(`${c.red("sensitive")} ${s} \u2014 never quote or link this file in the reel`);
 }
@@ -24390,11 +25161,11 @@ async function ingestPr(target, reelDir, repo) {
   const { visibility } = await ghJson(["repo", "view", slug, "--json", "visibility"]);
   const diff = await gh(["pr", "diff", String(pr.number), "--repo", slug]);
   const files = pr.files.map((f) => ({ path: f.path, additions: f.additions, deletions: f.deletions }));
-  const src = join10(reelDir, SOURCE_DIR);
+  const src = join11(reelDir, SOURCE_DIR);
   await mkdir3(src, { recursive: true });
-  await writeFile4(join10(src, "pr.json"), JSON.stringify({ ...pr, repository: slug, visibility: visibility.toLowerCase() }, null, 2));
-  await writeFile4(join10(src, "diff.patch"), diff);
-  await writeFile4(join10(src, "files.json"), JSON.stringify(files, null, 2));
+  await writeFile4(join11(src, "pr.json"), JSON.stringify({ ...pr, repository: slug, visibility: visibility.toLowerCase() }, null, 2));
+  await writeFile4(join11(src, "diff.patch"), diff);
+  await writeFile4(join11(src, "files.json"), JSON.stringify(files, null, 2));
   await updateManifest(
     reelDir,
     {
@@ -24411,7 +25182,7 @@ async function ingestPr(target, reelDir, repo) {
   report(reelDir, files);
   const pinned = await pinConversation(reelDir, slug, pr);
   out(
-    `${c.green("\u2713")} pinned the PR conversation and ${pinned.length - 1} commit message(s) \u2192 ${join10(reelDir, SOURCE_DIR, "web")}/`,
+    `${c.green("\u2713")} pinned the PR conversation and ${pinned.length - 1} commit message(s) \u2192 ${join11(reelDir, SOURCE_DIR, "web")}/`,
     `  ${pinned[0].file}`,
     "",
     "Read the conversation and commits too: the description is written when the PR opens, and review often changes the design.",
@@ -24486,11 +25257,11 @@ async function ingestGit(base, head, reelDir, cwd) {
     return { path: p.join("	"), additions: Number(a) || 0, deletions: Number(d) || 0 };
   });
   const log = await git(["log", "--format=%H%x09%s", `${baseSha}..${headSha}`], cwd);
-  const src = join10(reelDir, SOURCE_DIR);
+  const src = join11(reelDir, SOURCE_DIR);
   await mkdir3(src, { recursive: true });
-  await writeFile4(join10(src, "diff.patch"), diff);
-  await writeFile4(join10(src, "files.json"), JSON.stringify(files, null, 2));
-  await writeFile4(join10(src, "commits.txt"), log);
+  await writeFile4(join11(src, "diff.patch"), diff);
+  await writeFile4(join11(src, "files.json"), JSON.stringify(files, null, 2));
+  await writeFile4(join11(src, "commits.txt"), log);
   const repository = await githubSlug(cwd);
   await updateManifest(
     reelDir,
@@ -24501,7 +25272,7 @@ async function ingestGit(base, head, reelDir, cwd) {
   out(`Next: validate with --repo-root ${cwd} (it holds both pinned commits).`);
 }
 async function run5(argv) {
-  const { values, positionals } = parse(argv, { reel: { type: "string" }, repo: { type: "string" }, cwd: { type: "string" } });
+  const { values, positionals } = parse3(argv, { reel: { type: "string" }, repo: { type: "string" }, cwd: { type: "string" } });
   const kind = positional(positionals, 0, "pr|git|url");
   const reelDir = values.reel;
   if (!reelDir) throw new CliError("Missing --reel <dir>");
@@ -24513,23 +25284,23 @@ async function run5(argv) {
 }
 
 // src/cli/commands/init.ts
-import { existsSync as existsSync7 } from "node:fs";
+import { existsSync as existsSync8 } from "node:fs";
 import { mkdir as mkdir4, writeFile as writeFile5 } from "node:fs/promises";
-import { basename, join as join12 } from "node:path";
+import { basename, join as join13 } from "node:path";
 
 // src/cli/lib/recipes.ts
-import { existsSync as existsSync6 } from "node:fs";
-import { readdir as readdir2, readFile as readFile7 } from "node:fs/promises";
+import { existsSync as existsSync7 } from "node:fs";
+import { readdir as readdir2, readFile as readFile8 } from "node:fs/promises";
 import { homedir as homedir2 } from "node:os";
-import { dirname as dirname2, join as join11, resolve as resolve4 } from "node:path";
+import { dirname as dirname2, join as join12, resolve as resolve4 } from "node:path";
 import { fileURLToPath as fileURLToPath2 } from "node:url";
 function recipeDirs(cwd = process.cwd()) {
   const here = dirname2(fileURLToPath2(import.meta.url));
   const launched = process.argv[1] ? dirname2(process.argv[1]) : here;
-  const builtIn = [resolve4(launched, "../recipes"), resolve4(here, "../recipes"), resolve4(here, "../../../skills/mutoscope/recipes")].find((d) => existsSync6(d));
+  const builtIn = [resolve4(launched, "../recipes"), resolve4(here, "../recipes"), resolve4(here, "../../../skills/mutoscope/recipes")].find((d) => existsSync7(d));
   return [
-    { dir: join11(cwd, ".mutoscope", "recipes"), origin: "project" },
-    { dir: join11(homedir2(), ".mutoscope", "recipes"), origin: "user" },
+    { dir: join12(cwd, ".mutoscope", "recipes"), origin: "project" },
+    { dir: join12(homedir2(), ".mutoscope", "recipes"), origin: "user" },
     ...builtIn ? [{ dir: builtIn, origin: "built-in" }] : []
   ];
 }
@@ -24543,10 +25314,10 @@ function parseFrontmatter(text) {
 async function listRecipes(cwd) {
   const seen = /* @__PURE__ */ new Map();
   for (const { dir, origin } of recipeDirs(cwd)) {
-    if (!existsSync6(dir)) continue;
+    if (!existsSync7(dir)) continue;
     for (const f of (await readdir2(dir)).filter((f2) => f2.endsWith(".md") && !f2.startsWith("_")).sort()) {
-      const path = join11(dir, f);
-      const fm = parseFrontmatter(await readFile7(path, "utf8"));
+      const path = join12(dir, f);
+      const fm = parseFrontmatter(await readFile8(path, "utf8"));
       const name = fm.name ?? f.replace(/\.md$/, "");
       if (seen.has(name)) continue;
       seen.set(name, { name, description: fm.description ?? "", inputs: fm.inputs ?? "", ingest: fm.ingest, path, origin });
@@ -24558,7 +25329,7 @@ async function listRecipes(cwd) {
 // src/cli/commands/init.ts
 var help5 = "init <reel-dir> --recipe <name> --title <text> [--id <id>] [--kicker <text>]";
 async function run6(argv) {
-  const { values, positionals } = parse(argv, {
+  const { values, positionals } = parse3(argv, {
     recipe: { type: "string" },
     title: { type: "string" },
     id: { type: "string" },
@@ -24571,7 +25342,7 @@ async function run6(argv) {
   if (!known.some((r) => r.name === recipe)) {
     throw new CliError(`Unknown recipe '${recipe}'`, `Available: ${known.map((r) => r.name).join(", ")}`);
   }
-  if (existsSync7(join12(dir, REEL_FILES.manifest)) && !values.force) {
+  if (existsSync8(join13(dir, REEL_FILES.manifest)) && !values.force) {
     throw new CliError(`${dir} already has a manifest`, "Pass --force to overwrite it.");
   }
   const id = values.id ?? basename(dir).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
@@ -24587,16 +25358,16 @@ async function run6(argv) {
     source: { provider: "none" }
   });
   await mkdir4(dir, { recursive: true });
-  await writeFile5(join12(dir, REEL_FILES.manifest), `${JSON.stringify(manifest, null, 2)}
+  await writeFile5(join13(dir, REEL_FILES.manifest), `${JSON.stringify(manifest, null, 2)}
 `);
   const recipePath = known.find((r) => r.name === recipe).path;
   out(
-    `${c.green("\u2713")} created ${join12(dir, REEL_FILES.manifest)} (recipe: ${recipe})`,
+    `${c.green("\u2713")} created ${join13(dir, REEL_FILES.manifest)} (recipe: ${recipe})`,
     "",
     "Next:",
     `  1. Follow the recipe's Ingest section: ${recipePath}`,
-    `  2. Write ${join12(dir, REEL_FILES.analysis)}  \u2014 { "units": [...] }`,
-    `  3. Write ${join12(dir, REEL_FILES.scenes)}    \u2014 { "scenes": [...] }; the first scene is where the reel opens`,
+    `  2. Write ${join13(dir, REEL_FILES.analysis)}  \u2014 { "units": [...] }`,
+    `  3. Write ${join13(dir, REEL_FILES.scenes)}    \u2014 { "scenes": [...] }; the first scene is where the reel opens`,
     `  4. mutoscope validate ${dir}`
   );
   return 0;
@@ -24604,9 +25375,9 @@ async function run6(argv) {
 
 // src/cli/commands/install-browser.ts
 import { spawn as spawn2 } from "node:child_process";
-import { existsSync as existsSync8 } from "node:fs";
+import { existsSync as existsSync9 } from "node:fs";
 import { mkdir as mkdir5, writeFile as writeFile6 } from "node:fs/promises";
-import { join as join13 } from "node:path";
+import { join as join14 } from "node:path";
 var help6 = "install-browser                                       One-time: Playwright + Chromium for snapshot, export and live frames";
 var PLAYWRIGHT_VERSION = true ? "1.64.1" : "latest";
 function runVisible(cmd, args) {
@@ -24617,17 +25388,17 @@ function runVisible(cmd, args) {
   });
 }
 async function run7(argv) {
-  parse(argv, {});
+  parse3(argv, {});
   const dir = depsDir();
   await mkdir5(dir, { recursive: true });
-  if (!existsSync8(join13(dir, "package.json"))) {
-    await writeFile6(join13(dir, "package.json"), `${JSON.stringify({ name: "mutoscope-deps", private: true }, null, 2)}
+  if (!existsSync9(join14(dir, "package.json"))) {
+    await writeFile6(join14(dir, "package.json"), `${JSON.stringify({ name: "mutoscope-deps", private: true }, null, 2)}
 `);
   }
   out(c.dim(`Installing playwright@${PLAYWRIGHT_VERSION} into ${dir} \u2026`));
   await runVisible("npm", ["install", "--prefix", dir, "--no-audit", "--no-fund", `playwright@${PLAYWRIGHT_VERSION}`]);
   out(c.dim("Downloading Chromium \u2026"));
-  await runVisible(process.execPath, [join13(dir, "node_modules", "playwright", "cli.js"), "install", "chromium"]);
+  await runVisible(process.execPath, [join14(dir, "node_modules", "playwright", "cli.js"), "install", "chromium"]);
   out(`${c.green("\u2713")} browser ready \u2014 snapshot, export and live-session frames will use it.`);
   return 0;
 }
@@ -24661,7 +25432,7 @@ function answerBrief(bundle, question2, note) {
 // src/cli/lib/frame.ts
 import { mkdir as mkdir6, mkdtemp as mkdtemp2, rm as rm2 } from "node:fs/promises";
 import { tmpdir as tmpdir2 } from "node:os";
-import { join as join14 } from "node:path";
+import { join as join15 } from "node:path";
 import { pathToFileURL as pathToFileURL3 } from "node:url";
 async function renderFrames(bundle, requests, outDir) {
   if (requests.length === 0) return { frames: /* @__PURE__ */ new Map() };
@@ -24671,20 +25442,20 @@ async function renderFrames(bundle, requests, outDir) {
   } catch (e) {
     return { frames: /* @__PURE__ */ new Map(), note: `No frame images: ${e.message}` };
   }
-  const site = await mkdtemp2(join14(tmpdir2(), "mutoscope-frame-"));
+  const site = await mkdtemp2(join15(tmpdir2(), "mutoscope-frame-"));
   const frames = /* @__PURE__ */ new Map();
   try {
     await buildSite(bundle, site);
     await mkdir6(outDir, { recursive: true });
     const page = await browser.newPage({ viewport: { width: 1600, height: 1e3 }, deviceScaleFactor: 1 });
     await page.emulateMedia({ colorScheme: "light", reducedMotion: "reduce" });
-    const base = pathToFileURL3(join14(site, "index.html")).href;
+    const base = pathToFileURL3(join15(site, "index.html")).href;
     for (const r of requests) {
       const { sceneId, timestampMs: tMs, entityId } = r.context;
       await page.goto(buildDeepLink(base, { sceneId, tMs, entityId }));
       await page.waitForFunction("window.mutoscope && window.mutoscope.ready");
       await page.evaluate("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))");
-      const file2 = join14(outDir, `${r.id}.png`);
+      const file2 = join15(outDir, `${r.id}.png`);
       await page.locator(".stage-frame").screenshot({ path: file2 });
       frames.set(r.id, file2);
     }
@@ -24699,21 +25470,21 @@ async function renderFrames(bundle, requests, outDir) {
 
 // src/cli/live/client.ts
 import { spawn as spawn3 } from "node:child_process";
-import { existsSync as existsSync9, mkdirSync, openSync, readFileSync, statSync } from "node:fs";
+import { existsSync as existsSync10, mkdirSync, openSync, readFileSync, statSync } from "node:fs";
 import { request } from "node:http";
 
 // src/cli/live/paths.ts
 import { createHash as createHash3 } from "node:crypto";
 import { realpathSync } from "node:fs";
 import { homedir as homedir3 } from "node:os";
-import { join as join15, resolve as resolve5 } from "node:path";
+import { join as join16, resolve as resolve5 } from "node:path";
 var DEFAULT_LIVE_PORT = 4880;
 var LIVE_HOST = "127.0.0.1";
-var stateDir = () => resolve5(process.env.MUTOSCOPE_STATE_DIR ?? join15(homedir3(), ".mutoscope", "live"));
-var serverInfoFile = () => join15(stateDir(), "server.json");
-var serverLogFile = () => join15(stateDir(), "server.log");
-var sessionsDir = () => join15(stateDir(), "sessions");
-var framesDir = () => join15(stateDir(), "frames");
+var stateDir = () => resolve5(process.env.MUTOSCOPE_STATE_DIR ?? join16(homedir3(), ".mutoscope", "live"));
+var serverInfoFile = () => join16(stateDir(), "server.json");
+var serverLogFile = () => join16(stateDir(), "server.log");
+var sessionsDir = () => join16(stateDir(), "sessions");
+var framesDir = () => join16(stateDir(), "frames");
 function canonicalDir(dir) {
   return realpathSync(resolve5(dir));
 }
@@ -24726,7 +25497,7 @@ var START_TIMEOUT_MS = 8e3;
 var HEALTH_TIMEOUT_MS = 800;
 function currentBuild() {
   const entry = process.argv[1];
-  return entry && existsSync9(entry) ? String(Math.round(statSync(entry).mtimeMs)) : "dev";
+  return entry && existsSync10(entry) ? String(Math.round(statSync(entry).mtimeMs)) : "dev";
 }
 function readServerInfo() {
   try {
@@ -24823,9 +25594,9 @@ async function agentCall(info, method, path, body2) {
 
 // src/cli/live/server.ts
 import { timingSafeEqual } from "node:crypto";
-import { existsSync as existsSync10, readdirSync, watch } from "node:fs";
+import { existsSync as existsSync11, readdirSync, watch } from "node:fs";
 import { createServer } from "node:http";
-import { join as join17 } from "node:path";
+import { join as join18 } from "node:path";
 
 // src/cli/live/http.ts
 var MAX_BODY_BYTES = 256 * 1024;
@@ -24890,7 +25661,7 @@ var escapeHtml2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
 // src/cli/live/session.ts
 import { randomBytes, randomUUID } from "node:crypto";
 import { mkdirSync as mkdirSync2, readFileSync as readFileSync2, renameSync, writeFileSync } from "node:fs";
-import { join as join16 } from "node:path";
+import { join as join17 } from "node:path";
 
 // src/cli/live/conversation.ts
 var isQuestion = (e) => e.role === "viewer";
@@ -25055,7 +25826,7 @@ var LiveSession = class _LiveSession {
   persist() {
     const dir = sessionsDir();
     mkdirSync2(dir, { recursive: true, mode: 448 });
-    const file2 = join16(dir, `${this.id}.json`);
+    const file2 = join17(dir, `${this.id}.json`);
     const body2 = { ...this.data, entries: [...this.entries], ...this.endedBy ? { endedBy: this.endedBy } : {} };
     writeFileSync(`${file2}.tmp`, JSON.stringify(body2, null, 2), { mode: 384 });
     renameSync(`${file2}.tmp`, file2);
@@ -25101,10 +25872,10 @@ function createLiveServer(opts) {
   const graceMs = opts.graceMs ?? DEFAULT_GRACE_MS;
   const sessions2 = /* @__PURE__ */ new Map();
   const watchers = /* @__PURE__ */ new Map();
-  if (existsSync10(sessionsDir())) {
+  if (existsSync11(sessionsDir())) {
     for (const f of readdirSync(sessionsDir()).filter((n) => n.endsWith(".json"))) {
-      const s = LiveSession.load(join17(sessionsDir(), f), graceMs);
-      if (s && existsSync10(s.dir)) sessions2.set(s.id, s);
+      const s = LiveSession.load(join18(sessionsDir(), f), graceMs);
+      if (s && existsSync11(s.dir)) sessions2.set(s.id, s);
     }
   }
   const watchReel = (s) => {
@@ -25265,7 +26036,7 @@ async function liveServer() {
   return info;
 }
 async function watch2(argv) {
-  const { values, positionals } = parse(argv, { "no-open": { type: "boolean" }, reopen: { type: "boolean" }, port: { type: "string" } });
+  const { values, positionals } = parse3(argv, { "no-open": { type: "boolean" }, reopen: { type: "boolean" }, port: { type: "string" } });
   const dir = positional(positionals, 0, "reel-dir");
   const bundle = await loadValidReel(dir);
   const info = await ensureServer(Number(values.port ?? DEFAULT_LIVE_PORT));
@@ -25320,7 +26091,7 @@ function readReply(values) {
   return text;
 }
 async function poll(argv) {
-  const { values, positionals } = parse(argv, {
+  const { values, positionals } = parse3(argv, {
     reply: { type: "string" },
     "reply-file": { type: "string" },
     "timeout-ms": { type: "string" },
@@ -25340,14 +26111,14 @@ async function poll(argv) {
   return 0;
 }
 async function end(argv) {
-  const { positionals } = parse(argv, {});
+  const { positionals } = parse3(argv, {});
   const dir = positional(positionals, 0, "reel-dir");
   await agentCall(await liveServer(), "POST", "/agent/end", { sessionId: sessionIdFor(dir) });
   out(`${c.green("\u2713")} ended the live session for ${dir}`);
   return 0;
 }
 async function sessions(argv) {
-  parse(argv, {});
+  parse3(argv, {});
   const info = await runningServer();
   if (!info) {
     out(c.dim("No live server running."));
@@ -25362,7 +26133,7 @@ async function sessions(argv) {
   return 0;
 }
 async function liveServerMain(argv) {
-  const { values } = parse(argv, { port: { type: "string" } });
+  const { values } = parse3(argv, { port: { type: "string" } });
   const port = Number(values.port ?? DEFAULT_LIVE_PORT);
   const info = { pid: process.pid, port, agentToken: randomBytes2(32).toString("hex"), build: currentBuild() };
   const cleanup = () => {
@@ -25381,9 +26152,9 @@ async function liveServerMain(argv) {
 }
 
 // src/cli/commands/preview.ts
-import { createReadStream, existsSync as existsSync11, statSync as statSync2 } from "node:fs";
+import { createReadStream, existsSync as existsSync12, statSync as statSync2 } from "node:fs";
 import { createServer as createServer2 } from "node:http";
-import { extname, join as join18, normalize, resolve as resolve6, sep } from "node:path";
+import { extname, join as join19, normalize, resolve as resolve6, sep as sep2 } from "node:path";
 var help8 = "preview <reel-dir> [--port 4870]                     Build and serve locally";
 var TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -25392,16 +26163,16 @@ var TYPES = {
   ".js": "text/javascript; charset=utf-8"
 };
 async function run8(argv) {
-  const { values, positionals } = parse(argv, { port: { type: "string" }, host: { type: "string" } });
+  const { values, positionals } = parse3(argv, { port: { type: "string" }, host: { type: "string" } });
   const dir = positional(positionals, 0, "reel-dir");
-  const root = resolve6(join18(dir, "dist"));
+  const root = resolve6(join19(dir, "dist"));
   await buildSite(await loadValidReel(dir), root);
   const port = Number(values.port ?? 4870);
   const host = values.host ?? "127.0.0.1";
   const server = createServer2((req, res) => {
     const path = decodeURIComponent((req.url ?? "/").split("?")[0]);
-    const file2 = normalize(join18(root, path.endsWith("/") ? `${path}index.html` : path));
-    if (!file2.startsWith(root + sep) || !existsSync11(file2) || !statSync2(file2).isFile()) {
+    const file2 = normalize(join19(root, path.endsWith("/") ? `${path}index.html` : path));
+    if (!file2.startsWith(root + sep2) || !existsSync12(file2) || !statSync2(file2).isFile()) {
       res.writeHead(404).end("not found");
       return;
     }
@@ -25415,9 +26186,9 @@ async function run8(argv) {
 }
 
 // src/cli/commands/publish.ts
-import { mkdtemp as mkdtemp3, readFile as readFile8, rm as rm3, writeFile as writeFile7 } from "node:fs/promises";
+import { mkdtemp as mkdtemp3, readFile as readFile9, rm as rm3, writeFile as writeFile7 } from "node:fs/promises";
 import { tmpdir as tmpdir3 } from "node:os";
-import { join as join19 } from "node:path";
+import { join as join20 } from "node:path";
 
 // src/cli/lib/safety.ts
 var SECRET_PATTERNS = [
@@ -25447,6 +26218,10 @@ function scanBundle(bundle) {
 }
 
 // src/cli/commands/publish.ts
+function imageSummary(bundle) {
+  const srcs = Object.keys(bundle.assets ?? {});
+  return srcs.length ? `, ${srcs.length} image${srcs.length > 1 ? "s" : ""} (${srcs.join(", ")})` : "";
+}
 var help9 = "publish <reel-dir> [--repo owner/repo] [--branch gh-pages] [--path reels/<id>] [--yes] [--allow-private-source]\n                                                       Dry run unless --yes; pushes to GitHub Pages";
 function targetRepo(bundle, explicit) {
   const m = bundle.manifest;
@@ -25472,7 +26247,7 @@ async function sourceIsPrivate(manifest) {
   return v.visibility.toLowerCase() !== "public";
 }
 async function pushSite(bundle, repo, branch, path) {
-  const work = await mkdtemp3(join19(tmpdir3(), "mutoscope-publish-"));
+  const work = await mkdtemp3(join20(tmpdir3(), "mutoscope-publish-"));
   try {
     await git(["init", "-q"], work);
     await git(["remote", "add", "origin", `https://github.com/${repo}.git`], work);
@@ -25483,9 +26258,9 @@ async function pushSite(bundle, repo, branch, path) {
     } else {
       await git(["checkout", "-q", "--orphan", branch], work);
     }
-    await rm3(join19(work, path), { recursive: true, force: true });
-    await buildSite(bundle, join19(work, path));
-    await writeFile7(join19(work, ".nojekyll"), "");
+    await rm3(join20(work, path), { recursive: true, force: true });
+    await buildSite(bundle, join20(work, path));
+    await writeFile7(join20(work, ".nojekyll"), "");
     await git(["add", "-A"], work);
     if ((await git(["status", "--porcelain"], work)).trim() === "") return { sha: (await git(["rev-parse", "HEAD"], work)).trim(), changed: false };
     const m = bundle.manifest;
@@ -25521,7 +26296,7 @@ function printPlan(rows, findings) {
   for (const f of findings) out(`  ${f.severity === "block" ? c.red("BLOCK") : c.yellow("warn ")} ${c.dim(f.where)} ${f.message}`);
 }
 async function run9(argv) {
-  const { values, positionals } = parse(argv, {
+  const { values, positionals } = parse3(argv, {
     repo: { type: "string" },
     branch: { type: "string" },
     path: { type: "string" },
@@ -25549,7 +26324,7 @@ async function run9(argv) {
       ["target", `${repo} (${info.visibility.toLowerCase()}) \u2192 branch ${branch}, /${path}/`],
       ["url", publicUrl],
       ["pages", pages2.enabled ? "already enabled" : `will be enabled from ${branch}`],
-      ["contents", `${bundle.scenes.length} scenes, ${bundle.analysis ? "analysis, " : ""}${bundle.threads ? `${bundle.threads.threads.length} threads, ` : ""}${bundle.rationale ? "rationale" : "no rationale"}`]
+      ["contents", `${bundle.scenes.length} scenes, ${bundle.analysis ? "analysis, " : ""}${bundle.threads ? `${bundle.threads.threads.length} threads, ` : ""}${bundle.rationale ? "rationale" : "no rationale"}${imageSummary(bundle)}`]
     ],
     findings
   );
@@ -25562,8 +26337,8 @@ async function run9(argv) {
     return 0;
   }
   const { sha, changed } = await pushSite(bundle, repo, branch, path);
-  const manifestPath = join19(dir, REEL_FILES.manifest);
-  const raw = JSON.parse(await readFile8(manifestPath, "utf8"));
+  const manifestPath = join20(dir, REEL_FILES.manifest);
+  const raw = JSON.parse(await readFile9(manifestPath, "utf8"));
   await writeFile7(manifestPath, `${JSON.stringify({ ...raw, publicUrl }, null, 2)}
 `);
   out(changed ? `${c.green("\u2713")} pushed ${sha.slice(0, 7)} to ${repo}@${branch}` : `${c.green("\u2713")} already up to date on ${repo}@${branch} (${sha.slice(0, 7)})`);
@@ -25583,7 +26358,7 @@ async function run9(argv) {
 // src/cli/commands/recipes.ts
 var help10 = "recipes [--json]                                     List recipes (project, user, built-in)";
 async function run10(argv) {
-  const { values } = parse(argv, { json: { type: "boolean" } });
+  const { values } = parse3(argv, { json: { type: "boolean" } });
   const recipes = await listRecipes();
   if (values.json) {
     out(JSON.stringify(recipes, null, 2));
@@ -25598,7 +26373,7 @@ async function run10(argv) {
 // src/cli/commands/snapshot.ts
 import { mkdir as mkdir7, mkdtemp as mkdtemp4, rm as rm4 } from "node:fs/promises";
 import { tmpdir as tmpdir4 } from "node:os";
-import { join as join20, resolve as resolve7 } from "node:path";
+import { join as join21, resolve as resolve7 } from "node:path";
 import { pathToFileURL as pathToFileURL4 } from "node:url";
 var help11 = "snapshot <reel-dir> [--out <dir>] [--theme light|dark] [--at beats|end|mid|both]  PNGs for visual review";
 var AT = ["beats", "end", "mid", "both"];
@@ -25629,13 +26404,13 @@ figure{margin:0}img{width:100%;display:block;border-radius:6px}figcaption{margin
 </style><h1>${escapeHtml3(title)}</h1><main>${tiles}</main>`;
 }
 async function run11(argv) {
-  const { values, positionals } = parse(argv, { out: { type: "string" }, theme: { type: "string" }, at: { type: "string" } });
+  const { values, positionals } = parse3(argv, { out: { type: "string" }, theme: { type: "string" }, at: { type: "string" } });
   const dir = positional(positionals, 0, "reel-dir");
   const bundle = await loadValidReel(dir);
-  const outDir = resolve7(values.out ?? join20(dir, "snapshots"));
+  const outDir = resolve7(values.out ?? join21(dir, "snapshots"));
   const at = values.at ?? "beats";
   if (!AT.includes(at)) throw new CliError(`--at must be one of ${AT.join(", ")}`);
-  const site = await mkdtemp4(join20(tmpdir4(), "mutoscope-snap-"));
+  const site = await mkdtemp4(join21(tmpdir4(), "mutoscope-snap-"));
   await buildSite(bundle, site);
   await mkdir7(outDir, { recursive: true });
   const browser = await launchBrowser();
@@ -25644,11 +26419,11 @@ async function run11(argv) {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1e3 }, deviceScaleFactor: 1 });
     page.on("pageerror", (e) => errors.push(e.message));
     await page.emulateMedia({ colorScheme: values.theme === "light" ? "light" : "dark", reducedMotion: "reduce" });
-    await page.goto(pathToFileURL4(join20(site, "index.html")).href);
+    await page.goto(pathToFileURL4(join21(site, "index.html")).href);
     await page.waitForFunction("window.mutoscope && window.mutoscope.ready");
     const sheetPage = await browser.newPage({ viewport: { width: SHEET_WIDTH, height: 600 }, deviceScaleFactor: 1 });
     for (const [i, scene] of bundle.scenes.entries()) {
-      const prefix = join20(outDir, `${String(i + 1).padStart(2, "0")}-${scene.id}`);
+      const prefix = join21(outDir, `${String(i + 1).padStart(2, "0")}-${scene.id}`);
       const frames = [];
       for (const { name: m, tMs: t } of captureTimes(scene, at)) {
         await page.evaluate(`window.mutoscope.pause(); window.mutoscope.seek(${JSON.stringify(scene.id)}, ${t})`);
@@ -25675,8 +26450,8 @@ async function run11(argv) {
 }
 
 // src/cli/commands/threads.ts
-import { readFile as readFile9, writeFile as writeFile8 } from "node:fs/promises";
-import { join as join21 } from "node:path";
+import { readFile as readFile10, writeFile as writeFile8 } from "node:fs/promises";
+import { join as join22 } from "node:path";
 var help12 = [
   "inbox <reel-dir> [--all] [--json]                     Viewer questions awaiting an answer",
   "question <reel-dir> <number> [--json]                 Answer brief: question + resolved reel context",
@@ -25691,7 +26466,7 @@ async function threadsFor(bundle) {
 }
 var sceneTitle = (bundle, id) => bundle.scenes.find((s) => s.id === id)?.title ?? `${id} (not in this version)`;
 async function inbox(argv) {
-  const { values, positionals } = parse(argv, { all: { type: "boolean" }, json: { type: "boolean" } });
+  const { values, positionals } = parse3(argv, { all: { type: "boolean" }, json: { type: "boolean" } });
   const bundle = await loadValidReel(positional(positionals, 0, "reel-dir"));
   const threads = (await threadsFor(bundle)).filter((t) => values.all || t.status === "open");
   if (values.json) {
@@ -25712,7 +26487,7 @@ async function inbox(argv) {
   return 0;
 }
 async function question(argv) {
-  const { positionals } = parse(argv, { json: { type: "boolean" } });
+  const { positionals } = parse3(argv, { json: { type: "boolean" } });
   const bundle = await loadValidReel(positional(positionals, 0, "reel-dir"));
   const number4 = Number(positional(positionals, 1, "number").replace(/^#/, ""));
   const thread = (await threadsFor(bundle)).find((t) => t.number === number4);
@@ -25726,11 +26501,11 @@ async function question(argv) {
   return 0;
 }
 async function reply(argv) {
-  const { values, positionals } = parse(argv, { "body-file": { type: "string" }, yes: { type: "boolean" } });
+  const { values, positionals } = parse3(argv, { "body-file": { type: "string" }, yes: { type: "boolean" } });
   const bundle = await loadValidReel(positional(positionals, 0, "reel-dir"));
   const number4 = Number(positional(positionals, 1, "number").replace(/^#/, ""));
   if (!values["body-file"]) throw new CliError("Missing --body-file <markdown>");
-  const draft = (await readFile9(values["body-file"], "utf8")).trim();
+  const draft = (await readFile10(values["body-file"], "utf8")).trim();
   if (!draft) throw new CliError("The answer draft is empty");
   if (draft.length > MAX_ANSWER) throw new CliError("The answer draft is too long for a discussion comment");
   const thread = (await threadsFor(bundle)).find((t) => t.number === number4);
@@ -25751,21 +26526,21 @@ async function reply(argv) {
   return 0;
 }
 async function sync(argv) {
-  const { positionals } = parse(argv, {});
+  const { positionals } = parse3(argv, {});
   const dir = positional(positionals, 0, "reel-dir");
   const bundle = await loadValidReel(dir);
   const threads = (await threadsFor(bundle)).map(({ discussionId: _id, ...t }) => t);
   const file2 = { syncedAt: (/* @__PURE__ */ new Date()).toISOString(), threads };
-  await writeFile8(join21(dir, REEL_FILES.threads), `${JSON.stringify(file2, null, 2)}
+  await writeFile8(join22(dir, REEL_FILES.threads), `${JSON.stringify(file2, null, 2)}
 `);
-  out(`${c.green("\u2713")} synced ${threads.length} thread(s) \u2192 ${join21(dir, REEL_FILES.threads)}`, c.dim("Rebuild/republish to show them in the player."));
+  out(`${c.green("\u2713")} synced ${threads.length} thread(s) \u2192 ${join22(dir, REEL_FILES.threads)}`, c.dim("Rebuild/republish to show them in the player."));
   return 0;
 }
 
 // src/cli/commands/validate.ts
 var help13 = "validate <reel-dir> [--repo-root <path>] [--json]   Schema, layout, pinned pages and (with --repo-root) code refs";
 async function run12(argv) {
-  const { values, positionals } = parse(argv, { "repo-root": { type: "string" }, json: { type: "boolean" } });
+  const { values, positionals } = parse3(argv, { "repo-root": { type: "string" }, json: { type: "boolean" } });
   const dir = positional(positionals, 0, "reel-dir");
   const r = await validateReelDir(dir, values["repo-root"]);
   if (values.json) {

@@ -1,8 +1,9 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { loadImageAssets } from "./image-assets";
 
-/** The files an agent authors inside a reel directory. */
+/** The files an agent authors inside a reel directory (plus images in assets/). */
 export const REEL_FILES = {
   manifest: "manifest.json",
   scenes: "scenes.json",
@@ -41,5 +42,6 @@ export async function loadRawReel(dir: string): Promise<Record<string, unknown>>
     ...(existsSync(p(REEL_FILES.analysis)) ? { analysis: await readJson(p(REEL_FILES.analysis)) } : {}),
     ...(existsSync(p(REEL_FILES.threads)) ? { threads: await readJson(p(REEL_FILES.threads)) } : {}),
     ...(existsSync(p(REEL_FILES.rationale)) ? { rationale: await readFile(p(REEL_FILES.rationale), "utf8") } : {}),
+    assets: await loadImageAssets(dir, scenesFile?.scenes),
   };
 }

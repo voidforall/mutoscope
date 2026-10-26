@@ -3,6 +3,7 @@ import { ReelBundle } from "../schema";
 import { App } from "./App";
 import "./fonts.css";
 import "./styles.css";
+import "./visuals.css";
 
 export const DATA_ELEMENT_ID = "mutoscope-reel";
 

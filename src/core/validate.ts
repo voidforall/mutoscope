@@ -1,8 +1,9 @@
 import type { z } from "zod";
-import { ReelBundle, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
+import { ReelBundle, type Asset, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
 import { edgeLabelFits, edgeSegment, gridToRect, padRect, rectsOverlap, segmentHitsRect, type Rect } from "./geometry";
 import { CODE_FONT_READABLE, componentSpanThatFits, componentTextFits, QUOTE_FONT_READABLE, quoteFont, spanForFullSize, textFont, type TextEntity } from "./text-fit";
 import { edgeEnds, sceneStateAt } from "./timeline";
+import { findVisualIssues } from "./validate-visuals";
 
 export interface Issue {
   readonly path: string;
@@ -70,7 +71,8 @@ function checkEntities(scene: Scene, p: string): Issue[] {
   return issues;
 }
 
-const BOXED: ReadonlySet<Entity["type"]> = new Set(["component", "code-block", "label", "diff-panel", "quote"]);
+/** Entities with a box of their own on the grid (everything but edges and groups). */
+const isBoxed = (e: Entity) => "layout" in e;
 
 function checkTimeline(scene: Scene, p: string): Issue[] {
   const byId = new Map(scene.entities.map((e) => [e.id, e]));
@@ -83,7 +85,7 @@ function checkTimeline(scene: Scene, p: string): Issue[] {
     if (target && (a.action === "connect" || a.action === "disconnect") && target.type !== "edge") {
       issues.push({ path: ap, message: `${a.action} targets edges; '${a.target}' is a ${target.type}` });
     }
-    if (target && a.action === "move" && !BOXED.has(target.type)) {
+    if (target && a.action === "move" && !isBoxed(target)) {
       issues.push({ path: ap, message: `cannot move a ${target.type}` });
     }
     if (a.action === "replace") {
@@ -112,7 +114,7 @@ export function findOverlaps(scene: Scene): Array<[string, string]> {
     scene.timeline.flatMap((a) => (a.action === "replace" ? [`${a.target}|${a.with}`, `${a.with}|${a.target}`] : [])),
   );
   // Group frames extend past their children (label above, padding around), so they can collide too.
-  const boxed = scene.entities.filter((e) => BOXED.has(e.type) || e.type === "group");
+  const boxed = scene.entities.filter((e) => isBoxed(e) || e.type === "group");
   const members = new Set(scene.entities.flatMap((e) => (e.type === "group" ? e.children.map((c) => `${e.id}|${c}`) : [])));
   const related = (a: string, b: string) => members.has(`${a}|${b}`) || members.has(`${b}|${a}`);
   const found = new Set<string>();
@@ -148,7 +150,7 @@ export interface EdgeCrossing {
 /** Edges drawn through boxes they don't connect, or over a group's label, while both are visible. */
 export function findEdgeCrossings(scene: Scene): EdgeCrossing[] {
   const edges = scene.entities.filter((e) => e.type === "edge");
-  const others = scene.entities.filter((e) => BOXED.has(e.type) || e.type === "group");
+  const others = scene.entities.filter((e) => isBoxed(e) || e.type === "group");
   const found = new Map<string, EdgeCrossing>();
   for (let t = 0; t <= scene.durationMs; t += OVERLAP_SAMPLE_MS) {
     const { entities } = sceneStateAt(scene, t);
@@ -227,16 +229,25 @@ const MARKDOWN = /`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^)\s]+\)/;
 /** Stage text is plain: backticks, bold markers and links would show literally. */
 export function findMarkdownInStageText(scene: Scene, p: string): Issue[] {
   return scene.entities.flatMap((e) => {
-    const texts = [e.type === "label" || e.type === "quote" ? e.text : undefined, "label" in e ? e.label : undefined, "sublabel" in e ? e.sublabel : undefined];
+    const texts = [
+      "text" in e ? e.text : undefined,
+      "label" in e ? e.label : undefined,
+      "sublabel" in e ? e.sublabel : undefined,
+      "title" in e ? e.title : undefined,
+      "eyebrow" in e ? e.eyebrow : undefined,
+      "caption" in e ? e.caption : undefined,
+      "note" in e ? e.note : undefined,
+    ];
     return texts.some((t) => t && MARKDOWN.test(t))
       ? [{ path: `${p}.entities`, message: `'${e.id}' has Markdown in its text (backticks, ** or links); stage text is shown as-is, so write it plain` }]
       : [];
   });
 }
 
-function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: Issue[]; warnings: Issue[] } {
+function checkScene(scene: Scene, index: number, manifest: Manifest, assets: Readonly<Record<string, Asset>>): { errors: Issue[]; warnings: Issue[] } {
   const p = `scenes[${index}]`;
-  const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p)];
+  const visuals = findVisualIssues(scene, p, assets);
+  const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p), ...visuals.errors];
   const refIssues = [
     ...scene.entities.flatMap((e, i) => checkRefs(e.sourceRefs, manifest, `${p}.entities[${i}].sourceRefs`)),
     ...scene.claims.flatMap((c, i) => checkRefs(c.refs, manifest, `${p}.claims[${i}].refs`)),
@@ -257,6 +268,7 @@ function checkScene(scene: Scene, index: number, manifest: Manifest): { errors: 
         }))
       : []),
     ...findMarkdownInStageText(scene, p),
+    ...visuals.warnings,
     ...scene.entities
       .filter((e) => e.type === "component" && !e.explanation && e.sourceRefs.length === 0)
       .map((e) => ({ path: `${p}.entities`, message: `component '${e.id}' has no explanation or refs to inspect` })),
@@ -282,7 +294,7 @@ export function validateBundle(input: unknown): ValidationResult {
     warnings.push({ path: "manifest.publicUrl", message: "questions will not carry a deep link until publicUrl is set" });
   }
   scenes.forEach((s, i) => {
-    const r = checkScene(s, i, manifest);
+    const r = checkScene(s, i, manifest, bundle.assets ?? {});
     errors.push(...r.errors);
     warnings.push(...r.warnings);
   });

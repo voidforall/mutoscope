@@ -7,3 +7,8 @@ export * from "./deeplink";
 export * from "./discussion";
 export * from "./line-diff";
 export * from "./text-fit";
+export * from "./build";
+export * from "./visual-fit";
+export * from "./chart-layout";
+export * from "./time-axis-layout";
+export * from "./validate-visuals";

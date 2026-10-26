@@ -1,4 +1,5 @@
 import type { Action, Entity, Scene } from "../schema";
+import { buildDurationMs, buildsIn } from "./build";
 import { clamp01, easeInOutCubic } from "./easing";
 import { FULL_STAGE, cameraFor, gridToRect, lerp, lerpRect, unionRects, type Rect } from "./geometry";
 
@@ -9,6 +10,8 @@ export interface EntityState {
   readonly dim: number;
   /** Edge draw progress, 0..1. Always 1 for non-edges. */
   readonly draw: number;
+  /** Build progress of an entity with parts (see build.ts), 0..1. Always 1 for everything else. */
+  readonly reveal: number;
   /** Stage-space box; null for edges (derived from endpoints) and empty groups. */
   readonly box: Rect | null;
 }
@@ -58,6 +61,7 @@ function initialStates(scene: Scene, timeline: readonly Action[]): States {
         highlight: 0,
         dim: 0,
         draw: e.type === "edge" && hidden ? 0 : 1,
+        reveal: hidden && buildsIn(e) ? 0 : 1,
         box: "layout" in e ? gridToRect(e.layout) : null,
       };
       return [e.id, state];
@@ -144,7 +148,10 @@ interface Frame {
   readonly camera: Rect;
 }
 
-function applyAction(scene: Scene, frame: Frame, action: Action, p: number): Frame {
+/** A build fades its frame in over this share of the appear, then spends the rest bringing in its parts. */
+const BUILD_FADE_SHARE = 0.2;
+
+function applyAction(scene: Scene, frame: Frame, action: Action, p: number, linear: number): Frame {
   const { entities } = frame;
   if (action.action === "focus") {
     const region = action.target ? focusRegion(scene, withGroupBoxes(scene, entities), action.target) : null;
@@ -153,8 +160,16 @@ function applyAction(scene: Scene, frame: Frame, action: Action, p: number): Fra
   }
   const id = action.target;
   switch (action.action) {
-    case "appear":
+    case "appear": {
+      const entity = scene.entities.find((e) => e.id === id);
+      if (entity && buildsIn(entity)) {
+        return {
+          ...frame,
+          entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, clamp01(linear / BUILD_FADE_SHARE)), reveal: lerp(s.reveal, 1, linear) })),
+        };
+      }
       return { ...frame, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, p) })) };
+    }
     case "disappear":
       return { ...frame, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 0, p) })) };
     case "connect":
@@ -209,10 +224,25 @@ export function orderedTimeline(scene: Scene): readonly Action[] {
     .map(({ a }) => a);
 }
 
-export function actionProgress(action: Action, tMs: number): number {
-  const duration = action.durationMs ?? DEFAULT_DURATION_MS[action.action];
+/** How long `action` runs: its own durationMs, or a default that, for an appear that builds, fits the content. */
+export function actionDuration(scene: Scene, action: Action): number {
+  if (action.durationMs !== undefined) return action.durationMs;
+  if (action.action === "appear") {
+    const entity = scene.entities.find((e) => e.id === action.target);
+    if (entity && buildsIn(entity)) return buildDurationMs(entity);
+  }
+  return DEFAULT_DURATION_MS[action.action];
+}
+
+/** Linear progress of an action at `tMs`, 0..1. */
+export function actionLinearProgress(scene: Scene, action: Action, tMs: number): number {
+  const duration = actionDuration(scene, action);
   if (duration === 0) return tMs >= action.atMs ? 1 : 0;
-  return easeInOutCubic(clamp01((tMs - action.atMs) / duration));
+  return clamp01((tMs - action.atMs) / duration);
+}
+
+export function actionProgress(scene: Scene, action: Action, tMs: number): number {
+  return easeInOutCubic(actionLinearProgress(scene, action, tMs));
 }
 
 /** Deterministic scene state at `tMs`: seeking and playing always agree. */
@@ -221,7 +251,7 @@ export function sceneStateAt(scene: Scene, tMs: number): SceneState {
   const start: Frame = { entities: initialStates(scene, timeline), camera: FULL_STAGE };
   const end = timeline
     .filter((a) => a.atMs <= tMs)
-    .reduce((frame, action) => applyAction(scene, frame, action, actionProgress(action, tMs)), start);
+    .reduce((frame, action) => applyAction(scene, frame, action, actionProgress(scene, action, tMs), actionLinearProgress(scene, action, tMs)), start);
   return { entities: withGroupBoxes(scene, end.entities), camera: end.camera };
 }
 

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { STAGE, edgeEnds, sceneStateAt } from "../../core";
-import type { BoxedEntity, Scene, Tone } from "../../schema";
+import type { Asset, BoxedEntity, Scene, Tone } from "../../schema";
 import { ArrowDefs, EdgeView } from "./Edge";
 import { GroupView } from "./Group";
 import { EntityNode } from "./Nodes";
@@ -13,9 +13,10 @@ interface StageProps {
   readonly selectedId?: string;
   readonly threadCounts: ReadonlyMap<string, number>;
   readonly onSelect: (id?: string) => void;
+  readonly assets: Readonly<Record<string, Asset>>;
 }
 
-export function Stage({ scene, tMs, selectedId, threadCounts, onSelect }: StageProps) {
+export function Stage({ scene, tMs, selectedId, threadCounts, onSelect, assets }: StageProps) {
   const state = useMemo(() => sceneStateAt(scene, tMs), [scene, tMs]);
   const { camera } = state;
   const at = (id: string) => state.entities[id];
@@ -34,7 +35,7 @@ export function Stage({ scene, tMs, selectedId, threadCounts, onSelect }: StageP
     >
       <ArrowDefs tones={TONES} />
       <rect className="stage-bg" x={0} y={0} width={STAGE.width} height={STAGE.height} />
-      <rect x={0} y={0} width={STAGE.width} height={STAGE.height} fill="url(#stage-dots)" className="stage-grid" />
+      <Backdrop kind={scene.backdrop} />
       {groups.map((g) => {
         const s = at(g.id);
         return s && <GroupView key={g.id} entity={g} state={s} selected={selectedId === g.id} onSelect={onSelect} />;
@@ -68,9 +69,25 @@ export function Stage({ scene, tMs, selectedId, threadCounts, onSelect }: StageP
             selected={selectedId === e.id}
             threadCount={threadCounts.get(e.id) ?? 0}
             onSelect={onSelect}
+            assets={assets}
           />
         );
       })}
     </svg>
   );
+}
+
+/** The surface behind a scene: a dot grid by default, or plain, graph paper, or a soft spotlight. */
+function Backdrop({ kind }: { readonly kind: Scene["backdrop"] }) {
+  const full = { x: 0, y: 0, width: STAGE.width, height: STAGE.height };
+  switch (kind) {
+    case "plain":
+      return null;
+    case "grid":
+      return <rect {...full} fill="url(#stage-lines)" className="stage-grid" />;
+    case "spotlight":
+      return <rect {...full} fill="url(#stage-spotlight)" className="stage-spotlight" />;
+    default:
+      return <rect {...full} fill="url(#stage-dots)" className="stage-grid" />;
+  }
 }

@@ -79,6 +79,13 @@ export function ArrowDefs({ tones }: { tones: readonly string[] }) {
       <pattern id="stage-dots" width="40" height="40" patternUnits="userSpaceOnUse">
         <circle cx="1.5" cy="1.5" r="1.5" className="stage-dot" />
       </pattern>
+      <pattern id="stage-lines" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M40 0H0V40" className="stage-line" />
+      </pattern>
+      <radialGradient id="stage-spotlight" cx="50%" cy="46%" r="62%">
+        <stop offset="0%" className="spot-core" />
+        <stop offset="100%" className="spot-edge" />
+      </radialGradient>
     </defs>
   );
 }
