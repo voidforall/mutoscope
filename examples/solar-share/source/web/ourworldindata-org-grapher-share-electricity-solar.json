@@ -1,0 +1,21 @@
+{
+  "url": "https://ourworldindata.org/grapher/share-electricity-solar",
+  "finalUrl": "https://ourworldindata.org/grapher/electricity-mix?frequency=annual&metric=share_of_generation&source=solar",
+  "title": "Share of electricity generation from solar | Electricity mix",
+  "retrievedAt": "2026-10-26T23:14:55.027Z",
+  "sha256": "98d680a0ec0974d4f1b169ab1ddb8a01108c88db4d7ef9d54aa64a93735ec17e",
+  "anchors": [
+    "autocomplete",
+    "owid-datapageJson-root",
+    "react-aria-_R_9djaH2_",
+    "react-aria-_R_adjaH2_",
+    "react-aria-_R_bdjaH2_",
+    "explore-the-data",
+    "grapher-preview-source",
+    "about-this-data",
+    "research-and-writing",
+    "sources-and-processing",
+    "reuse-this-work",
+    "download"
+  ]
+}

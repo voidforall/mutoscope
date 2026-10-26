@@ -1,0 +1,30 @@
+{
+  "url": "https://peps.python.org/pep-0745/",
+  "finalUrl": "https://peps.python.org/pep-0745/",
+  "title": "PEP 745 – Python 3.14 Release Schedule | peps.python.org",
+  "retrievedAt": "2026-10-26T23:34:39.381Z",
+  "sha256": "3f646bddfad2792ade7eb7735342361d220ee2f9c3867b191f3d3bc34426ba74",
+  "anchors": [
+    "pyg-light",
+    "pyg-dark",
+    "svg-sun-half",
+    "svg-moon",
+    "svg-sun",
+    "pep-page-section",
+    "colour-scheme-cycler",
+    "mobile-search",
+    "pep-content",
+    "contents",
+    "abstract",
+    "release-manager-and-crew",
+    "release-schedule",
+    "schedule",
+    "bugfix-releases",
+    "source-only-security-fix-releases",
+    "lifespan",
+    "copyright",
+    "pep-sidebar",
+    "source",
+    "pep-page-footer"
+  ]
+}

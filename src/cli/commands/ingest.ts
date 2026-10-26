@@ -125,7 +125,8 @@ async function ingestUrl(url: string, reelDir: string): Promise<void> {
   }
   const file = (await pinSnapshots(reelDir, [draft]))[0]!.file;
   if (current.title === current.id && draft.title) await writeManifest(reelDir, { ...(await readManifest(reelDir)), title: draft.title.slice(0, 120) });
-  const headings = draft.text.split("\n").filter((l) => /^#{1,6} .*\{#[^}]+\}$/.test(l)).length;
+  // Anchors sit at the end of a heading ("## Results {#results}") or, on some sites, at its start ("## {#S4} 4 Results").
+  const headings = draft.text.split("\n").filter((l) => /^#{1,6} (?:\{#[^}]+\} .+|.*\{#[^}]+\})$/.test(l)).length;
   out(
     `${c.green("✓")} pinned ${draft.url}`,
     `  ${file} — ${draft.text.length} chars, ${headings} anchored headings, ${draft.anchors.length} anchors`,

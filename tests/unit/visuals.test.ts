@@ -141,6 +141,11 @@ describe("chart layout", () => {
     expect(l.labels.some((x) => x.truncated)).toBe(true);
   });
 
+  it("never cuts the label a bar chart's label column was sized for", () => {
+    const bars = chart({ kind: "bar", categories: ["S4, no gate", "S6, no gate", "H3 + S4", "Mamba + S4", "Mamba + S6"], series: [{ name: "a", values: [18.3, 97, 57, 56.4, 99.8] }], layout: "left-two-thirds" });
+    expect(chartLayout(bars, gridToRect(bars.layout), 1).labels.filter((x) => x.truncated)).toEqual([]);
+  });
+
   it("draws lines through every category", () => {
     const line = chart({ kind: "line", series: [{ name: "a", values: [1, 2, 3] }, { name: "b", values: [3, 2, 1] }] });
     const l = chartLayout(line, gridToRect(line.layout), 1);
@@ -161,6 +166,15 @@ describe("time axis layout", () => {
     expect(xs.B).toBeLessThan(xs.A!);
     expect(xs.A).toBeLessThan(xs.C!);
     expect(l.collisions).toEqual([]);
+  });
+
+  it("keeps far lanes clear of tall labels in the near lane", () => {
+    const t = axis(
+      [{ at: 1971, label: "Unix shell", detail: "Thompson shell" }, { at: 1978, label: "VT100 escape codes" }, { at: 1989, label: "Bash 1.0" }],
+      { col: 1, row: 1, colSpan: 12, rowSpan: 6 },
+    );
+    const withSpans = TimeAxisEntity.parse({ ...t, spans: [{ from: 1970, to: 1990, label: "Hardware terminals" }] });
+    expect(timeAxisLayout(withSpans, gridToRect(withSpans.layout)).collisions).toEqual([]);
   });
 
   it("reports labels that cannot be placed without colliding", () => {
@@ -205,6 +219,19 @@ describe("text fitting for display type and tables", () => {
 });
 
 describe("visual validation", () => {
+  it("warns when a table or code block leaves most of its box empty, and says what fits", () => {
+    const s = sceneWith([
+      { id: "t", type: "table", columns: ["", "A"], rows: [["x", "1"], ["y", "2"]], layout: { col: 1, row: 1, colSpan: 6, rowSpan: 6 } },
+      { id: "c", type: "code-block", code: "$ uv add requests", lineNumbers: false, layout: { col: 7, row: 1, colSpan: 6, rowSpan: 5 } },
+      { id: "ok", type: "table", columns: ["A"], rows: [["1"], ["2"], ["3"]], layout: { col: 7, row: 6, colSpan: 6, rowSpan: 3 } },
+    ]);
+    const text = findVisualIssues(s, "p", {}).warnings.map((w) => w.message);
+    expect(text).toEqual([
+      expect.stringMatching(/^table 't' fills only \d+% of its box; rowSpan 2 fits it$/),
+      expect.stringMatching(/^code-block 'c' fills only \d+% of its box; rowSpan 2 fits it$/),
+    ]);
+  });
+
   it("errors on images missing from the bundled assets and warns on cramped visuals", () => {
     const s = sceneWith([
       { id: "pic", type: "image", src: "assets/missing.png", alt: "x", layout: "left" },

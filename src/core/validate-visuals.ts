@@ -1,7 +1,8 @@
-import type { Asset, Entity, PinnedMedia, Scene } from "../schema";
+import type { Asset, Entity, GridBox, PinnedMedia, Scene } from "../schema";
 import { buildsIn } from "./build";
 import { chartLayout } from "./chart-layout";
 import { gridToRect } from "./geometry";
+import { CODE_CHROME, codeBlockFont } from "./text-fit";
 import { timeAxisLayout } from "./time-axis-layout";
 import { actionDuration } from "./timeline";
 import { calloutPoint, HEADLINE_FONT_READABLE, headlineFont, imageRect, LIST, listScale, STAT_FONT_READABLE, statFit, tableLayout } from "./visual-fit";
@@ -13,6 +14,34 @@ interface Issue {
 
 const px = (n: number) => `${Math.round(n)}px`;
 const MIN_BAR_WIDTH = 6;
+/** Content filling less than this share of its box leaves an empty card behind it. */
+const MIN_FILL = 0.6;
+const CODE_LINE_EM = 1.5;
+
+/** The smallest rowSpan (same position and width) that still satisfies `fits`. */
+function fittingRowSpan(layout: GridBox, fits: (h: number, rowSpan: number) => boolean): number | undefined {
+  for (let rowSpan = 1; rowSpan < layout.rowSpan; rowSpan++) {
+    if (fits(gridToRect({ ...layout, rowSpan }).h, rowSpan)) return rowSpan;
+  }
+  return undefined;
+}
+
+function underfilled(e: Entity): string | undefined {
+  if (e.type === "table") {
+    const box = gridToRect(e.layout);
+    const { height } = tableLayout(e, box);
+    const rowSpan = height < MIN_FILL * box.h ? fittingRowSpan(e.layout, (h) => h >= height) : undefined;
+    return rowSpan ? `table '${e.id}' fills only ${Math.round((height / box.h) * 100)}% of its box; rowSpan ${rowSpan} fits it` : undefined;
+  }
+  if (e.type === "code-block") {
+    const box = gridToRect(e.layout);
+    const font = codeBlockFont(e, box);
+    const height = CODE_CHROME.header + CODE_CHROME.pad + e.code.split("\n").length * font * CODE_LINE_EM;
+    const rowSpan = height < MIN_FILL * box.h ? fittingRowSpan(e.layout, (_h, rs) => codeBlockFont(e, gridToRect({ ...e.layout, rowSpan: rs })) >= font - 0.01) : undefined;
+    return rowSpan ? `code-block '${e.id}' fills only ${Math.round((height / box.h) * 100)}% of its box; rowSpan ${rowSpan} fits it` : undefined;
+  }
+  return undefined;
+}
 
 function entityIssues(e: Entity, assets: Readonly<Record<string, Asset>>): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
@@ -97,6 +126,8 @@ export function findVisualIssues(scene: Scene, p: string, assets: Readonly<Recor
     if (fetched) warnings.push({ path: `${p}.entities`, message: `image '${e.id}' was fetched from ${fetched.source}; credit it ("credit": "…")` });
   }
   scene.entities.forEach((e, i) => {
+    const empty = underfilled(e);
+    if (empty) warnings.push({ path: `${p}.entities`, message: empty });
     const r = entityIssues(e, assets);
     errors.push(...r.errors.map((message) => ({ path: `${p}.entities[${i}]`, message })));
     warnings.push(...r.warnings.map((message) => ({ path: `${p}.entities`, message })));

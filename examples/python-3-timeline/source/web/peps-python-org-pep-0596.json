@@ -1,0 +1,31 @@
+{
+  "url": "https://peps.python.org/pep-0596/",
+  "finalUrl": "https://peps.python.org/pep-0596/",
+  "title": "PEP 596 – Python 3.9 Release Schedule | peps.python.org",
+  "retrievedAt": "2026-10-26T23:34:38.572Z",
+  "sha256": "76ecfd0a20a40e59776bffe13c8c3a3cd769a7fa4d669caaae6d3267c0d798bf",
+  "anchors": [
+    "pyg-light",
+    "pyg-dark",
+    "svg-sun-half",
+    "svg-moon",
+    "svg-sun",
+    "pep-page-section",
+    "colour-scheme-cycler",
+    "mobile-search",
+    "pep-content",
+    "contents",
+    "abstract",
+    "release-manager-and-crew",
+    "release-schedule",
+    "schedule",
+    "bugfix-releases",
+    "source-only-security-fix-releases",
+    "lifespan",
+    "features-for-3-9",
+    "copyright",
+    "pep-sidebar",
+    "source",
+    "pep-page-footer"
+  ]
+}

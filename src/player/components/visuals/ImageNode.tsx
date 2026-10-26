@@ -2,7 +2,7 @@ import { calloutPoint, imageRect, partProgress, proportionalEm, type Rect } from
 import type { ImageEntity } from "../../../schema";
 import { NodeFrame, type NodeProps } from "../NodeFrame";
 
-const CALLOUT = { font: 17, padX: 10, h: 32, offset: 22 } as const;
+const CALLOUT = { font: 20, padX: 12, h: 38, offset: 22 } as const;
 
 /** Place a callout's tag beside its point, flipping to stay inside the picture frame. */
 function tagRect(point: { x: number; y: number; region?: Rect }, label: string, frame: Rect): Rect {

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "solar-share",
+  "version": 1,
+  "title": "How fast is solar growing?",
+  "recipe": "data-story",
+  "kicker": "Data · Our World in Data",
+  "createdAt": "2026-10-26T23:14:54.350Z",
+  "source": {
+    "provider": "none"
+  },
+  "documents": [
+    {
+      "url": "https://ourworldindata.org/grapher/share-electricity-solar",
+      "title": "Share of electricity generation from solar | Electricity mix",
+      "retrievedAt": "2026-10-26T23:14:55.027Z",
+      "sha256": "98d680a0ec0974d4f1b169ab1ddb8a01108c88db4d7ef9d54aa64a93735ec17e"
+    }
+  ],
+  "datasets": [
+    {
+      "file": "solar-share.csv",
+      "source": "https://ourworldindata.org/grapher/electricity-mix.csv?frequency=annual&metric=share_of_generation&source=solar&v=1&csvType=full&useColumnShortNames=true",
+      "title": "Share of electricity production from solar (Ember, Energy Institute, via Our World in Data)",
+      "retrievedAt": "2026-10-26T23:14:54.641Z",
+      "sha256": "0c51f414378607d24e30023dd2ea49d9179099f7f1841c63737b2b56f89196d2",
+      "rows": 7627,
+      "columns": [
+        "entity",
+        "code",
+        "year",
+        "solar_share_of_electricity__pct"
+      ]
+    }
+  ],
+  "media": []
+}

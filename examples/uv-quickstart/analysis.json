@@ -1,0 +1,221 @@
+{
+  "units": [
+    {
+      "id": "goal",
+      "kind": "goal",
+      "title": "A working Python project in four commands",
+      "summary": "Install uv, create a project with uv init, add a dependency with uv add, run it with uv run.",
+      "claims": [
+        {
+          "text": "uv init creates a project; uv run runs its entry point.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+              "quote": "$ uv init hello-world $ cd hello-world"
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+              "quote": "$ uv run hello-world Hello from hello-world!"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "goal"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+          "quote": "$ uv init hello-world $ cd hello-world"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "install",
+      "kind": "step",
+      "title": "Install uv",
+      "summary": "The standalone installer is one curl (or wget) command on macOS and Linux, and a PowerShell one-liner on Windows.",
+      "claims": [
+        {
+          "text": "curl -LsSf https://astral.sh/uv/install.sh | sh installs uv.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/getting-started/installation/#standalone-installer",
+              "quote": "$ curl -LsSf https://astral.sh/uv/install.sh | sh"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "install"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/getting-started/installation/#standalone-installer",
+          "quote": "$ curl -LsSf https://astral.sh/uv/install.sh | sh"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "create",
+      "kind": "step",
+      "title": "Create the project",
+      "summary": "uv init hello-world creates pyproject.toml, .python-version, README.md and a src package.",
+      "claims": [
+        {
+          "text": "uv init creates the project files.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+              "quote": "$ uv init hello-world $ cd hello-world"
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+              "quote": "uv will create the following files and directories"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "init",
+        "tree"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+          "quote": "uv will create the following files and directories"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "add",
+      "kind": "step",
+      "title": "Add a dependency",
+      "summary": "uv add updates pyproject.toml, the lockfile and the environment in one step.",
+      "claims": [
+        {
+          "text": "uv add updates the lockfile and project environment.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#managing-dependencies",
+              "quote": "This will also update the lockfile and project environment"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "add"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#managing-dependencies",
+          "quote": "$ uv add requests"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "run",
+      "kind": "checkpoint",
+      "title": "Run it",
+      "summary": "uv run checks the lockfile and environment before every run, so the command always sees the locked dependencies.",
+      "claims": [
+        {
+          "text": "uv run guarantees locked dependency versions.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#running-commands",
+              "quote": "uv run guarantees that your command is run in an environment with all required dependencies at their locked versions."
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "run"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#creating-a-new-project",
+          "quote": "$ uv run hello-world Hello from hello-world!"
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "pitfalls",
+      "kind": "pitfall",
+      "title": "Common mistakes",
+      "summary": "Editing uv.lock by hand, not committing it, and running scripts outside uv run without activating the environment.",
+      "claims": [
+        {
+          "text": "uv.lock should not be edited manually and should be committed.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#uvlock",
+              "quote": "should not be edited manually"
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#uvlock",
+              "quote": "This file should be checked into version control"
+            }
+          ]
+        },
+        {
+          "text": "Without uv run, the environment must be active.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.astral.sh/uv/guides/projects/#running-commands",
+              "quote": "The virtual environment must be active to run scripts and commands in the project without uv run."
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "pitfalls"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#uvlock",
+          "quote": "should not be edited manually"
+        },
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#uvlock",
+          "quote": "This file should be checked into version control"
+        },
+        {
+          "kind": "url",
+          "url": "https://docs.astral.sh/uv/guides/projects/#running-commands",
+          "quote": "The virtual environment must be active to run scripts and commands in the project without uv run."
+        }
+      ],
+      "confidence": "high"
+    }
+  ]
+}

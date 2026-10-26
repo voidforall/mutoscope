@@ -1,0 +1,30 @@
+{
+  "url": "https://peps.python.org/pep-0373/",
+  "finalUrl": "https://peps.python.org/pep-0373/",
+  "title": "PEP 373 – Python 2.7 Release Schedule | peps.python.org",
+  "retrievedAt": "2026-10-26T23:34:38.014Z",
+  "sha256": "5786f6f5f4460e9b62cbc88c0cfb85e9f2a2335f1d2980520adf3e462227cc22",
+  "anchors": [
+    "pyg-light",
+    "pyg-dark",
+    "svg-sun-half",
+    "svg-moon",
+    "svg-sun",
+    "pep-page-section",
+    "colour-scheme-cycler",
+    "mobile-search",
+    "pep-content",
+    "contents",
+    "abstract",
+    "update-april-2014",
+    "release-manager-and-crew",
+    "maintenance-releases",
+    "release-schedule",
+    "possible-features-for-2-7",
+    "references",
+    "copyright",
+    "pep-sidebar",
+    "source",
+    "pep-page-footer"
+  ]
+}

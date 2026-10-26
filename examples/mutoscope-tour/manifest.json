@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "mutoscope-tour",
+  "version": 1,
+  "title": "A tour of the mutoscope player",
+  "recipe": "product-tour",
+  "kicker": "Tour · mutoscope",
+  "createdAt": "2026-10-26T23:28:49.525Z",
+  "source": {
+    "provider": "none"
+  },
+  "documents": [
+    {
+      "url": "https://github.com/voidforall/mutoscope",
+      "title": "GitHub - voidforall/mutoscope: Turn PRs, codebases, concepts and incidents into interactive, discussable animated reels — an agent skill + CLI, model-agnostic",
+      "retrievedAt": "2026-10-26T23:28:50.661Z",
+      "sha256": "587652deec89da2ce5eda9adc937cf2793a3412322e4e8c40265f6e83ff860d8"
+    }
+  ],
+  "datasets": [],
+  "media": []
+}

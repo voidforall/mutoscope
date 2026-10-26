@@ -1,15 +1,16 @@
 # mutoscope
 
-**Turn a pull request, a codebase, an article, a concept or an incident into an interactive, discussable animated reel.**
+**Turn a pull request, a codebase, an article, a paper, a dataset, a how-to, a comparison or a history into an interactive, discussable animated reel.**
 
 A mutoscope was the 1890s peep-show machine where *the viewer* turned the crank — faster, slower, stop on any frame. Same idea here: an agent writes a short storyboard, and the reel is a single HTML file the viewer can play, pause, scrub, click into, and ask questions about. The same reel exports to MP4.
 
 ![A scene from the example reel](docs/media/demo.gif)
 
-- **Recipe-driven.** A recipe says how to turn one kind of source into a reel. Built-ins: `pr`, `codebase-tour`, `article`, `concept`, `incident` — add your own as one markdown file.
+- **Recipe-driven.** A recipe says how to turn one kind of source into a reel. Built-ins: `pr`, `codebase-tour`, `article`, `paper`, `data-story`, `concept`, `how-to`, `compare`, `timeline`, `product-tour`, `news-brief`, `incident` — add your own as one markdown file.
+- **More than diagrams.** Scenes mix boxes and arrows with display headlines, counting stats, bar/column/line charts, time axes, annotated images, tables and lists, each building in on cue.
 - **Agent-agnostic.** The skill follows the open [Agent Skills](https://agentskills.io) layout (`SKILL.md` + resources). All deterministic work is a plain CLI, so Claude Code, Codex, Gemini CLI, Cursor or any agent that can run a shell command can drive it.
 - **Data, not code.** Agents write validated JSON (scenes, entities, timeline actions); a fixed renderer draws it. No generated JavaScript ever runs in a reel.
-- **Honest by construction.** Every claim is tagged `evidence` (must cite a source ref) or `inference`. Code refs are pinned to commit SHAs, and `validate --repo-root` rejects snippets that don't match the pinned file. Web pages are pinned as snapshots (`ingest url`), and `validate` rejects quotes that aren't word for word on the page and `#anchors` that don't exist.
+- **Honest by construction.** Every claim is tagged `evidence` (must cite a source ref) or `inference`. Charts and stats can be bound to a pinned dataset, and `validate` recomputes every number. Code refs are pinned to commit SHAs, and `validate --repo-root` rejects snippets that don't match the pinned file. Web pages are pinned as snapshots (`ingest url`), and `validate` rejects quotes that aren't word for word on the page and `#anchors` that don't exist.
 - **Ask your own agent while you watch.** `mutoscope watch` opens the reel with an *Ask your agent* panel. Pause anywhere, click an element, ask, and the question reaches the agent in your terminal with that exact moment attached (plus a rendered frame). The answer appears beside the reel, with links that jump the player to what it explains.
 - **Collaborative without a backend.** Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions. The author's local agent drafts grounded answers, and nothing is posted without explicit approval.
 - **Portable.** One self-contained `index.html` with a strict CSP (no network access at all). Host it on GitHub Pages, any static host, or open it from disk.
@@ -52,16 +53,30 @@ Optional extras, only needed for some features:
 
 To call the CLI yourself: `alias mutoscope="node <skill-dir>/runtime/cli.mjs"`, then `mutoscope help`.
 
-## Try the example
+## Examples
 
-`examples/spsc-evolution` walks through the progression from a mutex-guarded queue to a lock-free SPSC ring buffer in [CharlesFrasch/cppcon2023](https://github.com/CharlesFrasch/cppcon2023), pinned to a commit. From a clone of this repo:
+![Six example reels: a data story, a paper, a timeline, a comparison, a how-to and a product tour](docs/media/gallery.png)
+
+| Reel | Recipe | What it shows |
+|---|---|---|
+| [`examples/solar-share`](examples/solar-share) | data-story | How fast solar is growing, from Our World in Data. Every chart value and stat is recomputed from the pinned CSV. |
+| [`examples/mamba-paper`](examples/mamba-paper) | paper | The Mamba paper (arXiv 2312.00752): the idea, the method, results redrawn from its tables, its own figure with callouts, and its limits. |
+| [`examples/python-3-timeline`](examples/python-3-timeline) | timeline | Eleven years of Python 2 and 3 side by side, from python.org's own release list and sunset notice. |
+| [`examples/sqlite-vs-postgres`](examples/sqlite-vs-postgres) | compare | SQLite or PostgreSQL for a web app, each side argued from its own docs, ending in a scoped verdict. |
+| [`examples/uv-quickstart`](examples/uv-quickstart) | how-to | Start a Python project with uv: every command quoted from the docs, with a step tracker. |
+| [`examples/mutoscope-tour`](examples/mutoscope-tour) | product-tour | The mutoscope player itself, from real screenshots with callouts. |
+| [`examples/spsc-evolution`](examples/spsc-evolution) | codebase-tour | From a mutex-guarded queue to a lock-free SPSC ring buffer in [CharlesFrasch/cppcon2023](https://github.com/CharlesFrasch/cppcon2023), pinned to a commit. |
+
+From a clone of this repo:
 
 ```bash
-mutoscope watch    examples/spsc-evolution          # watch it and ask your agent about any moment
-mutoscope validate examples/spsc-evolution
-mutoscope preview  examples/spsc-evolution          # http://127.0.0.1:4870/
-mutoscope export   examples/spsc-evolution --out spsc.mp4
+mutoscope watch    examples/solar-share             # watch it and ask your agent about any moment
+mutoscope validate examples/solar-share             # quotes and every number re-checked
+mutoscope preview  examples/mamba-paper             # http://127.0.0.1:4870/
+mutoscope export   examples/python-3-timeline --out python.mp4
 ```
+
+`examples/spsc-evolution` checks its code against the pinned commit: `mutoscope validate examples/spsc-evolution --repo-root <a clone of cppcon2023>`.
 
 ## Watch with your agent
 
@@ -82,7 +97,9 @@ The session page differs from a published reel in one way: its CSP adds `connect
 | `init <dir> --recipe <name> --title <t>` | Create a reel directory with a manifest |
 | `ingest pr <url> --reel <dir>` / `ingest git <base> <head> --reel <dir>` | Fetch diff + metadata, pin SHAs |
 | `ingest url <https-url> --reel <dir>` | Snapshot a web page (text, anchors, hash) so quotes can be checked |
-| `validate <dir> [--repo-root <checkout>]` | Schema, cross-references, layout overlaps, pacing, and (with a checkout) source refs + snippet fidelity |
+| `ingest data <file\|https-url> --reel <dir>` | Pin a CSV/TSV/JSON dataset and print its columns; bound charts and stats are recomputed from it |
+| `ingest image <file\|https-url> --reel <dir>` | Copy an image into `assets/` (metadata stripped), remembering where a download came from |
+| `validate <dir> [--repo-root <checkout>]` | Schema, cross-references, layout, text fit, pacing, quotes against pinned pages, numbers against pinned datasets, and (with a checkout) source refs + snippet fidelity |
 | `build <dir> [--out <dir>]` / `preview <dir>` | Static site / local server |
 | `snapshot <dir> [--at end\|mid\|both]` | PNG per scene for visual review |
 | `watch <dir>`, `poll <dir> [--reply-file f]`, `end <dir>`, `sessions` | Live session: watch in the browser, ask your local agent |
@@ -95,7 +112,7 @@ The session page differs from a published reel in one way: its CSP adds `connect
 
 A reel directory holds `manifest.json`, `scenes.json`, and optionally `analysis.json`, `rationale.md` (author-approved design rationale, the only "memory" answers may draw on) and `threads.json` (synced discussions). Schemas live in [`src/schema`](src/schema) (Zod) and are versioned (`schemaVersion: "0.1.0"`); the authoring guide is [`skills/mutoscope/references/storyboard.md`](skills/mutoscope/references/storyboard.md).
 
-Entities: `component`, `edge`, `code-block`, `diff-panel`, `label`, `quote`, `group` on a 12 × 8 grid. Actions: `appear`, `disappear`, `connect`, `disconnect`, `highlight`, `dim`, `restore`, `move`, `replace`, `focus`.
+Entities on a 12 × 8 grid (or named regions such as `left`, `heading`, `right-third`): diagrams (`component`, `edge`, `group`), code and words (`code-block`, `diff-panel`, `label`, `quote`, `headline`), data and media (`stat`, `chart`, `time-axis`, `table`, `list`, `image`). Actions: `appear`, `disappear`, `connect`, `disconnect`, `highlight`, `dim`, `restore`, `move`, `replace`, `focus`; entities with parts (words, bars, events, rows, items, callouts) build them in during `appear`. Images live in the reel's `assets/` folder and are embedded, so a reel still makes no network requests.
 
 ## Security model
 

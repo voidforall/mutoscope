@@ -19,8 +19,8 @@ export function ChartNode(props: NodeProps & { readonly entity: ChartEntity }) {
         {l.legendY !== undefined &&
           l.legend.map((it) => (
             <g key={it.name} className={`tone-${it.tone}`}>
-              <rect className="chart-swatch" x={it.x} y={l.legendY! - 6} width={12} height={12} rx={3} />
-              <text className="chart-legend" x={it.x + 18} y={l.legendY! + 5}>
+              <rect className="chart-swatch" x={it.x} y={l.legendY! - CHART.swatch / 2} width={CHART.swatch} height={CHART.swatch} rx={3} />
+              <text className="chart-legend" x={it.x + CHART.swatch + 6} y={l.legendY! + CHART.legend * 0.35}>
                 {it.name}
               </text>
             </g>

@@ -105,6 +105,8 @@ test("synced threads show on the entity and jump to their anchor", async ({ page
   await expect(reply.locator("li")).toHaveCount(2);
   await expect(reply.getByRole("link", { name: "the C++ memory model" })).toHaveAttribute("target", "_blank");
   await expect(reply).not.toContainText("**");
+  // Inline code is quoted verbatim: "==" must not turn into a ligature.
+  expect(await reply.locator("code").first().evaluate((el) => getComputedStyle(el).fontVariantLigatures)).toBe("none");
   await reply.getByRole("link", { name: "the handoff" }).click();
   expect(await state(page)).toMatchObject({ sceneId: "happens-before", tMs: 3000 });
   await page.getByRole("tab", { name: /Threads/ }).click();

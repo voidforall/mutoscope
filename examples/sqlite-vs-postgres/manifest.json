@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "sqlite-vs-postgres",
+  "version": 1,
+  "title": "SQLite or PostgreSQL for a web app?",
+  "recipe": "compare",
+  "kicker": "Compare · SQLite vs PostgreSQL",
+  "createdAt": "2026-10-26T23:24:34.872Z",
+  "source": {
+    "provider": "none"
+  },
+  "documents": [
+    {
+      "url": "https://sqlite.org/whentouse.html",
+      "title": "Appropriate Uses For SQLite",
+      "retrievedAt": "2026-10-26T23:24:35.660Z",
+      "sha256": "0b20fcdb5ad60076bd95f6bacb850e0a5ba8adab9ab62a37e982afe7a0d20dbb"
+    },
+    {
+      "url": "https://sqlite.org/limits.html",
+      "title": "Implementation Limits For SQLite",
+      "retrievedAt": "2026-10-26T23:24:36.320Z",
+      "sha256": "a300c08e1b12a0932a2a9f04ef4b329a0e828bfd04e021ccaeee9de0d91ef329"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/current/limits.html",
+      "title": "Appendix K. PostgreSQL Limits",
+      "retrievedAt": "2026-10-26T23:24:36.580Z",
+      "sha256": "975b015d743d9a8917dda294ec1308ff81058040aa4e20b88ec1bd52d8bd5f60"
+    },
+    {
+      "url": "https://www.postgresql.org/docs/current/mvcc-intro.html",
+      "title": "13.1. Introduction",
+      "retrievedAt": "2026-10-26T23:24:36.848Z",
+      "sha256": "463498eec55e2ee05e32c325c4eae137d693a31e3cefae38dc688da01a4167a4"
+    },
+    {
+      "url": "https://www.postgresql.org/about/",
+      "title": "PostgreSQL: About",
+      "retrievedAt": "2026-10-26T23:24:37.457Z",
+      "sha256": "879776afcae0d7321a00a841b7225fcfb2808d7c2f23635011abfd2932390689"
+    }
+  ],
+  "datasets": [],
+  "media": []
+}

@@ -17,7 +17,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm test && npm run build && npm run test:e2e",
+    "check": "npm run typecheck && npm test && npm run build && npm run validate:examples && npm run test:e2e",
+    "validate:examples": "for d in examples/*/; do node skills/mutoscope/runtime/cli.mjs validate \"$d\" || exit 1; done",
     "install-skill": "npm run build && node scripts/install-skill.mjs"
   },
   "dependencies": {

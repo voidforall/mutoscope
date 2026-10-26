@@ -1,0 +1,816 @@
+{
+  "scenes": [
+    {
+      "id": "title",
+      "title": "The long road to Python 3",
+      "kicker": "History",
+      "durationMs": 9000,
+      "backdrop": "spotlight",
+      "narration": "Python 3 came out in 2008. Python 2 was supported until 2020. This is how the language got through eleven years of two Pythons.",
+      "entities": [
+        {
+          "id": "title",
+          "type": "headline",
+          "eyebrow": "Python \u00b7 2000\u20132025",
+          "text": "Eleven years of two Pythons",
+          "size": "display",
+          "reveal": "words",
+          "layout": {
+            "col": 2,
+            "row": 2,
+            "colSpan": 10,
+            "rowSpan": 4
+          }
+        },
+        {
+          "id": "sub",
+          "type": "label",
+          "text": "From Python 2.0 to a Python that can run without the GIL",
+          "size": "md",
+          "align": "center",
+          "tone": "muted",
+          "layout": {
+            "col": 2,
+            "row": 7,
+            "colSpan": 10,
+            "rowSpan": 1
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "title"
+        },
+        {
+          "action": "appear",
+          "atMs": 4000,
+          "target": "sub"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Python 3.0 was released in December 2008; Python 2 support stopped on 1 January 2020.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0361/#release-schedule",
+              "quote": "Dec 03 2008: Python 3.0 final released"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#maintenance-releases",
+              "quote": "Support officially stopped January 1 2020"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arc",
+      "title": "The whole arc",
+      "kicker": "Overview",
+      "durationMs": 20000,
+      "backdrop": "plain",
+      "narration": "Python 2.0 arrived in 2000. Python 3 was planned in 2006 and shipped in 2008. For eleven years both lines lived side by side, until support for Python 2 stopped on the first of January 2020. Since then, Python 3 has been the only Python, and it has been getting faster.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "2000: Python 2.0. 2006: Python 3 is planned."
+        },
+        {
+          "atMs": 6000,
+          "text": "2008: Python 3.0. Eleven years of two Pythons follow."
+        },
+        {
+          "atMs": 12000,
+          "text": "1 January 2020: Python 2 is sunset."
+        },
+        {
+          "atMs": 15500,
+          "text": "Since then, one Python, getting faster."
+        }
+      ],
+      "entities": [
+        {
+          "id": "arc-head",
+          "type": "headline",
+          "text": "Twenty-five years in one line",
+          "size": "lg",
+          "align": "start",
+          "layout": "heading"
+        },
+        {
+          "id": "arc",
+          "type": "time-axis",
+          "events": [
+            {
+              "at": 2000.79,
+              "when": "Oct 2000",
+              "label": "Python 2.0",
+              "tone": "muted"
+            },
+            {
+              "at": 2006.26,
+              "when": "Apr 2006",
+              "label": "PEP 3000 plans Python 3",
+              "tone": "muted"
+            },
+            {
+              "at": 2008.92,
+              "when": "Dec 2008",
+              "label": "Python 3.0",
+              "tone": "accent"
+            },
+            {
+              "at": 2010.5,
+              "when": "Jul 2010",
+              "label": "Python 2.7",
+              "tone": "muted"
+            },
+            {
+              "at": 2014.25,
+              "when": "Apr 2014",
+              "label": "Sunset moved to 2020",
+              "tone": "warning"
+            },
+            {
+              "at": 2020.0,
+              "when": "1 Jan 2020",
+              "label": "Python 2 sunset",
+              "tone": "removed"
+            },
+            {
+              "at": 2022.81,
+              "when": "Oct 2022",
+              "label": "3.11: up to 60% faster",
+              "tone": "added"
+            },
+            {
+              "at": 2024.77,
+              "when": "Oct 2024",
+              "label": "3.13: GIL optional",
+              "tone": "added"
+            }
+          ],
+          "spans": [
+            {
+              "from": 2008.92,
+              "to": 2020.0,
+              "label": "Two Pythons",
+              "tone": "warning"
+            },
+            {
+              "from": 2020.0,
+              "to": 2026.0,
+              "label": "Python 3 only",
+              "tone": "added"
+            }
+          ],
+          "min": 2000,
+          "max": 2026,
+          "layout": {
+            "col": 1,
+            "row": 3,
+            "colSpan": 12,
+            "rowSpan": 6
+          },
+          "explanation": "Release dates from python.org's version list; the story of the sunset from the Python core team's own page.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0200/#release-schedule",
+              "quote": "16-Oct-2000: 2.0 final"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-3000/",
+              "quote": "Created: 05-Apr-2006"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0361/#release-schedule",
+              "quote": "Dec 03 2008: Python 3.0 final released"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#release-schedule",
+              "quote": "2.7 final 2010-07-03"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#update-april-2014",
+              "quote": "The End Of Life date (EOL, sunset date) for Python 2.7 has been moved five years into the future, to 2020."
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#maintenance-releases",
+              "quote": "Support officially stopped January 1 2020"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0664/#schedule",
+              "quote": "3.11.0 final: Monday, 2022-10-24"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0719/#schedule",
+              "quote": "3.13.0 final: Monday, 2024-10-07"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "arc",
+          "durationMs": 10000
+        }
+      ],
+      "claims": [
+        {
+          "text": "Python 2.0 was released on 16 October 2000.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0200/#release-schedule",
+              "quote": "16-Oct-2000: 2.0 final"
+            }
+          ]
+        },
+        {
+          "text": "Python 2.7 was released on 3 July 2010.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#release-schedule",
+              "quote": "2.7 final 2010-07-03"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "why-3",
+      "title": "2008: Python 3.0",
+      "kicker": "Turning point",
+      "durationMs": 15000,
+      "backdrop": "plain",
+      "narration": "Python 3 was planned as a clean break: it would not be backwards compatible. Python 2.7, in 2010, became the last of the 2.x line, kept alive for those who could not move yet.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Python 3 was a deliberate break with Python 2."
+        },
+        {
+          "atMs": 7000,
+          "text": "Python 2.7 became the last of the 2.x line."
+        }
+      ],
+      "entities": [
+        {
+          "id": "why-head",
+          "type": "headline",
+          "eyebrow": "3 December 2008",
+          "text": "Python 3.0 ships, and breaks with Python 2",
+          "size": "lg",
+          "align": "start",
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 12,
+            "rowSpan": 2
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0361/#release-schedule",
+              "quote": "Dec 03 2008: Python 3.0 final released"
+            }
+          ]
+        },
+        {
+          "id": "big-changes",
+          "type": "quote",
+          "text": "Python 3.0 will break backwards compatibility with Python 2.x.",
+          "attribution": "PEP 3000, 2006",
+          "layout": {
+            "col": 1,
+            "row": 4,
+            "colSpan": 6,
+            "rowSpan": 3
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-3000/#compatibility-and-transition",
+              "quote": "Python 3.0 will break backwards compatibility with Python 2.x."
+            }
+          ]
+        },
+        {
+          "id": "both",
+          "type": "quote",
+          "text": "Python 2.7 is the end of the Python 2.x series, and is succeeded by Python 3.",
+          "attribution": "PEP 373, the Python 2.7 release schedule",
+          "layout": {
+            "col": 7,
+            "row": 4,
+            "colSpan": 6,
+            "rowSpan": 3
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#abstract",
+              "quote": "Python 2.7 is the end of the Python 2.x series, and is succeeded by Python 3."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "why-head"
+        },
+        {
+          "action": "appear",
+          "atMs": 2000,
+          "target": "big-changes"
+        },
+        {
+          "action": "appear",
+          "atMs": 7000,
+          "target": "both"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Python 3.0 was planned to break backwards compatibility.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-3000/#compatibility-and-transition",
+              "quote": "Python 3.0 will break backwards compatibility with Python 2.x."
+            }
+          ]
+        },
+        {
+          "text": "Python 2.7 is the last of the 2.x series.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#abstract",
+              "quote": "Python 2.7 is the end of the Python 2.x series, and is succeeded by Python 3."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sunset",
+      "title": "2015, then 2020",
+      "kicker": "Turning point",
+      "durationMs": 17000,
+      "backdrop": "plain",
+      "narration": "Python 2.7 shipped in 2010. In April 2014 its end of life was moved five years further out, to 2020, for users who could not yet migrate. Support stopped on the first of January 2020.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "2010: Python 2.7, the last 2.x release."
+        },
+        {
+          "atMs": 5000,
+          "text": "April 2014: end of life moved five years, to 2020."
+        },
+        {
+          "atMs": 10500,
+          "text": "1 January 2020: support stops."
+        }
+      ],
+      "entities": [
+        {
+          "id": "sunset-axis",
+          "type": "time-axis",
+          "title": "Python 2.7's end of life",
+          "events": [
+            {
+              "at": 2010.5,
+              "when": "Jul 2010",
+              "label": "Python 2.7",
+              "tone": "muted"
+            },
+            {
+              "at": 2014.25,
+              "when": "Apr 2014",
+              "label": "Moved to 2020",
+              "tone": "warning"
+            },
+            {
+              "at": 2020.0,
+              "when": "1 Jan 2020",
+              "label": "Support stops",
+              "tone": "removed"
+            }
+          ],
+          "spans": [
+            {
+              "from": 2015.0,
+              "to": 2020.0,
+              "label": "Five extra years",
+              "tone": "warning"
+            }
+          ],
+          "min": 2010,
+          "max": 2021,
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 12,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#update-april-2014",
+              "quote": "The End Of Life date (EOL, sunset date) for Python 2.7 has been moved five years into the future, to 2020."
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#update-april-2014",
+              "quote": "The End Of Life date (EOL, sunset date) for Python 2.7 has been moved five years into the future, to 2020."
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#maintenance-releases",
+              "quote": "Support officially stopped January 1 2020"
+            }
+          ]
+        },
+        {
+          "id": "sunset-quote",
+          "type": "quote",
+          "text": "This decision was made to clarify the status of Python 2.7 and relieve worries for those users who cannot yet migrate to Python 3.",
+          "attribution": "PEP 373, April 2014 update",
+          "layout": {
+            "col": 2,
+            "row": 6,
+            "colSpan": 10,
+            "rowSpan": 2
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#update-april-2014",
+              "quote": "This decision was made to clarify the status of Python 2.7 and relieve worries for those users who cannot yet migrate to Python 3."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "sunset-axis",
+          "durationMs": 9500
+        },
+        {
+          "action": "appear",
+          "atMs": 10500,
+          "target": "sunset-quote"
+        }
+      ],
+      "claims": [
+        {
+          "text": "In April 2014, Python 2.7's end of life was moved five years, to 2020.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#update-april-2014",
+              "quote": "The End Of Life date (EOL, sunset date) for Python 2.7 has been moved five years into the future, to 2020."
+            }
+          ]
+        },
+        {
+          "text": "Support stopped on 1 January 2020.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0373/#maintenance-releases",
+              "quote": "Support officially stopped January 1 2020"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "after",
+      "title": "One Python, every October",
+      "kicker": "Consequence",
+      "durationMs": 17000,
+      "backdrop": "grid",
+      "narration": "With one Python to work on, things sped up. Since 3.9, a new version ships every October. Python 3.11 was ten to sixty percent faster than 3.10. And 3.13 can run without the global interpreter lock, as an experiment.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Since 3.9: a feature release every October."
+        },
+        {
+          "atMs": 5500,
+          "text": "3.11: 10\u201360% faster than 3.10."
+        },
+        {
+          "atMs": 10500,
+          "text": "3.13: an experimental mode without the GIL."
+        }
+      ],
+      "entities": [
+        {
+          "id": "after-head",
+          "type": "headline",
+          "text": "One Python, every October",
+          "size": "lg",
+          "align": "start",
+          "layout": "heading"
+        },
+        {
+          "id": "cadence",
+          "type": "stat",
+          "value": 12,
+          "suffix": " months",
+          "label": "between feature releases, since 3.9",
+          "layout": {
+            "col": 1,
+            "row": 3,
+            "colSpan": 4,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0602/#abstract",
+              "quote": "feature versions are released predictably every twelve months, in October every year"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0602/#abstract",
+              "quote": "This document describes a change in the release calendar for Python starting with Python 3.9."
+            }
+          ]
+        },
+        {
+          "id": "speed",
+          "type": "stat",
+          "value": 60,
+          "prefix": "10\u2013",
+          "suffix": "%",
+          "countUp": false,
+          "label": "faster than 3.10, for Python 3.11",
+          "note": "1.25\u00d7 on average",
+          "tone": "added",
+          "layout": {
+            "col": 5,
+            "row": 3,
+            "colSpan": 4,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.11.html#summary-release-highlights",
+              "quote": "Python 3.11 is between 10-60% faster than Python 3.10."
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.11.html#summary-release-highlights",
+              "quote": "On average, we measured a 1.25x speedup on the standard benchmark suite."
+            }
+          ]
+        },
+        {
+          "id": "gil",
+          "type": "quote",
+          "text": "CPython now has experimental support for running in a free-threaded mode, with the global interpreter lock (GIL) disabled.",
+          "attribution": "What's New in Python 3.13",
+          "layout": {
+            "col": 9,
+            "row": 3,
+            "colSpan": 4,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.13.html#free-threaded-cpython",
+              "quote": "CPython now has experimental support for running in a free-threaded mode, with the global interpreter lock (GIL) disabled."
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.13.html#free-threaded-cpython",
+              "quote": "This is an experimental feature and therefore is not enabled by default."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "cadence"
+        },
+        {
+          "action": "appear",
+          "atMs": 5500,
+          "target": "speed"
+        },
+        {
+          "action": "appear",
+          "atMs": 10500,
+          "target": "gil"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Feature releases ship every twelve months, starting with 3.9.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0602/#abstract",
+              "quote": "feature versions are released predictably every twelve months, in October every year"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0602/#abstract",
+              "quote": "This document describes a change in the release calendar for Python starting with Python 3.9."
+            }
+          ]
+        },
+        {
+          "text": "3.11 is 10\u201360% faster than 3.10, 1.25\u00d7 on average.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.11.html#summary-release-highlights",
+              "quote": "Python 3.11 is between 10-60% faster than Python 3.10."
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.11.html#summary-release-highlights",
+              "quote": "On average, we measured a 1.25x speedup on the standard benchmark suite."
+            }
+          ]
+        },
+        {
+          "text": "3.13's free-threaded mode is experimental and off by default.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.13.html#free-threaded-cpython",
+              "quote": "CPython now has experimental support for running in a free-threaded mode, with the global interpreter lock (GIL) disabled."
+            },
+            {
+              "kind": "url",
+              "url": "https://docs.python.org/3/whatsnew/3.13.html#free-threaded-cpython",
+              "quote": "This is an experimental feature and therefore is not enabled by default."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "today",
+      "title": "Where it stands",
+      "kicker": "Today",
+      "durationMs": 13000,
+      "backdrop": "spotlight",
+      "narration": "Today Python 3.14 is the newest release. The open question is whether running without the GIL becomes normal, and what that means for the code people already have.",
+      "entities": [
+        {
+          "id": "today-axis",
+          "type": "time-axis",
+          "events": [
+            {
+              "at": 2020.76,
+              "when": "Oct 2020",
+              "label": "3.9",
+              "tone": "muted"
+            },
+            {
+              "at": 2022.81,
+              "when": "Oct 2022",
+              "label": "3.11",
+              "tone": "added"
+            },
+            {
+              "at": 2024.77,
+              "when": "Oct 2024",
+              "label": "3.13",
+              "tone": "added"
+            },
+            {
+              "at": 2025.77,
+              "when": "Oct 2025",
+              "label": "3.14",
+              "tone": "accent"
+            }
+          ],
+          "min": 2020,
+          "max": 2026,
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 12,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0596/#schedule",
+              "quote": "3.9.0 final: Monday, 2020-10-05"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0664/#schedule",
+              "quote": "3.11.0 final: Monday, 2022-10-24"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0719/#schedule",
+              "quote": "3.13.0 final: Monday, 2024-10-07"
+            },
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0745/#schedule",
+              "quote": "3.14.0 final: Tuesday, 2025-10-07"
+            }
+          ]
+        },
+        {
+          "id": "open",
+          "type": "list",
+          "title": "Open questions",
+          "items": [
+            {
+              "text": "Will running without the GIL become the default?",
+              "mark": "dot"
+            },
+            {
+              "text": "How much existing code needs to change for it?",
+              "mark": "dot"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 6,
+            "colSpan": 10,
+            "rowSpan": 3
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "today-axis",
+          "durationMs": 4000
+        },
+        {
+          "action": "appear",
+          "atMs": 6000,
+          "target": "open",
+          "durationMs": 3000
+        }
+      ],
+      "claims": [
+        {
+          "text": "Python 3.14.0 was released on 7 October 2025.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://peps.python.org/pep-0745/#schedule",
+              "quote": "3.14.0 final: Tuesday, 2025-10-07"
+            }
+          ]
+        },
+        {
+          "text": "Whether free-threading becomes the default is not settled by these sources.",
+          "basis": "inference"
+        }
+      ]
+    }
+  ]
+}

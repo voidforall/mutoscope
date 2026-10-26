@@ -1,0 +1,169 @@
+{
+  "units": [
+    {
+      "id": "purpose",
+      "kind": "purpose",
+      "title": "A reel you can pause, inspect and question",
+      "summary": "mutoscope turns a source into a single HTML reel: play, pause, scrub, click into anything and ask about the exact moment.",
+      "claims": [
+        {
+          "text": "A reel is one HTML file the viewer can play, pause, scrub, click into and ask about.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "the reel is a single HTML file the viewer can play, pause, scrub, click into, and ask questions about."
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "hero"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://github.com/voidforall/mutoscope",
+          "quote": "Turn a pull request, a codebase, an article, a concept or an incident into an interactive, discussable animated reel."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "stage",
+      "kind": "feature",
+      "title": "The stage and its claims",
+      "summary": "Scenes play on a stage with captions; the side panel lists the scene's claims, each tagged evidence or inference, and the chapters.",
+      "claims": [
+        {
+          "text": "Every claim is tagged evidence or inference.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Every claim is tagged evidence (must cite a source ref) or inference."
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "shot-stage"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://github.com/voidforall/mutoscope",
+          "quote": "Every claim is tagged evidence (must cite a source ref) or inference."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "inspect",
+      "kind": "feature",
+      "title": "Inspect anything",
+      "summary": "Clicking an element pauses playback and shows its explanation, sources and, for charts, the exact data and where it came from.",
+      "claims": [
+        {
+          "text": "Clicking into the reel is part of the viewing model.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "the reel is a single HTML file the viewer can play, pause, scrub, click into, and ask questions about."
+            }
+          ]
+        },
+        {
+          "text": "The screenshot shows a chart's dataset and values in Inspect.",
+          "basis": "inference"
+        }
+      ],
+      "entities": [
+        "shot-inspect"
+      ],
+      "refs": [],
+      "confidence": "high"
+    },
+    {
+      "id": "ask",
+      "kind": "workflow",
+      "title": "Ask, answer, sync",
+      "summary": "Questions carry the moment; live sessions reach your own agent, published reels open a GitHub Discussion. Answers are posted only after the author approves them, and sync back into the reel.",
+      "claims": [
+        {
+          "text": "Questions are anchored to scene, element and time and land as GitHub Discussions.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions."
+            }
+          ]
+        },
+        {
+          "text": "Nothing is posted without explicit approval.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "nothing is posted without explicit approval"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "shot-ask",
+        "shot-threads"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://github.com/voidforall/mutoscope",
+          "quote": "Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions."
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "limits",
+      "kind": "limit",
+      "title": "What it needs",
+      "summary": "Collaboration runs on GitHub Discussions; snapshots and video export need Chromium, and MP4 export needs ffmpeg.",
+      "claims": [
+        {
+          "text": "MP4 export needs ffmpeg; snapshots need a one-time browser install.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "MP4 export ffmpeg on PATH"
+            },
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "mutoscope install-browser (one-time: Playwright + Chromium into ~/.mutoscope/deps)"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "limits"
+      ],
+      "refs": [
+        {
+          "kind": "url",
+          "url": "https://github.com/voidforall/mutoscope",
+          "quote": "MP4 export ffmpeg on PATH"
+        }
+      ],
+      "confidence": "high"
+    }
+  ]
+}

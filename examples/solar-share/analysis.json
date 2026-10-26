@@ -1,0 +1,207 @@
+{
+  "units": [
+    {
+      "id": "measure",
+      "kind": "measure",
+      "title": "What is measured",
+      "summary": "The share of a country's electricity generation that comes from solar, per year. Data from 2000 on comes from Ember; Our World in Data processes and publishes it under CC BY.",
+      "claims": [
+        {
+          "text": "Electricity data from 2000 onwards comes from Ember.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://ourworldindata.org/grapher/share-electricity-solar#sources-and-processing",
+              "quote": "Electricity data from 2000 onwards (and from 1990 onwards for European countries, including Turkey) comes from Ember."
+            }
+          ]
+        },
+        {
+          "text": "Our World in Data publishes its data under the Creative Commons BY license.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://ourworldindata.org/grapher/share-electricity-solar#reuse-this-work",
+              "quote": "All data, visualizations, and code produced by Our World in Data are completely open access under the Creative Commons BY license."
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "title"
+      ],
+      "refs": [
+        {
+          "kind": "data",
+          "file": "solar-share.csv",
+          "columns": [
+            "solar_share_of_electricity__pct"
+          ]
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "trend",
+      "kind": "trend",
+      "title": "A tenfold rise in eleven years",
+      "summary": "The world's solar share rose from 0.8% in 2014 to 8.7% in 2025, rising every single year.",
+      "claims": [
+        {
+          "text": "World solar share was 0.8% in 2014 and 8.7% in 2025.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "data",
+              "file": "solar-share.csv",
+              "columns": [
+                "solar_share_of_electricity__pct"
+              ],
+              "note": "World rows, 2014 and 2025"
+            }
+          ]
+        },
+        {
+          "text": "The share roughly doubled every three to four years: 2.6% (2019) to 5.6% (2023), 4.6% (2022) to 8.7% (2025).",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "data",
+              "file": "solar-share.csv",
+              "columns": [
+                "solar_share_of_electricity__pct"
+              ],
+              "note": "World rows; ratios of the plotted values"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "world-2014",
+        "world-2025",
+        "trend"
+      ],
+      "refs": [
+        {
+          "kind": "data",
+          "file": "solar-share.csv",
+          "columns": [
+            "solar_share_of_electricity__pct"
+          ]
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "breakdown",
+      "kind": "breakdown",
+      "title": "Big economies range from 7% to 25%",
+      "summary": "Among large economies in 2025, Chile, Spain and the Netherlands get over a fifth of their electricity from solar; the UK and US under a tenth.",
+      "claims": [
+        {
+          "text": "In 2025 Chile's solar share was 25.1%, the United Kingdom's 6.6%.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "data",
+              "file": "solar-share.csv",
+              "columns": [
+                "solar_share_of_electricity__pct"
+              ],
+              "note": "2025 rows"
+            }
+          ]
+        }
+      ],
+      "entities": [
+        "countries"
+      ],
+      "refs": [
+        {
+          "kind": "data",
+          "file": "solar-share.csv",
+          "columns": [
+            "solar_share_of_electricity__pct"
+          ]
+        }
+      ],
+      "confidence": "high"
+    },
+    {
+      "id": "outlier",
+      "kind": "outlier",
+      "title": "The top of the ranking is small grids",
+      "summary": "In 2024 the highest shares were in small systems such as the Cook Islands (50%) and Namibia (35%): a few installations move a small grid a lot.",
+      "claims": [
+        {
+          "text": "The Cook Islands' solar share was 50% in 2024.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "data",
+              "file": "solar-share.csv",
+              "columns": [
+                "solar_share_of_electricity__pct"
+              ],
+              "note": "2024 rows"
+            }
+          ]
+        },
+        {
+          "text": "Small grids reach high shares with few installations, so they are not comparable to large economies.",
+          "basis": "inference"
+        }
+      ],
+      "entities": [
+        "small-grids"
+      ],
+      "refs": [
+        {
+          "kind": "data",
+          "file": "solar-share.csv",
+          "columns": [
+            "solar_share_of_electricity__pct"
+          ]
+        }
+      ],
+      "confidence": "medium"
+    },
+    {
+      "id": "caveats",
+      "kind": "caveat",
+      "title": "How far to trust it",
+      "summary": "2025 covers about half as many countries and regions as 2024; the measure is electricity, not all energy; and generation share says nothing about installed capacity or cost.",
+      "claims": [
+        {
+          "text": "The dataset has 228 rows for 2024 but 114 for 2025.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "data",
+              "file": "solar-share.csv",
+              "note": "count of rows per year"
+            }
+          ]
+        },
+        {
+          "text": "Electricity is only part of total energy use, so solar's share of all energy is smaller.",
+          "basis": "inference"
+        }
+      ],
+      "entities": [
+        "rows-2024",
+        "rows-2025",
+        "caveat-list"
+      ],
+      "refs": [
+        {
+          "kind": "data",
+          "file": "solar-share.csv"
+        }
+      ],
+      "confidence": "high"
+    }
+  ]
+}

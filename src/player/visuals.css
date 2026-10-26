@@ -31,7 +31,7 @@
 .headline.align-center { align-items: center; text-align: center; }
 .headline.align-start { align-items: flex-start; text-align: left; }
 .headline-eyebrow {
-  font: 600 18px/1 var(--mono);
+  font: 600 20px/1 var(--mono);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--t-accent);
@@ -65,8 +65,8 @@
   color: var(--tone);
 }
 .tone-neutral .stat-value { color: var(--ink); }
-.stat-label { margin-top: 10px; font-size: 24px; line-height: 1.3; color: var(--ink-2); text-wrap: balance; overflow-wrap: anywhere; }
-.stat-note { margin-top: 10px; font-size: 18px; line-height: 1.35; color: var(--ink-3); }
+.stat-label { margin-top: 10px; font-size: 26px; line-height: 1.3; color: var(--ink-2); text-wrap: balance; overflow-wrap: anywhere; }
+.stat-note { margin-top: 10px; font-size: 20px; line-height: 1.35; color: var(--ink-3); }
 
 /* ---------- frameless and card visuals ---------- */
 .node.node-chart,
@@ -99,16 +99,16 @@
 }
 
 /* ---------- chart ---------- */
-.chart-title { font: 650 26px var(--font); fill: var(--ink); letter-spacing: -0.01em; }
-.chart-legend { font: 500 15px var(--font); fill: var(--ink-2); }
+.chart-title { font: 650 30px var(--font); fill: var(--ink); letter-spacing: -0.01em; }
+.chart-legend { font: 500 18px var(--font); fill: var(--ink-2); }
 .chart-swatch { fill: var(--tone); }
 .chart-grid { stroke: var(--line); stroke-width: 1; }
-.chart-tick { font: 500 14px var(--mono); fill: var(--ink-3); }
+.chart-tick { font: 500 16px var(--mono); fill: var(--ink-3); }
 .chart-bar { fill: var(--tone); }
 .is-muted .chart-bar { fill: color-mix(in srgb, var(--tone) 28%, transparent); }
-.chart-value { font: 650 16px var(--font); fill: var(--ink); font-variant-numeric: tabular-nums; }
+.chart-value { font: 650 19px var(--font); fill: var(--ink); font-variant-numeric: tabular-nums; }
 .is-muted .chart-value { fill: var(--ink-3); }
-.chart-label { font: 400 17px var(--font); fill: var(--ink-2); }
+.chart-label { font: 400 20px var(--font); fill: var(--ink-2); }
 .chart-label.is-muted { fill: var(--ink-3); }
 .chart-line { fill: none; stroke: var(--tone); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 .area-top { stop-color: var(--tone); stop-opacity: 0.26; }
@@ -119,28 +119,28 @@
 .time-line { stroke: var(--ink-2); stroke-width: 3; stroke-linecap: round; }
 .time-arrow { fill: none; stroke: var(--ink-2); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .time-span { fill: color-mix(in srgb, var(--tone) 70%, transparent); }
-.time-span-label { font: 600 13px var(--mono); letter-spacing: 0.06em; fill: var(--tone); }
+.time-span-label { font: 600 15px var(--mono); letter-spacing: 0.06em; fill: var(--tone); }
 .time-dot { fill: var(--tone); stroke: var(--stage); stroke-width: 3; }
 .time-stem { fill: none; stroke: color-mix(in srgb, var(--tone) 55%, transparent); stroke-width: 2; }
-.time-when { font: 600 15px var(--mono); fill: var(--tone); }
-.time-label { font: 650 19px var(--font); fill: var(--ink); }
-.time-detail { font: 400 15px var(--font); fill: var(--ink-2); }
+.time-when { font: 600 17px var(--mono); fill: var(--tone); }
+.time-label { font: 650 22px var(--font); fill: var(--ink); }
+.time-detail { font: 400 17px var(--font); fill: var(--ink-2); }
 
 /* ---------- table ---------- */
 .node.node-table { display: flex; flex-direction: column; padding: 8px; }
-.table-title { flex: none; height: 34px; padding: 0 14px; font: 650 20px/34px var(--font); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.data-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 18px; }
+.table-title { flex: none; height: 38px; padding: 0 14px; font: 650 24px/38px var(--font); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 21px; }
 .data-table th,
 .data-table td { padding: 0 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
 .data-table th {
-  height: 40px;
-  font: 650 15px var(--font);
+  height: 42px;
+  font: 650 16px var(--font);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
   border-bottom: 1.5px solid var(--line-strong);
 }
-.data-table td { height: 42px; color: var(--ink); border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.data-table td { height: 46px; color: var(--ink); border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr.is-hl td { background: color-mix(in srgb, var(--t-accent) 13%, transparent); font-weight: 650; }
 .data-table .align-end { text-align: right; }
@@ -153,13 +153,13 @@
 .callout-region { fill: color-mix(in srgb, var(--t-accent) 10%, transparent); stroke: var(--t-accent); stroke-width: 3; }
 .callout-stem { stroke: var(--t-accent); stroke-width: 2.5; }
 .callout-tag { fill: var(--t-accent); }
-.callout-text { font: 650 17px var(--font); fill: var(--accent-ink); }
+.callout-text { font: 650 20px var(--font); fill: var(--accent-ink); }
 .image-caption {
   position: absolute;
   left: 14px;
   right: 14px;
   bottom: 8px;
-  font: 500 15px/22px var(--font);
+  font: 500 17px/24px var(--font);
   color: var(--ink-2);
   white-space: nowrap;
   overflow: hidden;
@@ -187,22 +187,22 @@
   padding: 18px;
 }
 .node.node-list:hover { border-color: var(--line); }
-.list { height: 100%; display: flex; flex-direction: column; justify-content: center; }
-.list-title { flex: none; height: 34px; font: 650 20px/34px var(--font); color: var(--ink-2); letter-spacing: 0.01em; }
+.list { height: 100%; display: flex; flex-direction: column; justify-content: flex-start; }
+.list-title { flex: none; height: 38px; font: 650 24px/38px var(--font); color: var(--ink-2); letter-spacing: 0.01em; }
 .list-items { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: calc(16px * var(--s)); }
 .list-item { display: grid; grid-template-columns: calc(44px * var(--s)) minmax(0, 1fr); align-items: start; }
 .list-body { display: flex; flex-direction: column; gap: calc(4px * var(--s)); min-width: 0; }
-.list-text { font-size: calc(24px * var(--s)); font-weight: 650; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
-.list-detail { font-size: calc(18px * var(--s)); line-height: 1.35; color: var(--ink-2); overflow-wrap: anywhere; }
+.list-text { font-size: calc(28px * var(--s)); font-weight: 650; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
+.list-detail { font-size: calc(21px * var(--s)); line-height: 1.35; color: var(--ink-2); overflow-wrap: anywhere; }
 .list-marker {
-  width: calc(30px * var(--s));
-  height: calc(30px * var(--s));
-  margin-top: calc(0.6px * var(--s));
+  width: calc(32px * var(--s));
+  height: calc(32px * var(--s));
+  margin-top: calc(2.2px * var(--s));
   border-radius: 50%;
   display: grid;
   place-items: center;
 }
-.list-marker.is-number { background: var(--tone); color: var(--stage); font: 700 calc(15px * var(--s)) / 1 var(--mono); }
+.list-marker.is-number { background: var(--tone); color: var(--stage); font: 700 calc(17px * var(--s)) / 1 var(--mono); }
 .list-item.tone-neutral .list-marker.is-number { background: var(--t-accent); }
 .list-marker.is-dot::before { content: ""; width: 34%; height: 34%; border-radius: 50%; background: var(--tone); }
 .list-item.tone-neutral .list-marker.is-dot::before { background: var(--t-accent); }

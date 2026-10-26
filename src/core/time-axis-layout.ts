@@ -12,20 +12,20 @@ import { proportionalEm } from "./text-fit";
  */
 export const TIME_AXIS = {
   pad: 22,
-  titleH: 40,
-  title: 26,
+  titleH: 46,
+  title: 30,
   inset: 28,
-  when: 15,
+  when: 17,
   whenEm: 0.6,
-  label: 19,
-  detail: 15,
+  label: 22,
+  detail: 17,
   lineGap: 4,
   stem: 26,
   laneGap: 12,
   hGap: 14,
   /** Eras are thick segments of the axis itself, labelled just below it. */
   spanBar: 10,
-  span: 13,
+  span: 15,
   spanLabelGap: 22,
   spanLabelH: 20,
   dot: 7,
@@ -127,7 +127,8 @@ export function timeAxisLayout(t: TimeAxisEntity, box: Pick<Rect, "w" | "h">): T
     const bx = Math.min(Math.max(x - size.w / 2, TIME_AXIS.pad), box.w - TIME_AXIS.pad - size.w);
     const candidates = lanesFor(k).map((lane) => {
       const near = stem + (lane.above ? 0 : belowStart);
-      const offset = lane.far ? near + size.h + TIME_AXIS.laneGap : near;
+      // Lanes are uniform bands sized by the tallest label, so a far label clears any near one.
+      const offset = lane.far ? near + tallest + TIME_AXIS.laneGap : near;
       const y = lane.above ? axisY - offset - size.h : axisY + offset;
       const block = { x: bx, y, w: size.w, h: size.h };
       const inside = y >= top - 0.5 && y + size.h <= bottom + 0.5;

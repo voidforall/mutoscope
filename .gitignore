@@ -5,3 +5,4 @@ playwright-report/
 .mutoscope/
 *.log
 .DS_Store
+snapshots/

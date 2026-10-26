@@ -1,0 +1,782 @@
+{
+  "scenes": [
+    {
+      "id": "decision",
+      "title": "SQLite or PostgreSQL?",
+      "kicker": "The decision",
+      "durationMs": 10000,
+      "backdrop": "spotlight",
+      "narration": "You are building a web app that runs on one server, with a small team. Should its database be SQLite or PostgreSQL?",
+      "entities": [
+        {
+          "id": "question",
+          "type": "headline",
+          "eyebrow": "Context: one app server \u00b7 a small team",
+          "text": "SQLite or PostgreSQL for your web app?",
+          "size": "display",
+          "reveal": "words",
+          "layout": {
+            "col": 2,
+            "row": 2,
+            "colSpan": 10,
+            "rowSpan": 4
+          }
+        },
+        {
+          "id": "framing",
+          "type": "quote",
+          "text": "SQLite does not compete with client/server databases. SQLite competes with fopen().",
+          "attribution": "sqlite.org",
+          "layout": {
+            "col": 3,
+            "row": 6,
+            "colSpan": 8,
+            "rowSpan": 2
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html",
+              "quote": "SQLite does not compete with client/server databases. SQLite competes with fopen()."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "question"
+        },
+        {
+          "action": "appear",
+          "atMs": 5000,
+          "target": "framing"
+        }
+      ],
+      "claims": [
+        {
+          "text": "SQLite positions itself as an alternative to files, not to client/server databases.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html",
+              "quote": "SQLite does not compete with client/server databases. SQLite competes with fopen()."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "criteria",
+      "title": "What matters",
+      "kicker": "Criteria",
+      "durationMs": 12000,
+      "backdrop": "plain",
+      "narration": "Four questions decide it: how many machines talk to the database, how many writes happen at once, how big the data gets, and whether you want to run a database server.",
+      "entities": [
+        {
+          "id": "criteria-head",
+          "type": "headline",
+          "text": "Four questions decide it",
+          "size": "lg",
+          "align": "start",
+          "layout": "heading"
+        },
+        {
+          "id": "criteria",
+          "type": "list",
+          "style": "numbered",
+          "items": [
+            {
+              "text": "How many machines talk to the database?"
+            },
+            {
+              "text": "How many writes happen at the same instant?"
+            },
+            {
+              "text": "How big will the data get?"
+            },
+            {
+              "text": "Do you want to run a database server?"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 3,
+            "colSpan": 9,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "Many concurrent writers? \u2192 choose client/server"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "If there are many client programs sending SQL to the same database over a network, then use a client/server database engine instead of SQLite."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "SQLite supports databases up to 281 terabytes in size"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "criteria",
+          "durationMs": 7000
+        }
+      ],
+      "claims": [
+        {
+          "text": "SQLite's own checklist asks about networks, concurrent writers and data size.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "Many concurrent writers? \u2192 choose client/server"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "If there are many client programs sending SQL to the same database over a network, then use a client/server database engine instead of SQLite."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "SQLite supports databases up to 281 terabytes in size"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contenders",
+      "title": "The contenders",
+      "kicker": "Options",
+      "durationMs": 18000,
+      "backdrop": "plain",
+      "narration": "SQLite is a library inside your app: no server, unlimited readers, but one writer at a time. PostgreSQL is a server: readers and writers never block each other, and the database has no size limit, but it is one more thing to run.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "SQLite: a library inside your app."
+        },
+        {
+          "atMs": 8500,
+          "text": "PostgreSQL: a server, built for concurrency."
+        }
+      ],
+      "entities": [
+        {
+          "id": "sqlite-head",
+          "type": "headline",
+          "text": "SQLite",
+          "size": "lg",
+          "align": "start",
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 6,
+            "rowSpan": 2
+          }
+        },
+        {
+          "id": "sqlite-pros",
+          "type": "list",
+          "items": [
+            {
+              "text": "No server to run",
+              "detail": "built into the application, one file",
+              "mark": "check"
+            },
+            {
+              "text": "Unlimited readers",
+              "mark": "check"
+            },
+            {
+              "text": "Most websites fit",
+              "detail": "under 100K hits a day, a conservative estimate",
+              "mark": "check"
+            },
+            {
+              "text": "One writer at a time",
+              "mark": "cross"
+            },
+            {
+              "text": "Not for many clients over a network",
+              "mark": "cross"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 3,
+            "colSpan": 6,
+            "rowSpan": 6
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "But SQLite is built into the application."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "SQLite supports an unlimited number of simultaneous readers, but it will only allow one writer at any instant in time."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "any site that gets fewer than 100K hits/day should work fine with SQLite"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "If there are many client programs sending SQL to the same database over a network, then use a client/server database engine instead of SQLite."
+            }
+          ]
+        },
+        {
+          "id": "pg-head",
+          "type": "headline",
+          "text": "PostgreSQL",
+          "size": "lg",
+          "align": "start",
+          "layout": {
+            "col": 7,
+            "row": 1,
+            "colSpan": 6,
+            "rowSpan": 2
+          }
+        },
+        {
+          "id": "pg-pros",
+          "type": "list",
+          "items": [
+            {
+              "text": "Readers and writers never block",
+              "detail": "multiversion concurrency control",
+              "mark": "check"
+            },
+            {
+              "text": "No database size limit",
+              "mark": "check"
+            },
+            {
+              "text": "Extensible",
+              "detail": "your own data types and functions",
+              "mark": "check"
+            },
+            {
+              "text": "A server to run and maintain",
+              "mark": "cross"
+            }
+          ],
+          "layout": {
+            "col": 7,
+            "row": 3,
+            "colSpan": 6,
+            "rowSpan": 6
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/docs/current/mvcc-intro.html#MVCC-INTRO",
+              "quote": "reading never blocks writing and writing never blocks reading"
+            },
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/docs/current/limits.html#LIMITS-TABLE",
+              "quote": "database size unlimited"
+            },
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/about/",
+              "quote": "you can define your own data types, build out custom functions"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "Client/server database engines are designed to live inside a lovingly-attended datacenter at the core of the network."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "sqlite-head"
+        },
+        {
+          "action": "appear",
+          "atMs": 800,
+          "target": "sqlite-pros",
+          "durationMs": 6500
+        },
+        {
+          "action": "appear",
+          "atMs": 8500,
+          "target": "pg-head"
+        },
+        {
+          "action": "appear",
+          "atMs": 9000,
+          "target": "pg-pros",
+          "durationMs": 6000
+        }
+      ],
+      "claims": [
+        {
+          "text": "SQLite allows unlimited readers and one writer at a time.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "SQLite supports an unlimited number of simultaneous readers, but it will only allow one writer at any instant in time."
+            }
+          ]
+        },
+        {
+          "text": "In PostgreSQL reading never blocks writing and writing never blocks reading.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/docs/current/mvcc-intro.html#MVCC-INTRO",
+              "quote": "reading never blocks writing and writing never blocks reading"
+            }
+          ]
+        },
+        {
+          "text": "PostgreSQL's database size is unlimited.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/docs/current/limits.html#LIMITS-TABLE",
+              "quote": "database size unlimited"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "side-by-side",
+      "title": "Side by side",
+      "kicker": "Side by side",
+      "durationMs": 15000,
+      "backdrop": "grid",
+      "narration": "Side by side, the differences line up with the questions: architecture, concurrent writes, network clients and size.",
+      "entities": [
+        {
+          "id": "table",
+          "type": "table",
+          "columns": [
+            "",
+            "SQLite",
+            "PostgreSQL"
+          ],
+          "rows": [
+            [
+              "Runs as",
+              "a library in your app",
+              "a server"
+            ],
+            [
+              "Writers at once",
+              "one",
+              "many"
+            ],
+            [
+              "Readers",
+              "unlimited",
+              "never blocked"
+            ],
+            [
+              "Network clients",
+              "avoid",
+              "designed for it"
+            ],
+            [
+              "Database size",
+              "up to 281 TB",
+              "unlimited"
+            ]
+          ],
+          "highlightRows": [
+            1
+          ],
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 12,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "But SQLite is built into the application."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "SQLite supports an unlimited number of simultaneous readers, but it will only allow one writer at any instant in time."
+            },
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/docs/current/mvcc-intro.html#MVCC-INTRO",
+              "quote": "reading never blocks writing and writing never blocks reading"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "If there are many client programs sending SQL to the same database over a network, then use a client/server database engine instead of SQLite."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "SQLite supports databases up to 281 terabytes in size"
+            },
+            {
+              "kind": "url",
+              "url": "https://www.postgresql.org/docs/current/limits.html#LIMITS-TABLE",
+              "quote": "database size unlimited"
+            }
+          ]
+        },
+        {
+          "id": "table-note",
+          "type": "label",
+          "text": "Concurrent writes is where they differ most.",
+          "size": "lg",
+          "align": "center",
+          "tone": "accent",
+          "layout": "footer"
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "table",
+          "durationMs": 5000
+        },
+        {
+          "action": "appear",
+          "atMs": 8000,
+          "target": "table-note"
+        }
+      ],
+      "claims": [
+        {
+          "text": "SQLite supports databases up to 281 TB.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "SQLite supports databases up to 281 terabytes in size"
+            }
+          ]
+        },
+        {
+          "text": "Many concurrent writers point to client/server.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "Many concurrent writers? \u2192 choose client/server"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "headroom",
+      "title": "More headroom than people expect",
+      "kicker": "Measurement",
+      "durationMs": 13000,
+      "backdrop": "plain",
+      "narration": "SQLite's own estimate for a website is a hundred thousand hits a day, and they call it conservative. In 2015 their own site served four to five hundred thousand requests a day from SQLite.",
+      "entities": [
+        {
+          "id": "hits",
+          "type": "stat",
+          "value": 100,
+          "suffix": "K",
+          "label": "hits a day: SQLite's conservative estimate for a website",
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 6,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "any site that gets fewer than 100K hits/day should work fine with SQLite"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "The 100K hits/day figure is a conservative estimate, not a hard upper bound."
+            }
+          ]
+        },
+        {
+          "id": "own-site",
+          "type": "stat",
+          "value": 500,
+          "from": 0,
+          "prefix": "400\u2013",
+          "suffix": "K",
+          "countUp": false,
+          "label": "requests a day served by sqlite.org itself, in 2015",
+          "tone": "added",
+          "layout": {
+            "col": 7,
+            "row": 2,
+            "colSpan": 6,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "it handles about 400K to 500K HTTP requests per day"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "hits"
+        },
+        {
+          "action": "appear",
+          "atMs": 6000,
+          "target": "own-site"
+        }
+      ],
+      "claims": [
+        {
+          "text": "The 100K hits/day figure is a conservative estimate.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "The 100K hits/day figure is a conservative estimate, not a hard upper bound."
+            }
+          ]
+        },
+        {
+          "text": "sqlite.org handled about 400K to 500K requests a day in 2015.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "it handles about 400K to 500K HTTP requests per day"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "where-each-wins",
+      "title": "Where each one wins",
+      "kicker": "Trade-offs",
+      "durationMs": 14000,
+      "narration": "SQLite wins with one app server and mostly reads, or on the edge. PostgreSQL wins when several servers or many concurrent writers share the data, or when it outgrows a single file.",
+      "entities": [
+        {
+          "id": "sqlite-wins",
+          "type": "list",
+          "title": "Choose SQLite",
+          "style": "checks",
+          "items": [
+            {
+              "text": "One app server, mostly reads"
+            },
+            {
+              "text": "Edge, embedded or offline"
+            },
+            {
+              "text": "You want no database to operate"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 6,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_sqlite_works_well",
+              "quote": "any site that gets fewer than 100K hits/day should work fine with SQLite"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "Otherwise \u2192 choose SQLite!"
+            }
+          ]
+        },
+        {
+          "id": "pg-wins",
+          "type": "list",
+          "title": "Choose PostgreSQL",
+          "style": "checks",
+          "items": [
+            {
+              "text": "Several app servers share the data"
+            },
+            {
+              "text": "Many writes at the same instant"
+            },
+            {
+              "text": "Data beyond a single file"
+            }
+          ],
+          "layout": {
+            "col": 7,
+            "row": 2,
+            "colSpan": 6,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "But if the website is write-intensive or is so busy that it requires multiple servers, then consider using an enterprise-class client/server database engine instead of SQLite."
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "Many concurrent writers? \u2192 choose client/server"
+            },
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#checklist_for_choosing_the_right_database_engine",
+              "quote": "SQLite supports databases up to 281 terabytes in size"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "sqlite-wins",
+          "durationMs": 4000
+        },
+        {
+          "action": "appear",
+          "atMs": 6500,
+          "target": "pg-wins",
+          "durationMs": 4000
+        }
+      ],
+      "claims": [
+        {
+          "text": "Write-intensive or multi-server sites should consider client/server.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "But if the website is write-intensive or is so busy that it requires multiple servers, then consider using an enterprise-class client/server database engine instead of SQLite."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "verdict",
+      "title": "Verdict",
+      "kicker": "Verdict",
+      "durationMs": 12000,
+      "backdrop": "spotlight",
+      "narration": "For one app server and a small team: start with SQLite. The moment you add a second app server, or writes start to queue, move to PostgreSQL.",
+      "entities": [
+        {
+          "id": "verdict",
+          "type": "headline",
+          "eyebrow": "For one app server and a small team",
+          "text": "Start with SQLite; move to PostgreSQL when a second server arrives",
+          "size": "xl",
+          "reveal": "words",
+          "layout": {
+            "col": 2,
+            "row": 2,
+            "colSpan": 10,
+            "rowSpan": 4
+          }
+        },
+        {
+          "id": "changes",
+          "type": "label",
+          "text": "Our judgement for the stated context, not a benchmark.",
+          "size": "sm",
+          "align": "center",
+          "tone": "muted",
+          "layout": {
+            "col": 3,
+            "row": 7,
+            "colSpan": 8,
+            "rowSpan": 1
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "verdict"
+        },
+        {
+          "action": "appear",
+          "atMs": 7000,
+          "target": "changes"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Multiple servers or write-intensive load point to client/server.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://sqlite.org/whentouse.html#situations_where_a_client_server_rdbms_may_work_better",
+              "quote": "But if the website is write-intensive or is so busy that it requires multiple servers, then consider using an enterprise-class client/server database engine instead of SQLite."
+            }
+          ]
+        },
+        {
+          "text": "Starting with SQLite is the simpler choice for this context.",
+          "basis": "inference"
+        }
+      ]
+    }
+  ]
+}

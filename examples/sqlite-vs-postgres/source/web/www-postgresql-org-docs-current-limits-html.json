@@ -1,0 +1,22 @@
+{
+  "url": "https://www.postgresql.org/docs/current/limits.html",
+  "finalUrl": "https://www.postgresql.org/docs/current/limits.html",
+  "title": "Appendix K. PostgreSQL Limits",
+  "retrievedAt": "2026-10-26T23:24:36.580Z",
+  "sha256": "975b015d743d9a8917dda294ec1308ff81058040aa4e20b88ec1bd52d8bd5f60",
+  "anchors": [
+    "navbar-toggler",
+    "navbar-toggler-label",
+    "pgNavbar",
+    "q",
+    "form-theme",
+    "btn-theme",
+    "pgContentWrap",
+    "docSearchForm",
+    "docContent",
+    "LIMITS",
+    "LIMITS-TABLE",
+    "docComments",
+    "footer"
+  ]
+}

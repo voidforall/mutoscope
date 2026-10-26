@@ -1,0 +1,20 @@
+{
+  "url": "https://www.postgresql.org/about/",
+  "finalUrl": "https://www.postgresql.org/about/",
+  "title": "PostgreSQL: About",
+  "retrievedAt": "2026-10-26T23:24:37.457Z",
+  "sha256": "879776afcae0d7321a00a841b7225fcfb2808d7c2f23635011abfd2932390689",
+  "anchors": [
+    "navbar-toggler",
+    "navbar-toggler-label",
+    "pgNavbar",
+    "q",
+    "form-theme",
+    "btn-theme",
+    "pgSideWrap",
+    "pgSideNav",
+    "pgContentWrap",
+    "myCarousel",
+    "footer"
+  ]
+}

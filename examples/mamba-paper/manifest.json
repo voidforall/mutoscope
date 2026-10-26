@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "mamba-paper",
+  "version": 1,
+  "title": "Mamba: selective state spaces",
+  "recipe": "paper",
+  "kicker": "Paper · arXiv 2023",
+  "createdAt": "2026-10-26T23:18:09.963Z",
+  "source": {
+    "provider": "none"
+  },
+  "documents": [
+    {
+      "url": "https://arxiv.org/html/2312.00752",
+      "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+      "retrievedAt": "2026-10-26T23:20:04.680Z",
+      "sha256": "4daca03f58946726cb1f29a112e5f443ba7ae1ed96179faf7f9851c10a37f604"
+    }
+  ],
+  "datasets": [],
+  "media": [
+    {
+      "src": "assets/mamba-selection.svg",
+      "source": "https://arxiv.org/html/2312.00752v2/selection.svg",
+      "retrievedAt": "2026-10-26T23:19:15.353Z",
+      "sha256": "f7dc33b740a0a0b9925dd8a005c26c26f19629f82b6a5e4e122f9385b84a0c39"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "url": "https://sqlite.org/limits.html",
+  "finalUrl": "https://sqlite.org/limits.html",
+  "title": "Implementation Limits For SQLite",
+  "retrievedAt": "2026-10-26T23:24:36.320Z",
+  "sha256": "a300c08e1b12a0932a2a9f04ef4b329a0e828bfd04e021ccaeee9de0d91ef329",
+  "anchors": [
+    "search_menubutton",
+    "submenu",
+    "searchmenu",
+    "searchtype",
+    "searchbox",
+    "max_length",
+    "max_column",
+    "max_sql_length",
+    "max_expr_depth",
+    "max_function_arg",
+    "max_compound_select",
+    "max_like_pattern_length",
+    "max_variable_number",
+    "max_trigger_depth",
+    "max_attached",
+    "max_page_count"
+  ]
+}

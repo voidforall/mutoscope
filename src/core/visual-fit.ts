@@ -13,7 +13,7 @@ import { proportionalEm, wrappedLines } from "./text-fit";
 export const HEADLINE_FONT = { lg: 48, xl: 72, display: 112 } as const;
 export const HEADLINE_FONT_MIN = 16;
 export const HEADLINE_FONT_READABLE = 28;
-export const HEADLINE = { padX: 32, padY: 20, lineEm: 1.08, eyebrow: 40, step: 1 } as const;
+export const HEADLINE = { padX: 32, padY: 20, lineEm: 1.08, eyebrow: 44, step: 1 } as const;
 
 /** The largest size, up to the headline's own maximum, at which its text wraps inside the box. */
 export function headlineFont(e: Pick<HeadlineEntity, "text" | "size" | "eyebrow">, box: Pick<Rect, "w" | "h">): number {
@@ -28,7 +28,7 @@ export function headlineFont(e: Pick<HeadlineEntity, "text" | "size" | "eyebrow"
 export const STAT_FONT_MAX = 140;
 export const STAT_FONT_MIN = 20;
 export const STAT_FONT_READABLE = 44;
-export const STAT = { padX: 40, padY: 28, gap: 10, label: 24, labelLineEm: 1.3, note: 18, noteLineEm: 1.35, maxLabelLines: 2 } as const;
+export const STAT = { padX: 40, padY: 28, gap: 10, label: 26, labelLineEm: 1.3, note: 20, noteLineEm: 1.35, maxLabelLines: 2 } as const;
 
 /** Tabular figures: every digit is as wide as the widest one, so counting never jitters. */
 const tabularEm = (s: string) => proportionalEm(s.replace(/[0-9]/g, "0"), INTER_BOLD);
@@ -52,11 +52,13 @@ export function statFit(e: StatEntity, box: Pick<Rect, "w" | "h">): StatFit {
   return { valueFont, labelLines, fits: labelLines <= STAT.maxLabelLines && byHeight >= STAT_FONT_MIN };
 }
 
-export const TABLE = { font: 18, header: 15, padX: 14, rowH: 42, headerH: 40, title: 34, outer: 8 } as const;
+export const TABLE = { font: 21, header: 16, padX: 14, rowH: 46, headerH: 42, title: 38, outer: 8 } as const;
 
 export interface TableLayout {
   readonly colWidths: readonly number[];
   readonly titleH: number;
+  /** Height the rows need. */
+  readonly height: number;
   readonly overflowX: boolean;
   readonly overflowY: boolean;
 }
@@ -74,10 +76,10 @@ export function tableLayout(e: Pick<TableEntity, "title" | "columns" | "rows">, 
   const colWidths = natural.map((n) => n * scale);
   const titleH = e.title ? TABLE.title : 0;
   const height = titleH + TABLE.headerH + e.rows.length * TABLE.rowH + 2 * TABLE.outer;
-  return { colWidths, titleH, overflowX: total > inner + 0.5, overflowY: height > box.h + 0.5 };
+  return { colWidths, titleH, height, overflowX: total > inner + 0.5, overflowY: height > box.h + 0.5 };
 }
 
-export const IMAGE = { pad: 10, caption: 30, captionFont: 17 } as const;
+export const IMAGE = { pad: 10, caption: 32, captionFont: 17 } as const;
 
 /** Where the picture lands inside the entity box (box-local), honouring `fit` and leaving room for the caption line. */
 export function imageRect(e: Pick<ImageEntity, "fit" | "caption" | "credit">, asset: Pick<Asset, "width" | "height">, box: Pick<Rect, "w" | "h">): { frame: Rect; image: Rect } {
@@ -98,7 +100,7 @@ export function calloutPoint(c: { readonly x: number; readonly y: number; readon
   return { x, y, ...(region ? { region } : {}), visible };
 }
 
-export const LIST = { pad: 20, title: 34, text: 24, textLineEm: 1.3, detail: 18, detailLineEm: 1.35, detailGap: 4, itemGap: 16, marker: 44, minScale: 0.7, readableScale: 0.8 } as const;
+export const LIST = { pad: 20, title: 38, text: 28, textLineEm: 1.3, detail: 21, detailLineEm: 1.35, detailGap: 4, itemGap: 16, marker: 44, minScale: 0.7, readableScale: 0.8 } as const;
 
 /** The scale (≤ 1) at which every item wraps inside the box; lists shrink as a whole so items stay alike. */
 export function listScale(e: Pick<ListEntity, "title" | "items">, box: Pick<Rect, "w" | "h">): number {

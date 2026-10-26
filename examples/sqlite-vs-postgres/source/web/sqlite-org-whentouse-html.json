@@ -1,0 +1,24 @@
+{
+  "url": "https://sqlite.org/whentouse.html",
+  "finalUrl": "https://sqlite.org/whentouse.html",
+  "title": "Appropriate Uses For SQLite",
+  "retrievedAt": "2026-10-26T23:24:35.660Z",
+  "sha256": "0b20fcdb5ad60076bd95f6bacb850e0a5ba8adab9ab62a37e982afe7a0d20dbb",
+  "anchors": [
+    "search_menubutton",
+    "submenu",
+    "searchmenu",
+    "searchtype",
+    "searchbox",
+    "toc_sub",
+    "situations_where_sqlite_works_well",
+    "appfileformat",
+    "website",
+    "serversidedb",
+    "wireproto",
+    "container",
+    "situations_where_a_client_server_rdbms_may_work_better",
+    "dbcklst",
+    "checklist_for_choosing_the_right_database_engine"
+  ]
+}

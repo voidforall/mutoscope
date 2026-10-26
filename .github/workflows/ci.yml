@@ -25,5 +25,8 @@ jobs:
             echo "::error::skills/mutoscope/runtime is stale. Run 'npm run build' and commit the result."
             exit 1
           fi
+      # Every example must stay valid: quotes against its pinned pages, numbers against its datasets.
+      - name: Examples validate
+        run: for d in examples/*/; do node skills/mutoscope/runtime/cli.mjs validate "$d" || exit 1; done
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

@@ -1,0 +1,1029 @@
+{
+  "scenes": [
+    {
+      "id": "question",
+      "title": "Can a model without attention keep up?",
+      "kicker": "The question",
+      "durationMs": 10000,
+      "backdrop": "spotlight",
+      "narration": "Almost every large language model is a Transformer. This 2023 paper asks whether a model without attention can match it, while scaling linearly with context length.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Almost every large language model is a Transformer."
+        },
+        {
+          "atMs": 4000,
+          "text": "Can a model without attention match it, in linear time?"
+        }
+      ],
+      "entities": [
+        {
+          "id": "title",
+          "type": "headline",
+          "eyebrow": "Gu & Dao \u00b7 arXiv 2312.00752 \u00b7 2023",
+          "text": "Can a model without attention match the Transformer?",
+          "size": "display",
+          "reveal": "words",
+          "layout": {
+            "col": 2,
+            "row": 2,
+            "colSpan": 10,
+            "rowSpan": 4
+          }
+        },
+        {
+          "id": "paper",
+          "type": "label",
+          "text": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+          "size": "sm",
+          "align": "center",
+          "tone": "muted",
+          "layout": {
+            "col": 2,
+            "row": 7,
+            "colSpan": 10,
+            "rowSpan": 1
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752",
+              "title": "arXiv 2312.00752 (HTML)"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "title"
+        },
+        {
+          "action": "appear",
+          "atMs": 4000,
+          "target": "paper"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Mamba is an attention-free architecture that scales linearly in sequence length.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#abstract1.1",
+              "quote": "linear scaling in sequence length"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "problem",
+      "title": "Quadratic attention, weak alternatives",
+      "kicker": "The problem",
+      "durationMs": 16000,
+      "narration": "Attention compares every token with every other, so its cost grows with the square of the context. State space models run in linear time, but until now they have been weak on text.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Attention compares every token with every other one."
+        },
+        {
+          "atMs": 5000,
+          "text": "State space models run in linear time\u2026"
+        },
+        {
+          "atMs": 9000,
+          "text": "\u2026but they have been weak on text."
+        }
+      ],
+      "entities": [
+        {
+          "id": "attention",
+          "type": "component",
+          "label": "Attention",
+          "sublabel": "cost grows with length\u00b2",
+          "tone": "warning",
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 5,
+            "rowSpan": 2
+          },
+          "explanation": "Self-attention routes information densely within its window, at quadratic cost in the window length.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.p1.1",
+              "quote": "quadratic scaling with respect to the window length"
+            }
+          ]
+        },
+        {
+          "id": "ssm",
+          "type": "component",
+          "label": "Structured SSMs",
+          "sublabel": "linear time, weak on text",
+          "tone": "warning",
+          "layout": {
+            "col": 8,
+            "row": 2,
+            "colSpan": 5,
+            "rowSpan": 2
+          },
+          "explanation": "S4 and its relatives compute as a recurrence or a convolution in linear time, but have done poorly on discrete data such as language.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.p2.1",
+              "quote": "they have been less effective at modeling discrete and information-dense data such as text"
+            }
+          ]
+        },
+        {
+          "id": "weak-quote",
+          "type": "quote",
+          "text": "they have been less effective at modeling discrete and information-dense data such as text",
+          "attribution": "Gu & Dao, on prior state space models",
+          "layout": {
+            "col": 2,
+            "row": 5,
+            "colSpan": 10,
+            "rowSpan": 3
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.p2.1",
+              "quote": "they have been less effective at modeling discrete and information-dense data such as text"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "attention"
+        },
+        {
+          "action": "appear",
+          "atMs": 5000,
+          "target": "ssm"
+        },
+        {
+          "action": "appear",
+          "atMs": 9000,
+          "target": "weak-quote"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Attention scales quadratically with the window length.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.p1.1",
+              "quote": "quadratic scaling with respect to the window length"
+            }
+          ]
+        },
+        {
+          "text": "Prior SSMs were less effective on text.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.p2.1",
+              "quote": "they have been less effective at modeling discrete and information-dense data such as text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "idea",
+      "title": "Selection",
+      "kicker": "The idea",
+      "durationMs": 18000,
+      "backdrop": "grid",
+      "narration": "The new idea is small. Let the model's parameters depend on the current token. Then each token decides what the fixed-size state should keep, and what it should forget.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Let the parameters depend on the current token."
+        },
+        {
+          "atMs": 6000,
+          "text": "Each token decides what the state keeps\u2026"
+        },
+        {
+          "atMs": 11000,
+          "text": "\u2026and what it forgets."
+        }
+      ],
+      "entities": [
+        {
+          "id": "idea-head",
+          "type": "headline",
+          "text": "Make the parameters a function of the input",
+          "size": "lg",
+          "align": "start",
+          "layout": "heading"
+        },
+        {
+          "id": "token",
+          "type": "component",
+          "label": "Token",
+          "sublabel": "x_t",
+          "layout": {
+            "col": 1,
+            "row": 4,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "explanation": "The current input token."
+        },
+        {
+          "id": "select",
+          "type": "component",
+          "label": "Selection",
+          "sublabel": "\u0394, B, C = f(x_t)",
+          "tone": "accent",
+          "layout": {
+            "col": 4,
+            "row": 4,
+            "colSpan": 3,
+            "rowSpan": 2
+          },
+          "explanation": "The step size \u0394 and the projections B and C are computed from the token, instead of being fixed for all time steps.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#abstract1.1",
+              "quote": "simply letting the SSM parameters be functions of the input"
+            }
+          ]
+        },
+        {
+          "id": "state",
+          "type": "component",
+          "label": "State h",
+          "sublabel": "fixed size",
+          "layout": {
+            "col": 8,
+            "row": 4,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "explanation": "A fixed-size recurrent state: cost per token does not grow with context length."
+        },
+        {
+          "id": "output",
+          "type": "component",
+          "label": "Output",
+          "sublabel": "y_t",
+          "layout": {
+            "col": 11,
+            "row": 4,
+            "colSpan": 2,
+            "rowSpan": 2
+          },
+          "explanation": "The layer's output for this token, read from the state through C."
+        },
+        {
+          "id": "e1",
+          "type": "edge",
+          "from": "token",
+          "to": "select"
+        },
+        {
+          "id": "e2",
+          "type": "edge",
+          "from": "select",
+          "to": "state",
+          "label": "keeps"
+        },
+        {
+          "id": "e3",
+          "type": "edge",
+          "from": "state",
+          "to": "output"
+        },
+        {
+          "id": "idea-note",
+          "type": "label",
+          "text": "Filter out what is irrelevant, remember what matters indefinitely.",
+          "size": "md",
+          "align": "center",
+          "tone": "accent",
+          "layout": {
+            "col": 2,
+            "row": 7,
+            "colSpan": 10,
+            "rowSpan": 1
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.SS0.SSS0.Px1.p1.1",
+              "quote": "This allows the model to filter out irrelevant information and remember relevant information indefinitely."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "token"
+        },
+        {
+          "action": "connect",
+          "atMs": 800,
+          "target": "e1"
+        },
+        {
+          "action": "appear",
+          "atMs": 1200,
+          "target": "select"
+        },
+        {
+          "action": "highlight",
+          "atMs": 2500,
+          "target": "select"
+        },
+        {
+          "action": "connect",
+          "atMs": 6000,
+          "target": "e2"
+        },
+        {
+          "action": "appear",
+          "atMs": 6000,
+          "target": "state"
+        },
+        {
+          "action": "connect",
+          "atMs": 8000,
+          "target": "e3"
+        },
+        {
+          "action": "appear",
+          "atMs": 8000,
+          "target": "output"
+        },
+        {
+          "action": "appear",
+          "atMs": 11000,
+          "target": "idea-note"
+        }
+      ],
+      "claims": [
+        {
+          "text": "The SSM parameters become functions of the input.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#abstract1.1",
+              "quote": "simply letting the SSM parameters be functions of the input"
+            }
+          ]
+        },
+        {
+          "text": "The model can filter out irrelevant information and remember relevant information.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.SS0.SSS0.Px1.p1.1",
+              "quote": "This allows the model to filter out irrelevant information and remember relevant information indefinitely."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hardware",
+      "title": "Fast without the convolution trick",
+      "kicker": "The method",
+      "durationMs": 18000,
+      "backdrop": "plain",
+      "narration": "Input-dependent parameters rule out the fast convolution that earlier models relied on. Mamba instead runs a scan that keeps the large expanded state in fast on-chip memory, never writing it out.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Input-dependent parameters rule out the fast convolution."
+        },
+        {
+          "atMs": 5500,
+          "text": "A scan keeps the expanded state in fast GPU memory."
+        },
+        {
+          "atMs": 11000,
+          "text": "Up to 3\u00d7 faster scans; 4\u20135\u00d7 the inference throughput."
+        }
+      ],
+      "entities": [
+        {
+          "id": "figure",
+          "type": "image",
+          "src": "assets/mamba-selection.svg",
+          "alt": "Figure 1 of the paper: the selective state space model, with \u0394, B and C computed from the input by a selection mechanism, and the state kept in GPU SRAM",
+          "credit": "Figure 1, Gu & Dao, arXiv:2312.00752 (CC BY 4.0)",
+          "callouts": [
+            {
+              "x": 0.24,
+              "y": 0.86,
+              "w": 0.43,
+              "h": 0.13,
+              "label": "Selection"
+            },
+            {
+              "x": 0.94,
+              "y": 0.38,
+              "label": "State h"
+            },
+            {
+              "x": 0.94,
+              "y": 0.8,
+              "label": "Kept in SRAM"
+            }
+          ],
+          "layout": "left-two-thirds",
+          "explanation": "The paper's overview figure. Prior SSMs avoid materializing the large state through time-invariance; selection needs a hardware-aware algorithm that materializes it only in fast memory.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.SS0.SSS0.Px2.p1.1",
+              "quote": "does not materialize the expanded state in order to avoid IO access between different levels of the GPU memory hierarchy"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S3.SS3.SSS2.p3.1",
+              "quote": "perform the discretization and recurrence in SRAM"
+            }
+          ]
+        },
+        {
+          "id": "fast",
+          "type": "stat",
+          "value": 3,
+          "suffix": "\u00d7",
+          "label": "faster than previous methods on A100 GPUs",
+          "tone": "accent",
+          "layout": {
+            "col": 9,
+            "row": 1,
+            "colSpan": 4,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.SS0.SSS0.Px2.p1.1",
+              "quote": "up to 3\u00d7 faster on A100 GPUs"
+            }
+          ]
+        },
+        {
+          "id": "throughput",
+          "type": "stat",
+          "value": 5,
+          "from": 0,
+          "prefix": "4\u2013",
+          "suffix": "\u00d7",
+          "label": "inference throughput of a Transformer of similar size",
+          "countUp": false,
+          "layout": {
+            "col": 9,
+            "row": 5,
+            "colSpan": 4,
+            "rowSpan": 4
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.SS5.p1.1",
+              "quote": "Mamba achieves 4-5\u00d7 higher inference throughput than a Transformer of similar size"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "figure",
+          "durationMs": 8000
+        },
+        {
+          "action": "appear",
+          "atMs": 11000,
+          "target": "fast"
+        },
+        {
+          "action": "appear",
+          "atMs": 12500,
+          "target": "throughput"
+        }
+      ],
+      "claims": [
+        {
+          "text": "The expanded state is kept in SRAM, not written to HBM.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.SS0.SSS0.Px2.p1.1",
+              "quote": "does not materialize the expanded state in order to avoid IO access between different levels of the GPU memory hierarchy"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S3.SS3.SSS2.p3.1",
+              "quote": "perform the discretization and recurrence in SRAM"
+            }
+          ]
+        },
+        {
+          "text": "Up to 3\u00d7 faster on A100s; 4\u20135\u00d7 higher inference throughput than a similar-size Transformer.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S1.SS0.SSS0.Px2.p1.1",
+              "quote": "up to 3\u00d7 faster on A100 GPUs"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.SS5.p1.1",
+              "quote": "Mamba achieves 4-5\u00d7 higher inference throughput than a Transformer of similar size"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic",
+      "title": "It solves what fixed models cannot",
+      "kicker": "The evidence",
+      "durationMs": 17000,
+      "backdrop": "grid",
+      "narration": "On a selective copying task, swapping the fixed S4 layer for the selective one lifts accuracy from eighteen to ninety-seven percent. On induction heads it keeps working at four thousand times its training length.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Selective copying: the selective layer is what solves it."
+        },
+        {
+          "atMs": 9000,
+          "text": "Induction heads: still perfect at 4000\u00d7 the training length."
+        }
+      ],
+      "entities": [
+        {
+          "id": "copying",
+          "type": "chart",
+          "kind": "bar",
+          "title": "Selective Copying accuracy",
+          "unit": "%",
+          "min": 0,
+          "max": 100,
+          "categories": [
+            "S4, no gate",
+            "S6, no gate",
+            "H3 + S4",
+            "Mamba + S4",
+            "Mamba + S6"
+          ],
+          "series": [
+            {
+              "name": "Accuracy",
+              "values": [
+                18.3,
+                97.0,
+                57.0,
+                56.4,
+                99.8
+              ]
+            }
+          ],
+          "highlight": [
+            "S6, no gate",
+            "Mamba + S6"
+          ],
+          "layout": "left-two-thirds",
+          "explanation": "From the paper's Figure 4 table. S6 is the selective layer; S4 is the earlier time-invariant one. Gated architectures alone (H3, Mamba with S4) only partly help.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.2",
+              "quote": "S4 No gate S4 18.3"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.3",
+              "quote": "No gate S6 97.0"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.4",
+              "quote": "H3 H3 S4 57.0"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.7",
+              "quote": "Mamba S4 56.4"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.9",
+              "quote": "Mamba Mamba S6 99.8"
+            }
+          ]
+        },
+        {
+          "id": "extrapolate",
+          "type": "stat",
+          "value": 4000,
+          "suffix": "\u00d7",
+          "label": "the training length, still solved",
+          "note": "induction heads; others stop at 2\u00d7",
+          "tone": "added",
+          "layout": {
+            "col": 9,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.SS1.SSS2.Px3.p1.1",
+              "quote": "It generalizes perfectly to million-length sequences, or 4000\u00d7 longer than it saw during training, while no other method goes beyond 2\u00d7."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "copying",
+          "durationMs": 5000
+        },
+        {
+          "action": "appear",
+          "atMs": 9000,
+          "target": "extrapolate"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Selective Copying: S4 18.3%, S6 97.0%, Mamba with S6 99.8%.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.2",
+              "quote": "S4 No gate S4 18.3"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.3",
+              "quote": "No gate S6 97.0"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.F5.fig1.1.9",
+              "quote": "Mamba Mamba S6 99.8"
+            }
+          ]
+        },
+        {
+          "text": "Induction heads: generalizes to 4000\u00d7 the training length; no other method beyond 2\u00d7.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.SS1.SSS2.Px3.p1.1",
+              "quote": "It generalizes perfectly to million-length sequences, or 4000\u00d7 longer than it saw during training, while no other method goes beyond 2\u00d7."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "language",
+      "title": "On language, it matches models twice its size",
+      "kicker": "The result",
+      "durationMs": 16000,
+      "narration": "On language benchmarks, Mamba at 2.8 billion parameters averages above Pythia at 6.9 billion, trained on the same data with the same tokenizer.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Average zero-shot accuracy, same data and tokenizer."
+        },
+        {
+          "atMs": 8000,
+          "text": "Mamba-2.8B scores above Pythia-6.9B."
+        }
+      ],
+      "entities": [
+        {
+          "id": "zeroshot",
+          "type": "chart",
+          "kind": "column",
+          "title": "Average zero-shot accuracy",
+          "unit": "%",
+          "min": 50,
+          "max": 65,
+          "categories": [
+            "Pythia 1.4B",
+            "Mamba 1.4B",
+            "Pythia 2.8B",
+            "Mamba 2.8B",
+            "Pythia 6.9B"
+          ],
+          "series": [
+            {
+              "name": "Average",
+              "values": [
+                55.2,
+                59.7,
+                59.1,
+                63.3,
+                61.7
+              ]
+            }
+          ],
+          "highlight": [
+            "Mamba 1.4B",
+            "Mamba 2.8B"
+          ],
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 12,
+            "rowSpan": 6
+          },
+          "explanation": "The 'Average' column of the paper's Table 1. The axis starts at 50% to make differences visible.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.14",
+              "quote": "Pythia-1.4B NeoX 7.51 6.08 61.7 52.1 71.0 60.5 28.5 57.2 55.2"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.16",
+              "quote": "Mamba-1.4B NeoX 6.80 5.04 64.9 59.1 74.2 65.5 32.8 61.5 59.7"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.20",
+              "quote": "Pythia-2.8B NeoX 6.73 5.04 64.7 59.3 74.0 64.1 32.9 59.7 59.1"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.22",
+              "quote": "Mamba-2.8B NeoX 6.22 4.23 69.2 66.1 75.2 69.7 36.3 63.5 63.3"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.25",
+              "quote": "Pythia-6.9B NeoX 6.51 4.45 67.1 64.0 75.2 67.3 35.5 61.3 61.7"
+            }
+          ]
+        },
+        {
+          "id": "twice",
+          "type": "label",
+          "text": "\u201cgenerally matches baselines at twice the model size\u201d, same 300B training tokens",
+          "size": "md",
+          "align": "center",
+          "tone": "accent",
+          "layout": "footer",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1",
+              "quote": "generally matches baselines at twice the model size"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.SS2.SSS2.p1.1",
+              "quote": "which were trained with the same tokenizer, dataset, and training length (300B tokens) as our models"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "zeroshot",
+          "durationMs": 5000
+        },
+        {
+          "action": "appear",
+          "atMs": 8000,
+          "target": "twice"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Mamba-2.8B averages 63.3, Pythia-6.9B 61.7.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.22",
+              "quote": "Mamba-2.8B NeoX 6.22 4.23 69.2 66.1 75.2 69.7 36.3 63.5 63.3"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.T1.8.1.25",
+              "quote": "Pythia-6.9B NeoX 6.51 4.45 67.1 64.0 75.2 67.3 35.5 61.3 61.7"
+            }
+          ]
+        },
+        {
+          "text": "Both families share tokenizer, dataset and training length.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S4.SS2.SSS2.p1.1",
+              "quote": "which were trained with the same tokenizer, dataset, and training length (300B tokens) as our models"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "title": "What it does not show",
+      "kicker": "Limits",
+      "durationMs": 16000,
+      "backdrop": "plain",
+      "narration": "The authors are clear about the limits. The models stop at about three billion parameters. Selection can hurt on continuous signals such as audio. And the Transformer toolkit of fine-tuning and quantization is still untested.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Only small models: about three billion parameters."
+        },
+        {
+          "atMs": 5500,
+          "text": "Selection can hurt on continuous signals."
+        },
+        {
+          "atMs": 10000,
+          "text": "Fine-tuning, RLHF, quantization: untested."
+        }
+      ],
+      "entities": [
+        {
+          "id": "limits-head",
+          "type": "headline",
+          "text": "What the paper leaves open",
+          "size": "lg",
+          "align": "start",
+          "layout": "heading"
+        },
+        {
+          "id": "limits",
+          "type": "list",
+          "items": [
+            {
+              "text": "Small models only",
+              "detail": "evaluated up to about 3B parameters, below strong open LLMs",
+              "mark": "cross",
+              "tone": "warning"
+            },
+            {
+              "text": "No free lunch on signals",
+              "detail": "selection can hurt where time-invariant SSMs excel, like audio",
+              "mark": "cross",
+              "tone": "warning"
+            },
+            {
+              "text": "The Transformer toolkit",
+              "detail": "fine-tuning, RLHF, quantization: not yet shown to carry over",
+              "mark": "cross",
+              "tone": "warning"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 3,
+            "colSpan": 10,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S5.SS0.SSS0.Px4.p1.1",
+              "quote": "Our empirical evaluation is limited to small model sizes"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S5.SS0.SSS0.Px2.p1.1",
+              "quote": "this conversely can impede their performance on data that LTI SSMs excel on"
+            },
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S5.SS0.SSS0.Px3.p1.1",
+              "quote": "We are particularly interested in whether Transformer alternatives such as SSMs have similar properties and affordances."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "limits",
+          "durationMs": 10000
+        }
+      ],
+      "claims": [
+        {
+          "text": "The evaluation is limited to small model sizes.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S5.SS0.SSS0.Px4.p1.1",
+              "quote": "Our empirical evaluation is limited to small model sizes"
+            }
+          ]
+        },
+        {
+          "text": "Selection can impede performance on data LTI SSMs excel on.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S5.SS0.SSS0.Px2.p1.1",
+              "quote": "this conversely can impede their performance on data that LTI SSMs excel on"
+            }
+          ]
+        },
+        {
+          "text": "Whether SSMs share Transformers' affordances is open.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://arxiv.org/html/2312.00752#S5.SS0.SSS0.Px3.p1.1",
+              "quote": "We are particularly interested in whether Transformer alternatives such as SSMs have similar properties and affordances."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "takeaway",
+      "title": "Takeaway",
+      "kicker": "Takeaway",
+      "durationMs": 9000,
+      "backdrop": "spotlight",
+      "narration": "Selection lets a linear-time model match Transformers on language, at least up to three billion parameters.",
+      "entities": [
+        {
+          "id": "takeaway",
+          "type": "headline",
+          "eyebrow": "The claim, sized to the evidence",
+          "text": "Selection lets a linear-time model match Transformers, so far up to 3B parameters",
+          "size": "display",
+          "reveal": "words",
+          "layout": {
+            "col": 2,
+            "row": 2,
+            "colSpan": 10,
+            "rowSpan": 5
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "takeaway"
+        }
+      ],
+      "claims": [
+        {
+          "text": "Whether the result holds at larger scale is not shown here.",
+          "basis": "inference"
+        }
+      ]
+    }
+  ]
+}

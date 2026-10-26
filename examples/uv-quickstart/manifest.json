@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "0.1.0",
+  "id": "uv-quickstart",
+  "version": 1,
+  "title": "Start a Python project with uv",
+  "recipe": "how-to",
+  "kicker": "How-to · uv",
+  "createdAt": "2026-10-26T23:22:58.993Z",
+  "source": {
+    "provider": "none"
+  },
+  "documents": [
+    {
+      "url": "https://docs.astral.sh/uv/getting-started/installation/",
+      "title": "Installation | uv",
+      "retrievedAt": "2026-10-26T23:22:59.281Z",
+      "sha256": "62b8c1bad1ea77e8ba0f7643f3f1285d9d23e179044b8cd910725316c0ce3523"
+    },
+    {
+      "url": "https://docs.astral.sh/uv/guides/projects/",
+      "title": "Working on projects | uv",
+      "retrievedAt": "2026-10-26T23:22:59.504Z",
+      "sha256": "29312569a7095fc417b8aea73eca11ffaaba063d4cb8dcae94ca544c7d8a0e4f"
+    }
+  ],
+  "datasets": [],
+  "media": []
+}

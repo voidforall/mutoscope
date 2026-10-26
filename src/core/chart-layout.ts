@@ -10,7 +10,7 @@ import { proportionalEm } from "./text-fit";
  * its box and build progress. The player draws exactly this; the validator
  * reads the same labels to warn about truncation.
  */
-export const CHART = { pad: 22, title: 26, titleH: 40, legendH: 30, legend: 15, swatch: 12, label: 17, value: 16, tick: 14, tickEm: 0.6, gap: 10, labelH: 30 } as const;
+export const CHART = { pad: 22, title: 30, titleH: 46, legendH: 34, legend: 18, swatch: 14, label: 20, value: 19, tick: 16, tickEm: 0.6, gap: 10, labelH: 34 } as const;
 const SERIES_TONES: readonly Tone[] = ["accent", "neutral", "added", "warning"];
 const MIN_BAR = 4;
 
@@ -97,7 +97,8 @@ const width = (text: string, font: number, bold = false) => proportionalEm(text,
 
 /** Cut `text` with an ellipsis so it fits `max` units at `font`. */
 export function fitText(text: string, font: number, max: number): { text: string; truncated: boolean } {
-  if (width(text, font) <= max) return { text, truncated: false };
+  // A column sized to its widest label must hold that label: allow for float rounding in (w + pad) - pad.
+  if (width(text, font) <= max + 1e-6) return { text, truncated: false };
   const chars = [...text];
   while (chars.length > 1 && width(`${chars.join("").trimEnd()}…`, font) > max) chars.pop();
   return { text: `${chars.join("").trimEnd()}…`, truncated: true };

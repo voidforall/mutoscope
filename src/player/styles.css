@@ -115,9 +115,10 @@ body {
   color: var(--ink);
   font: 15px/1.5 var(--font);
   -webkit-font-smoothing: antialiased;
-  /* Code is quoted verbatim: "==" must not become a ligature. */
-  font-variant-ligatures: none;
 }
+/* Code is quoted verbatim: "==" must never become a ligature. Every "font:"
+   shorthand resets ligatures to normal, so this has to win over all of them. */
+*, *::before, *::after { font-variant-ligatures: none !important; }
 button { font: inherit; color: inherit; }
 a { color: inherit; }
 kbd {

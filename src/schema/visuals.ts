@@ -168,7 +168,8 @@ export const TableEntity = z
     ...EntityBase,
     type: z.literal("table"),
     title: z.string().trim().max(80).optional(),
-    columns: z.array(z.string().trim().min(1).max(24)).min(1).max(6),
+    /** Column headers; leave the first one empty ("") when that column labels the rows. */
+    columns: z.array(z.string().trim().max(24)).min(1).max(6),
     rows: z.array(z.array(z.string().trim().max(40))).min(1).max(10),
     /** Zero-based row indexes to emphasise. */
     highlightRows: z.array(z.number().int().min(0)).default([]),

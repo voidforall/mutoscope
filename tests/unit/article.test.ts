@@ -27,6 +27,11 @@ ROW_1 COPY 2</code></pre>
 <footer>Subscribe to the newsletter</footer></body></html>`;
 
 describe("web snapshots", () => {
+  it("keeps the rendered form of math, not its TeX source", () => {
+    const html = '<html><body><article><p id="p1">up to 4-5<math alttext="\\times"><semantics><mo>×</mo><annotation encoding="application/x-tex">\\times</annotation></semantics></math> higher throughput</p></article></body></html>';
+    expect(htmlToSnapshot(html).text).toContain("up to 4-5× higher throughput");
+  });
+
   const snap = htmlToSnapshot(PAGE);
 
   it("keeps the article and drops scripts, styles, navigation and footers", () => {

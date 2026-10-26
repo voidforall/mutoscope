@@ -1,0 +1,25 @@
+{
+  "url": "https://www.postgresql.org/docs/current/mvcc-intro.html",
+  "finalUrl": "https://www.postgresql.org/docs/current/mvcc-intro.html",
+  "title": "13.1. Introduction",
+  "retrievedAt": "2026-10-26T23:24:36.848Z",
+  "sha256": "463498eec55e2ee05e32c325c4eae137d693a31e3cefae38dc688da01a4167a4",
+  "anchors": [
+    "navbar-toggler",
+    "navbar-toggler-label",
+    "pgNavbar",
+    "q",
+    "form-theme",
+    "btn-theme",
+    "pgContentWrap",
+    "docSearchForm",
+    "docContent",
+    "MVCC-INTRO",
+    "id-1.5.12.4.2",
+    "id-1.5.12.4.3",
+    "id-1.5.12.4.4",
+    "id-1.5.12.4.5",
+    "docComments",
+    "footer"
+  ]
+}

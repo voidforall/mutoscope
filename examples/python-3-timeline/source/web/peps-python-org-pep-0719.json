@@ -1,0 +1,30 @@
+{
+  "url": "https://peps.python.org/pep-0719/",
+  "finalUrl": "https://peps.python.org/pep-0719/",
+  "title": "PEP 719 – Python 3.13 Release Schedule | peps.python.org",
+  "retrievedAt": "2026-10-26T23:34:39.112Z",
+  "sha256": "c7e4cb85bb8bc5ad8734df6f4ddfcb087025094c1dd2047ee85967169a89d33d",
+  "anchors": [
+    "pyg-light",
+    "pyg-dark",
+    "svg-sun-half",
+    "svg-moon",
+    "svg-sun",
+    "pep-page-section",
+    "colour-scheme-cycler",
+    "mobile-search",
+    "pep-content",
+    "contents",
+    "abstract",
+    "release-manager-and-crew",
+    "release-schedule",
+    "schedule",
+    "bugfix-releases",
+    "source-only-security-fix-releases",
+    "lifespan",
+    "copyright",
+    "pep-sidebar",
+    "source",
+    "pep-page-footer"
+  ]
+}

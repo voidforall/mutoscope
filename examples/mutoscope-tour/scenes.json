@@ -1,0 +1,710 @@
+{
+  "scenes": [
+    {
+      "id": "what",
+      "title": "What it is",
+      "kicker": "Tour",
+      "durationMs": 11000,
+      "backdrop": "spotlight",
+      "narration": "mutoscope turns a pull request, an article, a dataset or an idea into a reel: one HTML file you can play, pause, scrub, click into and question.",
+      "entities": [
+        {
+          "id": "hero-head",
+          "type": "headline",
+          "eyebrow": "mutoscope",
+          "text": "A reel you can pause, inspect and question",
+          "size": "xl",
+          "align": "start",
+          "reveal": "words",
+          "layout": {
+            "col": 1,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "the reel is a single HTML file the viewer can play, pause, scrub, click into, and ask questions about."
+            }
+          ]
+        },
+        {
+          "id": "hero",
+          "type": "image",
+          "src": "assets/tour-stage.png",
+          "alt": "The mutoscope player showing a column chart of the world's solar share of electricity",
+          "credit": "Screenshot: mutoscope player",
+          "callouts": [],
+          "layout": "right-two-thirds",
+          "explanation": "A data-story reel in the player: the stage on the left, scene notes and chapters on the right.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Turn a pull request, a codebase, an article, a concept or an incident into an interactive, discussable animated reel."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "hero-head"
+        },
+        {
+          "action": "appear",
+          "atMs": 2500,
+          "target": "hero"
+        }
+      ],
+      "claims": [
+        {
+          "text": "A reel is one HTML file the viewer can play, pause, scrub, click into and ask about.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "the reel is a single HTML file the viewer can play, pause, scrub, click into, and ask questions about."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stage",
+      "title": "The stage",
+      "kicker": "Feature",
+      "durationMs": 16000,
+      "backdrop": "plain",
+      "narration": "Scenes play on the stage with captions underneath. The side panel lists each scene's claims, marked as evidence or inference, and the chapters to jump between.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Scenes play on the stage, captions underneath."
+        },
+        {
+          "atMs": 6000,
+          "text": "Claims are marked evidence or inference."
+        },
+        {
+          "atMs": 10500,
+          "text": "Chapters let you jump around."
+        }
+      ],
+      "entities": [
+        {
+          "id": "shot-stage",
+          "type": "image",
+          "src": "assets/tour-stage.png",
+          "alt": "The player: chart on the stage, caption below, claims and chapters in the side panel",
+          "credit": "Screenshot: mutoscope player",
+          "callouts": [
+            {
+              "x": 0.02,
+              "y": 0.13,
+              "w": 0.68,
+              "h": 0.61,
+              "label": "Stage"
+            },
+            {
+              "x": 0.04,
+              "y": 0.8,
+              "label": "Caption"
+            },
+            {
+              "x": 0.75,
+              "y": 0.42,
+              "label": "Evidence badge"
+            },
+            {
+              "x": 0.78,
+              "y": 0.73,
+              "label": "Chapters"
+            }
+          ],
+          "layout": "left-two-thirds",
+          "explanation": "Callouts mark the stage, the caption, an evidence badge and the chapter list.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Every claim is tagged evidence (must cite a source ref) or inference."
+            }
+          ]
+        },
+        {
+          "id": "stage-list",
+          "type": "list",
+          "style": "checks",
+          "items": [
+            {
+              "text": "Play, pause, scrub"
+            },
+            {
+              "text": "Jump between scenes"
+            },
+            {
+              "text": "Every claim is evidence or inference"
+            }
+          ],
+          "layout": {
+            "col": 9,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Every claim is tagged evidence (must cite a source ref) or inference."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "shot-stage",
+          "durationMs": 10000
+        },
+        {
+          "action": "appear",
+          "atMs": 1000,
+          "target": "stage-list",
+          "durationMs": 10000
+        }
+      ],
+      "claims": [
+        {
+          "text": "Every claim is tagged evidence or inference.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Every claim is tagged evidence (must cite a source ref) or inference."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "inspect",
+      "title": "Inspect anything",
+      "kicker": "Feature",
+      "durationMs": 15000,
+      "backdrop": "plain",
+      "narration": "Click anything and playback pauses. Inspect explains the element and shows its sources. A chart also shows its exact values and the dataset they were checked against.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "Click anything: playback pauses."
+        },
+        {
+          "atMs": 5500,
+          "text": "A chart shows where its numbers come from\u2026"
+        },
+        {
+          "atMs": 10000,
+          "text": "\u2026and the exact values."
+        }
+      ],
+      "entities": [
+        {
+          "id": "shot-inspect",
+          "type": "image",
+          "src": "assets/tour-inspect.png",
+          "alt": "The player inspecting a bar chart: the side panel shows the dataset and the values",
+          "credit": "Screenshot: mutoscope player",
+          "callouts": [
+            {
+              "x": 0.045,
+              "y": 0.16,
+              "w": 0.63,
+              "h": 0.55,
+              "label": "Selected chart"
+            },
+            {
+              "x": 0.74,
+              "y": 0.44,
+              "label": "Where numbers come from"
+            },
+            {
+              "x": 0.86,
+              "y": 0.62,
+              "label": "Exact values"
+            }
+          ],
+          "layout": "left-two-thirds",
+          "explanation": "Inspecting the 2025 bar chart in the solar data story."
+        },
+        {
+          "id": "inspect-list",
+          "type": "list",
+          "style": "checks",
+          "items": [
+            {
+              "text": "Click to pause and inspect"
+            },
+            {
+              "text": "Sources pinned to a commit or snapshot"
+            },
+            {
+              "text": "Charts list their data"
+            }
+          ],
+          "layout": {
+            "col": 9,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 5
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "shot-inspect",
+          "durationMs": 10000
+        },
+        {
+          "action": "appear",
+          "atMs": 1000,
+          "target": "inspect-list",
+          "durationMs": 10000
+        }
+      ],
+      "claims": [
+        {
+          "text": "Code refs are pinned to commits and web pages to snapshots.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Code refs are pinned to commit SHAs"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ask",
+      "title": "Ask about the moment",
+      "kicker": "Feature",
+      "durationMs": 15000,
+      "backdrop": "plain",
+      "narration": "Ask a question and the moment comes with it: the scene, the element you selected, the time and its source lines. In a live session it reaches your own agent in the terminal.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "The moment comes with your question."
+        },
+        {
+          "atMs": 8000,
+          "text": "Live: it reaches your agent in the terminal."
+        }
+      ],
+      "entities": [
+        {
+          "id": "shot-ask",
+          "type": "image",
+          "src": "assets/tour-ask.png",
+          "alt": "The Ask panel with the scene, element, time and source lines attached to a question",
+          "credit": "Screenshot: mutoscope player",
+          "callouts": [
+            {
+              "x": 0.34,
+              "y": 0.27,
+              "label": "Selected element"
+            },
+            {
+              "x": 0.74,
+              "y": 0.27,
+              "label": "Moment attached"
+            },
+            {
+              "x": 0.84,
+              "y": 0.48,
+              "label": "Your question"
+            }
+          ],
+          "layout": "left-two-thirds",
+          "explanation": "Asking about popCursorCached_ in the SPSC queue reel."
+        },
+        {
+          "id": "ask-list",
+          "type": "list",
+          "style": "checks",
+          "items": [
+            {
+              "text": "Scene, element and time attached"
+            },
+            {
+              "text": "Live: your own agent answers"
+            },
+            {
+              "text": "Published: a GitHub Discussion"
+            }
+          ],
+          "layout": {
+            "col": 9,
+            "row": 2,
+            "colSpan": 4,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Pause anywhere, click an element, ask, and the question reaches the agent in your terminal with that exact moment attached"
+            },
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions."
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "shot-ask",
+          "durationMs": 8000
+        },
+        {
+          "action": "appear",
+          "atMs": 1000,
+          "target": "ask-list",
+          "durationMs": 9000
+        }
+      ],
+      "claims": [
+        {
+          "text": "In a live session the question reaches the agent with the moment attached.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Pause anywhere, click an element, ask, and the question reaches the agent in your terminal with that exact moment attached"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "loop",
+      "title": "From question to thread",
+      "kicker": "Workflow",
+      "durationMs": 18000,
+      "backdrop": "grid",
+      "narration": "On a published reel the loop is: a viewer asks, the author's agent drafts an answer from the pinned sources, the author approves the exact text, and the answer syncs back into the reel as a thread.",
+      "cues": [
+        {
+          "atMs": 0,
+          "text": "A viewer asks at a moment."
+        },
+        {
+          "atMs": 5000,
+          "text": "The agent drafts; the author approves the exact text."
+        },
+        {
+          "atMs": 10500,
+          "text": "The answer syncs back into the reel."
+        }
+      ],
+      "entities": [
+        {
+          "id": "loop-steps",
+          "type": "list",
+          "style": "numbered",
+          "items": [
+            {
+              "text": "A viewer asks at a moment"
+            },
+            {
+              "text": "The agent drafts from pinned sources"
+            },
+            {
+              "text": "The author approves the exact text"
+            },
+            {
+              "text": "It syncs back as a thread"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 1,
+            "colSpan": 4,
+            "rowSpan": 8
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions."
+            },
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "nothing is posted without explicit approval"
+            },
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "reply \u2500\u2500\u25b6 sync \u2500\u2500\u25b6 thread shows inside the reel"
+            }
+          ]
+        },
+        {
+          "id": "loop-ask",
+          "type": "image",
+          "src": "assets/tour-ask.png",
+          "alt": "The Ask panel",
+          "credit": "Screenshot: mutoscope player",
+          "callouts": [],
+          "layout": "right-two-thirds",
+          "explanation": "Step 1: the question, with its moment."
+        },
+        {
+          "id": "shot-threads",
+          "type": "image",
+          "src": "assets/tour-threads.png",
+          "alt": "The Threads tab showing an answered question with an AI-assisted answer",
+          "credit": "Screenshot: mutoscope player",
+          "callouts": [
+            {
+              "x": 0.74,
+              "y": 0.29,
+              "label": "Answered"
+            },
+            {
+              "x": 0.85,
+              "y": 0.41,
+              "label": "Jumps to the moment"
+            },
+            {
+              "x": 0.8,
+              "y": 0.48,
+              "label": "Approved AI answer"
+            }
+          ],
+          "layout": "right-two-thirds",
+          "explanation": "Step 4: the answer, synced from GitHub, shown in the reel's Threads tab.",
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "every posted answer carries a visible AI-assisted notice and the approver's handle"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "loop-steps",
+          "durationMs": 9000
+        },
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "loop-ask"
+        },
+        {
+          "action": "replace",
+          "atMs": 10500,
+          "target": "loop-ask",
+          "with": "shot-threads",
+          "durationMs": 4000
+        }
+      ],
+      "claims": [
+        {
+          "text": "Nothing is posted without explicit approval.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "nothing is posted without explicit approval"
+            }
+          ]
+        },
+        {
+          "text": "Posted answers carry an AI-assisted notice and the approver's handle.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "every posted answer carries a visible AI-assisted notice and the approver's handle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "limits",
+      "title": "What it needs",
+      "kicker": "Limits",
+      "durationMs": 13000,
+      "backdrop": "plain",
+      "narration": "A few things to know. Viewer questions go through GitHub Discussions. Snapshots and video export need a one-time browser install, and MP4 export needs ffmpeg.",
+      "entities": [
+        {
+          "id": "limits-head",
+          "type": "headline",
+          "text": "Good to know",
+          "size": "lg",
+          "align": "start",
+          "layout": "heading"
+        },
+        {
+          "id": "limits",
+          "type": "list",
+          "items": [
+            {
+              "text": "Questions from viewers use GitHub Discussions",
+              "detail": "live sessions with your own agent need nothing",
+              "mark": "dot"
+            },
+            {
+              "text": "Snapshots and video need Chromium",
+              "detail": "mutoscope install-browser, once",
+              "mark": "dot"
+            },
+            {
+              "text": "MP4 export needs ffmpeg",
+              "mark": "dot"
+            }
+          ],
+          "layout": {
+            "col": 1,
+            "row": 3,
+            "colSpan": 9,
+            "rowSpan": 5
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "Published reels take questions from other viewers, anchored to scene + entity + timestamp; they land as GitHub Discussions."
+            },
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "mutoscope install-browser (one-time: Playwright + Chromium into ~/.mutoscope/deps)"
+            },
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "MP4 export ffmpeg on PATH"
+            }
+          ]
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "limits",
+          "durationMs": 6000
+        }
+      ],
+      "claims": [
+        {
+          "text": "MP4 export needs ffmpeg on PATH.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "MP4 export ffmpeg on PATH"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "start",
+      "title": "Get started",
+      "kicker": "Start",
+      "durationMs": 9000,
+      "backdrop": "spotlight",
+      "narration": "Install the skill with one command, then ask your agent for a walkthrough, an explainer or a data story.",
+      "entities": [
+        {
+          "id": "install",
+          "type": "headline",
+          "eyebrow": "Get started",
+          "text": "npx skills add voidforall/mutoscope",
+          "size": "xl",
+          "reveal": "typewriter",
+          "layout": {
+            "col": 2,
+            "row": 2,
+            "colSpan": 10,
+            "rowSpan": 3
+          },
+          "sourceRefs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "npx skills add voidforall/mutoscope"
+            }
+          ]
+        },
+        {
+          "id": "then",
+          "type": "label",
+          "text": "Then ask your agent for a walkthrough, an explainer or a data story.",
+          "size": "lg",
+          "align": "center",
+          "layout": {
+            "col": 2,
+            "row": 6,
+            "colSpan": 10,
+            "rowSpan": 1
+          }
+        }
+      ],
+      "timeline": [
+        {
+          "action": "appear",
+          "atMs": 300,
+          "target": "install"
+        },
+        {
+          "action": "appear",
+          "atMs": 3500,
+          "target": "then"
+        }
+      ],
+      "claims": [
+        {
+          "text": "The skill installs with npx skills add voidforall/mutoscope.",
+          "basis": "evidence",
+          "refs": [
+            {
+              "kind": "url",
+              "url": "https://github.com/voidforall/mutoscope",
+              "quote": "npx skills add voidforall/mutoscope"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
