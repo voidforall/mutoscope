@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { HttpsUrl, Id, SCHEMA_VERSION } from "./common";
+import { DATA_FILE } from "./source-ref";
+import { IMAGE_SRC } from "./visuals";
 
 const Sha = z.string().regex(/^[0-9a-f]{40}$/, "pin full 40-char commit SHAs");
 const RepoSlug = z.string().regex(/^[\w.-]+\/[\w.-]+$/, "expected owner/repo");
@@ -39,6 +41,30 @@ export const PinnedDocument = z.object({
 });
 export type PinnedDocument = z.infer<typeof PinnedDocument>;
 
+const Sha256 = z.string().regex(/^[0-9a-f]{64}$/);
+
+/** A dataset copied into source/data/ by `mutoscope ingest data`; charts and stats bound to it are checked against it. */
+export const PinnedDataset = z.object({
+  file: z.string().regex(DATA_FILE),
+  /** Where it was downloaded from; absent for a local file. */
+  source: HttpsUrl.optional(),
+  title: z.string().max(200).optional(),
+  retrievedAt: z.string().datetime({ offset: true }),
+  sha256: Sha256,
+  rows: z.number().int().min(0),
+  columns: z.array(z.string()).max(200),
+});
+export type PinnedDataset = z.infer<typeof PinnedDataset>;
+
+/** An image fetched into assets/ by `mutoscope ingest image`, with where it came from. */
+export const PinnedMedia = z.object({
+  src: z.string().regex(IMAGE_SRC),
+  source: HttpsUrl,
+  retrievedAt: z.string().datetime({ offset: true }),
+  sha256: Sha256,
+});
+export type PinnedMedia = z.infer<typeof PinnedMedia>;
+
 export const GithubDiscussionsCollab = z.object({
   adapter: z.literal("github-discussions"),
   repository: RepoSlug,
@@ -65,6 +91,8 @@ export const Manifest = z.object({
   createdAt: z.string().datetime({ offset: true }),
   source: ReelSource,
   documents: z.array(PinnedDocument).default([]),
+  datasets: z.array(PinnedDataset).default([]),
+  media: z.array(PinnedMedia).default([]),
   /** Scene a plain link opens on; defaults to the first scene. */
   entrySceneId: Id.optional(),
   collaboration: Collaboration.optional(),

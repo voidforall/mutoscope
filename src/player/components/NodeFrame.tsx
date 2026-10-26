@@ -63,7 +63,8 @@ export function accessibleName(e: Entity): string {
     case "chart":
     case "time-axis":
     case "table":
-      return e.title ?? `${e.type === "chart" ? "Chart" : e.type === "table" ? "Table" : "Timeline"}: ${e.id}`;
+    case "list":
+      return e.title ?? `${{ chart: "Chart", table: "Table", "time-axis": "Timeline", list: "List" }[e.type]}: ${e.id}`;
     default:
       return ("label" in e && e.label) || e.id;
   }

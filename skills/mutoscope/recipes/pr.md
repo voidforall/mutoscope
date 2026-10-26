@@ -29,7 +29,7 @@ Units are semantic changes: "queue is now lock-free", "retry moved from client t
 1. **Before** — the relevant slice of the system as it was (`revision: "base"` refs). Only the parts the change touches.
 2. **The change** — `diff-panel` or `replace`/`move` on the same layout as *Before*, so the viewer sees what moved. A diff panel quotes code: cite the base and head ranges in its `sourceRefs`, copy both sides verbatim, and mark any omitted lines with a line containing only `…` (or `// …`). `validate --repo-root` checks each side against those ranges.
 3. **After / behaviour** — walk one request, message or call through the new structure with sequential `connect`s and cues.
-4. **Impact & trade-offs** (optional) — risks, performance, API surface; mostly `inference` claims unless benchmarks or tests back them.
+4. **Impact & trade-offs** (optional) — risks, performance, API surface; mostly `inference` claims unless benchmarks or tests back them. Benchmark numbers quoted from the PR become `stat`s or a before/after `chart`.
 5. **Where to review** (optional) — the 2–3 code-blocks a reviewer should read first.
 
 Keep entity ids stable across scenes for the same thing (`order-queue` in every scene) so questions and analysis line up.

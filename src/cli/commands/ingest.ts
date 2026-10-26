@@ -9,12 +9,15 @@ import { CliError, REEL_FILES } from "../lib/reel-files";
 import { scanPaths, sizeVerdict, type ChangedFile } from "../lib/change-size";
 import { pinSnapshots, readManifest, SOURCE_DIR, writeManifest, type SnapshotDraft } from "../lib/pin";
 import { commitSnapshot, conversationSnapshot, type IssueComment, type PrCommit, type Review, type ReviewComment } from "../lib/pr-conversation";
+import { ingestData, ingestImage } from "../lib/ingest-media";
 import { fetchPage, htmlToSnapshot } from "../lib/web-snapshot";
 
 export const help = [
   "ingest pr <url|number> --reel <dir> [--repo owner/repo]   Fetch PR metadata + diff via gh",
   "ingest git <base> <head> --reel <dir> [--cwd <repo>]      Diff two local refs",
   "ingest url <https-url> --reel <dir>                       Pin a web page (article, post, docs) for quoting",
+  "ingest data <file|https-url> --reel <dir> [--name x.csv]  Pin a CSV/TSV/JSON dataset; bound charts are checked against it",
+  "ingest image <file|https-url> --reel <dir> [--name x.png] Copy an image into assets/ (metadata stripped)",
 ].join("\n  ");
 
 interface PrView {
@@ -188,13 +191,15 @@ async function ingestGit(base: string, head: string, reelDir: string, cwd: strin
 }
 
 export async function run(argv: readonly string[]): Promise<number> {
-  const { values, positionals } = parse(argv, { reel: { type: "string" }, repo: { type: "string" }, cwd: { type: "string" } });
-  const kind = positional(positionals, 0, "pr|git|url");
+  const { values, positionals } = parse(argv, { reel: { type: "string" }, repo: { type: "string" }, cwd: { type: "string" }, name: { type: "string" }, title: { type: "string" } });
+  const kind = positional(positionals, 0, "pr|git|url|data|image");
   const reelDir = values.reel;
   if (!reelDir) throw new CliError("Missing --reel <dir>");
   if (kind === "pr") await ingestPr(positional(positionals, 1, "url|number"), reelDir, values.repo);
   else if (kind === "git") await ingestGit(positional(positionals, 1, "base"), positional(positionals, 2, "head"), reelDir, values.cwd ?? process.cwd());
   else if (kind === "url") await ingestUrl(positional(positionals, 1, "https-url"), reelDir);
-  else throw new CliError(`Unknown ingest source '${kind}'`, "Use `pr`, `git` or `url`.");
+  else if (kind === "data") await ingestData(positional(positionals, 1, "file|https-url"), reelDir, { ...(values.name ? { name: values.name } : {}), ...(values.title ? { title: values.title } : {}) });
+  else if (kind === "image") await ingestImage(positional(positionals, 1, "file|https-url"), reelDir, values.name ? { name: values.name } : {});
+  else throw new CliError(`Unknown ingest source '${kind}'`, "Use `pr`, `git`, `url`, `data` or `image`.");
   return 0;
 }

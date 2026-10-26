@@ -23,11 +23,11 @@ Units follow the incident's causal chain. Root cause and contributing factors ar
 ## Story arc (4–6 scenes)
 
 1. **Normal operation** — the involved services and the healthy flow.
-2. **Trigger** — the change or event, highlighted; cues carry the timestamps.
+2. **Trigger** — the change or event, highlighted; cues carry the timestamps. A `time-axis` of the whole incident (`at` in minutes from the start, `when` as "14:02 UTC", `spans` for degraded and outage periods) gives viewers the shape before the details.
 3. **Propagation** — `warning`/`removed` tones spreading along edges; `disconnect` for broken paths.
-4. **Detection & mitigation** — what alerted, what was done, when it recovered.
+4. **Detection & mitigation** — what alerted, what was done, when it recovered; impact as `stat`s (duration, error rate, requests lost), or a `chart` bound to an exported metrics CSV (`ingest data`).
 5. **Root cause** — focus on the code/config with a code-block.
-6. **Action items** — `added`-toned components or labels for each fix, with owners only if the author approves names.
+6. **Action items** — a `list` with `style: "checks"` of each fix, with owners only if the author approves names.
 
 ## Kicker
 

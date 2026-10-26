@@ -17,8 +17,13 @@ const SECRET_PATTERNS: readonly { name: string; re: RegExp }[] = [
 ];
 
 
+const SVG_DATA = "data:image/svg+xml;base64,";
+
 function* strings(value: unknown, path: string): Generator<[string, string]> {
-  if (typeof value === "string") yield [path, value];
+  // Raster images are pixels; an SVG is text and is scanned like any other text.
+  if (typeof value === "string" && path.endsWith(".dataUri")) {
+    if (value.startsWith(SVG_DATA)) yield [path, Buffer.from(value.slice(SVG_DATA.length), "base64").toString("utf8")];
+  } else if (typeof value === "string") yield [path, value];
   else if (Array.isArray(value)) for (const [i, v] of value.entries()) yield* strings(v, `${path}[${i}]`);
   else if (value && typeof value === "object") for (const [k, v] of Object.entries(value)) yield* strings(v, path ? `${path}.${k}` : k);
 }

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { parseDocument } from "htmlparser2";
 import type { AnyNode, Element } from "domhandler";
+import { fetchBytes } from "./fetch";
 import { CliError } from "./reel-files";
 
 /**
@@ -158,39 +159,17 @@ export function snapshotSlug(url: string): string {
 export const sha256 = (s: string) => createHash("sha256").update(s, "utf8").digest("hex");
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const TIMEOUT_MS = 30_000;
 const TEXTUAL = /^(text\/html|application\/xhtml\+xml|text\/plain|text\/markdown)/;
 
 /** Fetch a public https page as text: size- and time-limited, https end to end. */
 export async function fetchPage(url: string): Promise<{ finalUrl: string; body: string; contentType: string }> {
   if (!/^https:\/\//i.test(url)) throw new CliError("Only https:// URLs can be pinned");
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: { "user-agent": "mutoscope (+https://github.com/voidforall/mutoscope)", accept: "text/html,text/plain;q=0.9,*/*;q=0.1" },
-    });
-  } catch (e) {
-    throw new CliError(`Could not fetch ${url}: ${(e as Error).message}`);
-  }
-  if (!res.ok) throw new CliError(`Fetching ${url} returned HTTP ${res.status}`);
-  if (!res.url.startsWith("https://")) throw new CliError(`${url} redirected to a non-https address (${res.url})`);
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!TEXTUAL.test(contentType)) throw new CliError(`${url} is ${contentType || "an unknown type"}, not a text page`, "Download PDFs or other files and pass their text to the agent instead.");
-  const reader = res.body?.getReader();
-  if (!reader) throw new CliError(`${url} returned no body`);
-  const chunks: Uint8Array[] = [];
-  let size = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.length;
-    if (size > MAX_BYTES) {
-      await reader.cancel();
-      throw new CliError(`${url} is larger than ${MAX_BYTES / 1024 / 1024} MB`);
-    }
-    chunks.push(value);
-  }
-  return { finalUrl: res.url, body: Buffer.concat(chunks).toString("utf8"), contentType };
+  const page = await fetchBytes(url, {
+    maxBytes: MAX_BYTES,
+    accept: "text/html,text/plain;q=0.9,*/*;q=0.1",
+    allow: TEXTUAL,
+    what: "a text page",
+    hint: "Download PDFs or other files and pass their text to the agent instead.",
+  });
+  return { finalUrl: page.finalUrl, body: page.bytes.toString("utf8"), contentType: page.contentType };
 }

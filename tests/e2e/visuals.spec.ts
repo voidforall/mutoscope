@@ -76,6 +76,10 @@ test.beforeAll(async () => {
     scene("stats-table", [...stats, table], [], { backdrop: "grid" }),
     scene("axis", [axis], [], { backdrop: "plain" }),
     scene("chart", [{ id: "ch", type: "chart", kind: "column", title: "Users", unit: "k", categories: ["2021", "2022", "2023"], series: [{ name: "Users", values: [12, 30, 47] }], highlight: ["2023"], layout: "left" }, { id: "ln", type: "chart", kind: "line", categories: ["a", "b", "c"], series: [{ name: "x", values: [1, 3, 2] }, { name: "y", values: [2, 1, 3] }], layout: "right" }], [{ action: "appear", atMs: 1000, target: "ch", durationMs: 2000 }]),
+    scene("list", [
+      { id: "steps", type: "list", title: "Steps", style: "numbered", items: [{ text: "Install the CLI", detail: "npx skills add voidforall/mutoscope" }, { text: "Ingest a source" }, { text: "Write the storyboard and validate it", detail: "zero warnings before you look" }, { text: "Publish" }], layout: "left" },
+      { id: "pros", type: "list", style: "checks", items: [{ text: "Checked against the source" }, { text: "Hotlinks images", mark: "cross" }, { text: "Plays offline" }], layout: { col: 7, row: 2, colSpan: 6, rowSpan: 4 } },
+    ]),
     scene("image", [{ id: "shot", type: "image", src: "assets/player.png", alt: "The mutoscope player", caption: "The player", callouts: [{ x: 0.02, y: 0.12, w: 0.7, h: 0.72, label: "Stage" }, { x: 0.78, y: 0.2, label: "Side panel" }], layout: "left-two-thirds" }]),
   ];
   await writeFile(join(reel, "scenes.json"), JSON.stringify({ scenes }));
@@ -193,6 +197,24 @@ test("charts grow from the baseline and expose their data in Inspect", async ({ 
   await expect(p.locator('[data-entity="ln"] .chart-line')).toHaveCount(2);
   await expect(p.locator(".inspect-data tbody tr")).toHaveCount(3);
   await expect(p.locator(".inspect-data tbody tr").last()).toHaveText(/2023\s*47k/);
+});
+
+test("lists keep their items inside the box and mark pros and cons", async ({ page: p }) => {
+  const errors = await open(p, "?scene=list&t=9000");
+  for (const id of ["steps", "pros"]) {
+    const inside = await p.locator(`[data-entity="${id}"]`).evaluate((node) => {
+      const box = node.getBoundingClientRect();
+      return [...node.querySelectorAll(".list-text, .list-detail, .list-title")].every((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top >= box.top - 1 && r.bottom <= box.bottom + 1 && r.right <= box.right + 1;
+      });
+    });
+    expect(inside, id).toBe(true);
+  }
+  await expect(p.locator('[data-entity="steps"] .list-marker.is-number')).toHaveText(["1", "2", "3", "4"]);
+  await expect(p.locator('[data-entity="pros"] .list-marker.is-check')).toHaveCount(2);
+  await expect(p.locator('[data-entity="pros"] .list-marker.is-cross')).toHaveCount(1);
+  expect(errors).toEqual([]);
 });
 
 for (const theme of ["light", "dark"] as const) {

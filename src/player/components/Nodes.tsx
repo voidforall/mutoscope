@@ -3,6 +3,7 @@ import { NodeFrame, type NodeProps } from "./NodeFrame";
 import { ChartNode } from "./visuals/ChartNode";
 import { HeadlineNode, RevealText, StatNode } from "./visuals/TextNodes";
 import { ImageNode } from "./visuals/ImageNode";
+import { ListNode } from "./visuals/ListNode";
 import { TableNode } from "./visuals/TableNode";
 import { TimeAxisNode } from "./visuals/TimeAxisNode";
 
@@ -102,5 +103,7 @@ export function EntityNode(props: NodeProps) {
       return <ImageNode {...props} entity={entity} />;
     case "table":
       return <TableNode {...props} entity={entity} />;
+    case "list":
+      return <ListNode {...props} entity={entity} />;
   }
 }

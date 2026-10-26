@@ -57,10 +57,23 @@ Not every scene is a diagram. Choose the form that carries the point: a sentence
 | `time-axis` | `events` (1–12 × `{ at, label ≤ 40, when?, detail? ≤ 60, tone? }`), `layout` | `title`, `spans` (≤ 6 eras `{ from, to, label, tone? }`), `min`/`max` | history, how something evolved, an incident timeline; `at` is any increasing number (a year, a day, a version) and `when` is how it is printed |
 | `image` | `src` (`assets/…` png/jpg/webp/gif/svg), `alt` (≤ 200), `layout` | `fit` contain/cover, `caption` (≤ 140), `credit` (≤ 80), `callouts` (≤ 6 × `{ x, y, label, w?, h? }`, fractions of the image) | screenshots, figures from a paper, photos, product tours |
 | `table` | `columns` (≤ 6), `rows` (≤ 10, each cell ≤ 40 chars), `layout` | `title`, `highlightRows` (0-based), `align` (per column start/center/end) | a few options against a few attributes; numbers align `end` |
+| `list` | `items` (1–8 × `{ text ≤ 100, detail? ≤ 120, mark?, tone? }`), `layout` | `title`, `style` bullets/numbered/checks; per item `mark` check/cross/dot/none | steps, key points, prerequisites, pros (`check`) and cons (`cross`), open questions |
 
-Images live in the reel's `assets/` folder (≤ 5 MB each, 20 MB in all) and are embedded into the page, so nothing loads from the network. Put only images you may publish there: screenshots you took, figures with a `credit`, or files the user gave you. Never hotlink or invent one. A callout `{ "x": 0.7, "y": 0.2, "label": "Search" }` points at a spot; add `w`/`h` to outline a region. With `fit: "cover"` the picture is cropped, and `validate` warns when that hides a callout.
+Images live in the reel's `assets/` folder (≤ 5 MB each, 20 MB in all) and are embedded into the page, so nothing loads from the network. Put only images you may publish there: screenshots you took, figures with a `credit`, or files the user gave you. Never hotlink or invent one. `mutoscope ingest image <file-or-url> --reel <dir>` copies one in (metadata such as GPS location removed) and remembers a download's origin; `validate` then asks for its `credit`. A callout `{ "x": 0.7, "y": 0.2, "label": "Search" }` points at a spot; add `w`/`h` to outline a region. With `fit: "cover"` the picture is cropped, and `validate` warns when that hides a callout.
 
 **Builds.** Entities with parts build them in during their `appear`: `headline`/`label` with `reveal: "words"` or `"typewriter"`, a `stat` counting up, chart bars growing one after another and lines drawing left to right, time-axis events arriving as the line sweeps past, table rows sliding in, image callouts one by one. Without `durationMs` an appear lasts as long as the content needs (about 0.2 s a word, 1.6 s for a stat, 1.2 s + 0.15 s a bar). Set `durationMs` to pace it against the narration. `validate` warns when a build is still running at the scene's end.
+
+**Numbers from data.** A `chart` or `stat` can name where its numbers come from, and `validate` recomputes them from a dataset pinned with `mutoscope ingest data`:
+
+```json
+{ "type": "chart", "kind": "column", "categories": ["2023", "2024"],
+  "series": [{ "name": "Users (k)", "values": [4.6, 5.6], "column": "users" }],
+  "data": { "file": "users.csv", "category": "year", "aggregate": "sum", "where": { "plan": "paid" }, "scale": 0.001 } }
+{ "type": "stat", "value": 1500, "label": "EU users in 2024",
+  "data": { "file": "users.csv", "column": "users", "where": { "year": "2024", "region": "EU" } } }
+```
+
+`category` is the column whose values are the chart's `categories`; each series names its `column`. Rows that share a category combine by `aggregate` (`none` requires exactly one row; `sum`, `mean`, `min`, `max`, `count`). `where` keeps rows whose columns equal the given strings; `scale` multiplies the data before comparing. Shown values may be rounded, but must round to what the data gives. Once a reel pins a dataset, `validate` warns about charts and stats that are not bound.
 
 **Backdrop.** A scene's `backdrop` is `dots` (default), `plain`, `grid` (graph paper, good behind charts) or `spotlight` (a soft glow, good for title cards).
 
@@ -109,7 +122,7 @@ Visibility rule: an entity whose first visibility action is `appear`/`connect` (
 
 ## Source refs
 
-`{ "kind": "code", "path": "repo/relative.ts", "startLine": 10, "endLine": 20, "revision": "head" }` — `revision` is `head` (default), `base` (needs `baseSha`) or a SHA. Links resolve to the pinned commit on GitHub. `{ "kind": "url", "url": "https://…#section", "title": "…", "quote": "verbatim words" }` for web pages (https only). Pin pages with `mutoscope ingest url`. `validate` then checks that the `#section` anchor exists and that `quote` appears word for word in the snapshot ("…" joins separate passages). Evidence claims citing a pinned page should carry a quote.
+`{ "kind": "code", "path": "repo/relative.ts", "startLine": 10, "endLine": 20, "revision": "head" }` — `revision` is `head` (default), `base` (needs `baseSha`) or a SHA. Links resolve to the pinned commit on GitHub. `{ "kind": "url", "url": "https://…#section", "title": "…", "quote": "verbatim words" }` for web pages (https only). `{ "kind": "data", "file": "users.csv", "columns": ["users"], "note": "sum per year" }` for a pinned dataset (shown with a link to where it was downloaded from). Pin pages with `mutoscope ingest url`. `validate` then checks that the `#section` anchor exists and that `quote` appears word for word in the snapshot ("…" joins separate passages). Evidence claims citing a pinned page should carry a quote.
 
 ## Layout patterns that read well
 

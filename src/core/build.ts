@@ -18,6 +18,7 @@ export function buildsIn(e: Entity): boolean {
     case "chart":
     case "time-axis":
     case "table":
+    case "list":
       return true;
     case "image":
       return e.callouts.length > 0;
@@ -45,6 +46,8 @@ export function buildDurationMs(e: Entity): number {
       return bounded(800 + 350 * e.events.length);
     case "table":
       return bounded(500 + 220 * e.rows.length);
+    case "list":
+      return bounded(400 + 450 * e.items.length);
     case "image":
       return bounded(600 + 500 * e.callouts.length);
     default:

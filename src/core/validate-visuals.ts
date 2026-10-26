@@ -1,10 +1,10 @@
-import type { Asset, Entity, Scene } from "../schema";
+import type { Asset, Entity, PinnedMedia, Scene } from "../schema";
 import { buildsIn } from "./build";
 import { chartLayout } from "./chart-layout";
 import { gridToRect } from "./geometry";
 import { timeAxisLayout } from "./time-axis-layout";
 import { actionDuration } from "./timeline";
-import { calloutPoint, HEADLINE_FONT_READABLE, headlineFont, imageRect, STAT_FONT_READABLE, statFit, tableLayout } from "./visual-fit";
+import { calloutPoint, HEADLINE_FONT_READABLE, headlineFont, imageRect, LIST, listScale, STAT_FONT_READABLE, statFit, tableLayout } from "./visual-fit";
 
 interface Issue {
   readonly path: string;
@@ -55,6 +55,11 @@ function entityIssues(e: Entity, assets: Readonly<Record<string, Asset>>): { err
       if (l.overflowY) warnings.push(`table '${e.id}' has more rows than fit; give it more rows or split it`);
       break;
     }
+    case "list": {
+      const scale = listScale(e, box);
+      if (scale < LIST.readableScale) warnings.push(`list '${e.id}' shrinks to ${px(LIST.text * scale)} text to fit its box; give it more room or fewer, shorter items`);
+      break;
+    }
     case "image": {
       const asset = assets[e.src];
       if (!asset) {
@@ -84,9 +89,13 @@ function unfinishedBuilds(scene: Scene): string[] {
 }
 
 /** Checks for headlines, stats, charts, time axes, tables and images. */
-export function findVisualIssues(scene: Scene, p: string, assets: Readonly<Record<string, Asset>>): { errors: Issue[]; warnings: Issue[] } {
+export function findVisualIssues(scene: Scene, p: string, assets: Readonly<Record<string, Asset>>, media: readonly PinnedMedia[] = []): { errors: Issue[]; warnings: Issue[] } {
   const errors: Issue[] = [];
   const warnings: Issue[] = [];
+  for (const e of scene.entities) {
+    const fetched = e.type === "image" && !e.credit ? media.find((m) => m.src === e.src) : undefined;
+    if (fetched) warnings.push({ path: `${p}.entities`, message: `image '${e.id}' was fetched from ${fetched.source}; credit it ("credit": "…")` });
+  }
   scene.entities.forEach((e, i) => {
     const r = entityIssues(e, assets);
     errors.push(...r.errors.map((message) => ({ path: `${p}.entities[${i}]`, message })));

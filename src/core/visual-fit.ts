@@ -1,4 +1,4 @@
-import type { Asset, HeadlineEntity, ImageEntity, StatEntity, TableEntity } from "../schema";
+import type { Asset, HeadlineEntity, ImageEntity, ListEntity, StatEntity, TableEntity } from "../schema";
 import { statText } from "./build";
 import { INTER_BOLD, INTER_REGULAR, INTER_SEMIBOLD } from "./font-metrics";
 import type { Rect } from "./geometry";
@@ -96,4 +96,23 @@ export function calloutPoint(c: { readonly x: number; readonly y: number; readon
   const y = region ? region.y : image.y + c.y * image.h;
   const visible = x >= frame.x && x <= frame.x + frame.w && y >= frame.y && y <= frame.y + frame.h;
   return { x, y, ...(region ? { region } : {}), visible };
+}
+
+export const LIST = { pad: 20, title: 34, text: 24, textLineEm: 1.3, detail: 18, detailLineEm: 1.35, detailGap: 4, itemGap: 16, marker: 44, minScale: 0.7, readableScale: 0.8 } as const;
+
+/** The scale (≤ 1) at which every item wraps inside the box; lists shrink as a whole so items stay alike. */
+export function listScale(e: Pick<ListEntity, "title" | "items">, box: Pick<Rect, "w" | "h">): number {
+  const height = (scale: number) => {
+    const w = box.w - 2 * LIST.pad - LIST.marker * scale;
+    const items = e.items.map((it) => {
+      const text = wrappedLines(it.text, LIST.text * scale, w, { metrics: INTER_SEMIBOLD }) * LIST.text * scale * LIST.textLineEm;
+      const detail = it.detail ? LIST.detailGap + wrappedLines(it.detail, LIST.detail * scale, w, { metrics: INTER_REGULAR }) * LIST.detail * scale * LIST.detailLineEm : 0;
+      return text + detail;
+    });
+    return 2 * LIST.pad + (e.title ? LIST.title : 0) + items.reduce((a, b) => a + b, 0) + (e.items.length - 1) * LIST.itemGap * scale;
+  };
+  for (let scale = 1; scale > LIST.minScale; scale -= 0.02) {
+    if (height(scale) <= box.h) return scale;
+  }
+  return LIST.minScale;
 }

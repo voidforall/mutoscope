@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DATA_FILE } from "./source-ref";
 import { EntityBase, Layout, Reveal, Tone } from "./stage";
 
 /**
@@ -8,6 +9,20 @@ import { EntityBase, Layout, Reveal, Tone } from "./stage";
  */
 
 const finite = z.number().refine(Number.isFinite, "must be a finite number");
+
+/** How rows that share a category (or match a stat's filter) combine into one number. `none` requires exactly one row. */
+export const Aggregate = z.enum(["none", "sum", "mean", "min", "max", "count"]);
+export type Aggregate = z.infer<typeof Aggregate>;
+
+const dataBinding = {
+  /** A dataset pinned with `mutoscope ingest data`. */
+  file: z.string().regex(DATA_FILE),
+  aggregate: Aggregate.default("none"),
+  /** Keep only rows whose columns equal these values, e.g. { "region": "EU" }. */
+  where: z.record(z.string().min(1), z.string()).default({}),
+  /** Multiply the data by this before comparing, e.g. 0.001 to show thousands. */
+  scale: z.number().positive().default(1),
+};
 
 /** Display type: a title card, a thesis, a chapter break. Shrinks to fit its box. */
 export const HeadlineEntity = z.object({
@@ -36,6 +51,8 @@ export const StatEntity = z.object({
   /** A short comparison under the label, such as "down from 1.2 s". */
   note: z.string().trim().max(60).optional(),
   countUp: z.boolean().default(true),
+  /** Where the number comes from; validate recomputes it from the pinned dataset. `column` may be omitted for `count`. */
+  data: z.object({ ...dataBinding, column: z.string().min(1).optional() }).optional(),
   layout: Layout,
 });
 
@@ -43,6 +60,8 @@ export const ChartSeries = z.object({
   name: z.string().trim().min(1).max(30),
   values: z.array(finite).min(1).max(16),
   tone: Tone.optional(),
+  /** With chart `data`: the dataset column this series plots. */
+  column: z.string().min(1).optional(),
 });
 
 export const ChartEntity = z
@@ -62,9 +81,16 @@ export const ChartEntity = z
     /** Categories to emphasise; the rest are muted. */
     highlight: z.array(z.string()).default([]),
     valueLabels: z.boolean().default(true),
+    /** Where the numbers come from: `category` names the column holding the categories; each series names its `column`. */
+    data: z.object({ ...dataBinding, category: z.string().min(1) }).optional(),
     layout: Layout,
   })
   .superRefine((c, ctx) => {
+    if (c.data && c.data.aggregate !== "count") {
+      c.series.forEach((s, i) => {
+        if (!s.column) ctx.addIssue({ code: "custom", path: ["series", i, "column"], message: "name the dataset column this series plots" });
+      });
+    }
     c.series.forEach((s, i) => {
       if (s.values.length !== c.categories.length) {
         ctx.addIssue({ code: "custom", path: ["series", i, "values"], message: `has ${s.values.length} values for ${c.categories.length} categories` });
@@ -160,7 +186,26 @@ export const TableEntity = z
     }
   });
 
+export const ListItem = z.object({
+  text: z.string().trim().min(1).max(100),
+  detail: z.string().trim().max(120).optional(),
+  /** Overrides the list's marker for this item: a tick for a pro, a cross for a con. */
+  mark: z.enum(["check", "cross", "dot", "none"]).optional(),
+  tone: Tone.optional(),
+});
+
+/** Steps, key points, pros and cons. Items build in one by one. */
+export const ListEntity = z.object({
+  ...EntityBase,
+  type: z.literal("list"),
+  title: z.string().trim().max(80).optional(),
+  style: z.enum(["bullets", "numbered", "checks"]).default("bullets"),
+  items: z.array(ListItem).min(1).max(8),
+  layout: Layout,
+});
+
 export type HeadlineEntity = z.infer<typeof HeadlineEntity>;
+export type ListEntity = z.infer<typeof ListEntity>;
 export type StatEntity = z.infer<typeof StatEntity>;
 export type ChartEntity = z.infer<typeof ChartEntity>;
 export type TimeAxisEntity = z.infer<typeof TimeAxisEntity>;

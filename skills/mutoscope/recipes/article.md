@@ -36,10 +36,10 @@ Evidence discipline for writing:
 
 ## Story arc (4–7 scenes)
 
-1. **The question or headline.** What the piece is about, in one stage: the problem, the event or the claim, and why it matters. Often a `quote` of the author's own framing.
+1. **The question or headline.** What the piece is about, in one stage: the problem, the event or the claim, and why it matters. A `headline` title card (`eyebrow` with site and date), or a `quote` of the author's own framing.
 2. **How it works, or what happened** (1–3 scenes). Follow the piece's own order. Show the moving parts as components and edges, and quote formats, logs or protocol lines verbatim in `code-block`s with `lineNumbers: false`.
-3. **The evidence.** The results or facts that carry the argument, as attributed numbers (each with a quoted ref), before → after comparisons, or a small table of labelled components.
-4. **Limits and open questions.** What the author says doesn't work, what the evidence doesn't cover, and notable counterpoints, each tagged clearly.
+3. **The evidence.** The results or facts that carry the argument: `stat`s for the headline numbers, a `chart` redrawn from numbers the piece gives, a `table`, or the piece's own figure as an `image` (via `ingest image`, credited). Every number carries a quoted ref.
+4. **Limits and open questions.** What the author says doesn't work, what the evidence doesn't cover, and notable counterpoints, as a `list` with each item tagged clearly.
 5. **Takeaway.** The author's conclusion in their words (a `quote` entity), and optionally one sentence of yours marked as inference.
 
 Use the `quote` entity for the one or two lines that carry the piece. A reel made only of quotes is a slideshow, so draw the ideas.

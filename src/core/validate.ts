@@ -246,7 +246,7 @@ export function findMarkdownInStageText(scene: Scene, p: string): Issue[] {
 
 function checkScene(scene: Scene, index: number, manifest: Manifest, assets: Readonly<Record<string, Asset>>): { errors: Issue[]; warnings: Issue[] } {
   const p = `scenes[${index}]`;
-  const visuals = findVisualIssues(scene, p, assets);
+  const visuals = findVisualIssues(scene, p, assets, manifest.media);
   const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p), ...visuals.errors];
   const refIssues = [
     ...scene.entities.flatMap((e, i) => checkRefs(e.sourceRefs, manifest, `${p}.entities[${i}].sourceRefs`)),

@@ -1,12 +1,33 @@
 import { formatValue } from "../../../core";
-import type { Entity } from "../../../schema";
+import type { ChartEntity, Entity, StatEntity } from "../../../schema";
+
+/** "users.csv · sum of users by year, where region = EU" */
+function provenance(e: ChartEntity | StatEntity): string | undefined {
+  if (!e.data) return undefined;
+  const d = e.data;
+  const what = e.type === "chart" ? e.series.map((s) => s.column).filter(Boolean).join(", ") : (e.data?.column ?? "rows");
+  const how = d.aggregate === "none" ? what : d.aggregate === "count" ? "count of rows" : `${d.aggregate} of ${what}`;
+  const by = e.type === "chart" ? ` by ${e.data.category}` : "";
+  const where = Object.entries(d.where).map(([k, v]) => `${k} = ${v}`).join(", ");
+  return `${d.file} · ${how}${by}${where ? `, where ${where}` : ""}${d.scale !== 1 ? ` (× ${d.scale})` : ""}`;
+}
 
 /** The numbers and events behind a visual, as text: exact values and something a screen reader can read. */
 export function EntityData({ entity }: { readonly entity: Entity }) {
-  if (entity.type === "chart") {
+  if (entity.type === "stat" && entity.data) {
     return (
       <section className="panel-section">
         <h3 className="section-label">Data</h3>
+        <p className="mono-sub">{provenance(entity)}</p>
+      </section>
+    );
+  }
+  if (entity.type === "chart") {
+    const from = provenance(entity);
+    return (
+      <section className="panel-section">
+        <h3 className="section-label">Data</h3>
+        {from && <p className="mono-sub">{from}</p>}
         <table className="inspect-data">
           <thead>
             <tr>

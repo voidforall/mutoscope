@@ -22,11 +22,11 @@ Units: the definition, the core mechanism, the invariant that makes it correct, 
 
 ## Story arc (4–6 scenes)
 
-1. **The problem** — what goes wrong without the idea (`removed`/`warning` tones).
+1. **The problem** — what goes wrong without the idea (`removed`/`warning` tones). Open with a `headline` title card if the reel is longer than three scenes.
 2. **The mechanism** — the moving parts, introduced one cue at a time.
 3. **Worked example** — concrete values in `sublabel`s or `label`s, stepped with `highlight`/`move`/`connect`.
 4. **Why it works** — the invariant, stated in a `label` and shown holding.
-5. **Limits** — trade-off or failure mode; a comparison with an alternative if the user asked.
+5. **Limits** — trade-off or failure mode as a `list`; a comparison with an alternative (a `table`, or a `chart` if there are numbers) if the user asked.
 
 Prefer concrete names and numbers over abstractions on stage; put the abstraction in the narration.
 

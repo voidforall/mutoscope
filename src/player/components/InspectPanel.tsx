@@ -28,6 +28,7 @@ const TYPE_NAMES: Record<Entity["type"], string> = {
   "time-axis": "Timeline",
   image: "Image",
   table: "Table",
+  list: "List",
 };
 
 export function InspectPanel({ manifest, entity, units, threads, onAsk, onClear, onOpenThreads }: InspectPanelProps) {

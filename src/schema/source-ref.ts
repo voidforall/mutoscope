@@ -40,5 +40,18 @@ export const UrlRef = z.object({
 });
 export type UrlRef = z.infer<typeof UrlRef>;
 
-export const SourceRef = z.discriminatedUnion("kind", [CodeRef, UrlRef]);
+/** A dataset pinned with `mutoscope ingest data`, by its file name in source/data/. */
+export const DATA_FILE = /^[A-Za-z0-9][\w.-]{0,80}\.(?:csv|tsv|json)$/;
+
+export const DataRef = z.object({
+  kind: z.literal("data"),
+  file: z.string().regex(DATA_FILE, "a dataset file name such as sales.csv, as pinned by ingest data"),
+  /** The columns the claim or entity rests on. */
+  columns: z.array(z.string().min(1).max(80)).max(8).optional(),
+  /** How the numbers were derived, e.g. "sum of revenue per year". */
+  note: z.string().trim().max(160).optional(),
+});
+export type DataRef = z.infer<typeof DataRef>;
+
+export const SourceRef = z.discriminatedUnion("kind", [CodeRef, UrlRef, DataRef]);
 export type SourceRef = z.infer<typeof SourceRef>;

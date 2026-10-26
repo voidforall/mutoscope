@@ -5,6 +5,7 @@ import {
   gridToRect,
   headlineFont,
   HEADLINE_FONT,
+  listScale,
   niceDomain,
   partProgress,
   revealWords,
@@ -14,7 +15,7 @@ import {
   timeAxisLayout,
   typewriterCount,
 } from "../../src/core";
-import { ChartEntity, HeadlineEntity, ImageEntity, Scene, StatEntity, TableEntity, TimeAxisEntity } from "../../src/schema";
+import { ChartEntity, HeadlineEntity, ImageEntity, ListEntity, Scene, StatEntity, TableEntity, TimeAxisEntity } from "../../src/schema";
 
 const sceneWith = (entities: object[], timeline: object[] = [], extra: object = {}) =>
   Scene.parse({ id: "s", title: "S", durationMs: 10_000, narration: "n", entities, timeline, ...extra });
@@ -177,6 +178,16 @@ describe("text fitting for display type and tables", () => {
     expect(headlineFont(h, gridToRect(h.layout))).toBe(HEADLINE_FONT.display);
     const long = HeadlineEntity.parse({ ...h, text: "A much longer headline that has to wrap over several lines to fit", layout: { col: 1, row: 1, colSpan: 4, rowSpan: 2 } });
     expect(headlineFont(long, gridToRect(long.layout))).toBeLessThan(HEADLINE_FONT.display);
+  });
+
+  it("shrinks long lists as a whole, and warns when they get small", () => {
+    const items = Array.from({ length: 6 }, (_, i) => ({ text: `Step ${i + 1}: do the thing that this step is about`, detail: "with a detail line under it" }));
+    const roomy = ListEntity.parse({ id: "l", type: "list", items: items.slice(0, 2), layout: "left" });
+    expect(listScale(roomy, gridToRect(roomy.layout))).toBe(1);
+    const tight = ListEntity.parse({ id: "l", type: "list", style: "numbered", items, layout: { col: 1, row: 1, colSpan: 4, rowSpan: 3 } });
+    expect(listScale(tight, gridToRect(tight.layout))).toBeLessThan(0.8);
+    const { warnings } = findVisualIssues(sceneWith([tight]), "p", {});
+    expect(warnings.map((w) => w.message)).toEqual([expect.stringMatching(/list 'l' shrinks to \d+px text/)]);
   });
 
   it("reports tables that overflow their box", () => {

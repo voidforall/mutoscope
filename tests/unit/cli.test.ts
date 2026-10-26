@@ -44,6 +44,18 @@ describe("scanBundle", () => {
     expect(scanBundle(bundle)).toEqual([]);
   });
 
+  it("scans the text of SVG images but not raster pixels", () => {
+    const svg = `<svg viewBox="0 0 1 1"><text>token: ghp_${"a".repeat(36)}</text></svg>`;
+    const withAssets = {
+      ...bundle,
+      assets: {
+        "assets/a.svg": { mime: "image/svg+xml" as const, width: 1, height: 1, dataUri: `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}` },
+        "assets/b.png": { mime: "image/png" as const, width: 1, height: 1, dataUri: `data:image/png;base64,${Buffer.from("AKIAABCDEFGHIJKLMNOP!").toString("base64")}` },
+      },
+    };
+    expect(scanBundle(withAssets).map((f) => f.where)).toEqual(["assets.assets/a.svg.dataUri"]);
+  });
+
   it("blocks secrets anywhere and sensitive file refs", () => {
     const leaked = structuredClone(bundle);
     leaked.scenes[0]!.narration = "token ghp_" + "a".repeat(36);

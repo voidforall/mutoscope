@@ -26,6 +26,7 @@ function shortUrl(url: string): string {
 
 export function refLabel(ref: SourceRef): string {
   if (ref.kind === "url") return ref.title ?? shortUrl(ref.url);
+  if (ref.kind === "data") return ref.columns?.length ? `${ref.file} · ${ref.columns.join(", ")}` : ref.file;
   if (ref.startLine === undefined) return ref.path;
   return ref.endLine && ref.endLine !== ref.startLine
     ? `${ref.path}:${ref.startLine}-${ref.endLine}`
@@ -35,6 +36,7 @@ export function refLabel(ref: SourceRef): string {
 /** A commit-pinned link to the source, or undefined when it cannot be linked. */
 export function refHref(manifest: Manifest, ref: SourceRef): string | undefined {
   if (ref.kind === "url") return ref.url;
+  if (ref.kind === "data") return manifest.datasets.find((d) => d.file === ref.file)?.source;
   const repo = repository(manifest);
   const sha = resolveRevision(manifest, ref);
   if (!repo || !sha) return undefined;

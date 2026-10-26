@@ -3,7 +3,7 @@ import { Id } from "./common";
 import { Claim } from "./analysis";
 import { MAX_QUOTE } from "./source-ref";
 import { Backdrop, EntityBase, Layout, Reveal, type GridBox } from "./stage";
-import { ChartEntity, HeadlineEntity, ImageEntity, StatEntity, TableEntity, TimeAxisEntity } from "./visuals";
+import { ChartEntity, HeadlineEntity, ImageEntity, ListEntity, StatEntity, TableEntity, TimeAxisEntity } from "./visuals";
 
 export * from "./stage";
 export * from "./visuals";
@@ -98,6 +98,7 @@ export const Entity = z.discriminatedUnion("type", [
   TimeAxisEntity,
   ImageEntity,
   TableEntity,
+  ListEntity,
 ]);
 export type Entity = z.infer<typeof Entity>;
 export type CodeBlockEntity = z.infer<typeof CodeBlockEntity>;
