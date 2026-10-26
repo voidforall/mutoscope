@@ -98,6 +98,17 @@ test("synced threads show on the entity and jump to their anchor", async ({ page
   await page.getByRole("tab", { name: /Threads/ }).click();
   await expect(page.locator(".thread-q")).toHaveText("Why is the lock stricter than needed?");
   await expect(page.locator(".ai-pill")).toBeVisible();
+  // Replies are Markdown: rendered, never shown as raw syntax.
+  const reply = page.locator(".reply-body");
+  await expect(reply.locator("strong")).toHaveText("single writer");
+  await expect(reply.locator("code").first()).toHaveText("acquire");
+  await expect(reply.locator("li")).toHaveCount(2);
+  await expect(reply.getByRole("link", { name: "the C++ memory model" })).toHaveAttribute("target", "_blank");
+  await expect(reply).not.toContainText("**");
+  await reply.getByRole("link", { name: "the handoff" }).click();
+  expect(await state(page)).toMatchObject({ sceneId: "happens-before", tMs: 3000 });
+  await page.getByRole("tab", { name: /Threads/ }).click();
+  await page.getByRole("tab", { name: /All/ }).click();
   await page.locator(".anchor-btn").click();
   expect(await state(page)).toMatchObject({ sceneId: "mutex-baseline", tMs: 4200, selectedId: "mutex" });
 });

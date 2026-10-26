@@ -253,7 +253,7 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
             />
           )}
           {tab === "threads" && (
-            <ThreadsPanel manifest={manifest} threads={threads} syncedAt={bundle.threads?.syncedAt} scenes={scenes} sceneId={scene.id} onJump={jumpToThread} />
+            <ThreadsPanel manifest={manifest} threads={threads} syncedAt={bundle.threads?.syncedAt} scenes={scenes} sceneId={scene.id} onJump={jumpToThread} onMoment={jumpToMoment} />
           )}
         </aside>
       </main>

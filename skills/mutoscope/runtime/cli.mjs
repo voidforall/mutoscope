@@ -20878,15 +20878,14 @@ function answerSideEffects(body2, ownRepo) {
   }
   return effects;
 }
+var footerNotice = (approver) => `<sub>AI-assisted answer drafted with mutoscope from the pinned source; reviewed and approved by @${approver}.</sub>`;
 function withAnswerFooter(answer, approver) {
-  return [
-    answer.trim(),
-    "",
-    "---",
-    `<sub>AI-assisted answer drafted with mutoscope from the pinned source; reviewed and approved by @${approver}.</sub>`,
-    "",
-    ANSWER_MARKER
-  ].join("\n");
+  return [answer.trim(), "", "---", footerNotice(approver), "", ANSWER_MARKER].join("\n");
+}
+var ANSWER_FOOTER = /\n+---\n<sub>AI-assisted answer drafted with mutoscope from the pinned source; reviewed and approved by @[A-Za-z0-9-]+\.<\/sub>\s*$/;
+function stripAnswerFooter(body2) {
+  if (!isAgentAnswer(body2)) return body2;
+  return body2.replace(/\r\n?/g, "\n").replace(ANSWER_MARKER, "").trimEnd().replace(ANSWER_FOOTER, "").trim();
 }
 
 // src/cli/lib/document-check.ts
@@ -24058,15 +24057,15 @@ async function repoDiscussionInfo(repo) {
   };
 }
 var AUTHOR = (a) => a?.login ?? "ghost";
-function stripMarker(body2) {
-  return body2.replace(ANSWER_MARKER, "").trim();
+function replyBody(body2) {
+  return isAgentAnswer(body2) ? stripAnswerFooter(body2) : body2.replace(ANSWER_MARKER, "").trim();
 }
 function toThread(d, reelId) {
   const parsed = parseDiscussionBody(d.body);
   if (!parsed.ok || parsed.context.reelId !== reelId) return null;
   const replies = d.comments.nodes.map((c2) => ({
     author: AUTHOR(c2.author),
-    body: stripMarker(c2.body),
+    body: replyBody(c2.body),
     createdAt: c2.createdAt,
     url: c2.url,
     aiAssisted: isAgentAnswer(c2.body)

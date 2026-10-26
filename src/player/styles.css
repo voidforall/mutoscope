@@ -716,7 +716,9 @@ a.ref:hover { border-color: var(--accent); color: var(--accent); }
 }
 .anchor-btn:hover { text-decoration: underline; }
 .reply { margin-top: 12px; padding: 10px 0 0 12px; border-left: 2px solid var(--line-strong); }
-.reply-body { margin: 6px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-2); white-space: pre-wrap; overflow-wrap: anywhere; }
+.reply-body { margin: 6px 0 0; }
+.reply-body .md { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); }
+.reply-body .md strong, .reply-body .md-h { color: var(--ink); }
 .ai-pill { font: 600 10px/1 var(--mono); padding: 3px 6px; border-radius: 5px; color: var(--accent); background: var(--accent-soft); text-transform: uppercase; }
 .ext-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; font-size: 13px; color: var(--ink-2); text-decoration: none; }
 .ext-link:hover { color: var(--accent); }
@@ -768,7 +770,7 @@ a.ref:hover { border-color: var(--accent); color: var(--accent); }
 .md ul { list-style: disc; }
 .md ol { list-style: decimal; }
 .md li + li { margin-top: 3px; }
-.md code { font: 12.5px/1.4 var(--mono); padding: 1px 5px; border-radius: 5px; background: var(--code-bg); border: 1px solid var(--line); }
+.md code { font: 12.5px/1.4 var(--mono); padding: 1px 5px; border-radius: 5px; background: var(--code-bg); border: 1px solid var(--line); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .md pre { padding: 10px 12px; border-radius: 9px; background: var(--code-bg); border: 1px solid var(--line); overflow-x: auto; }
 .md pre code { padding: 0; border: none; background: none; font-size: 12.5px; line-height: 1.5; }
 .md a { color: var(--accent); text-underline-offset: 2px; }

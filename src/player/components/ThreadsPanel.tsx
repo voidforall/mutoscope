@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Manifest, Scene, Thread } from "../../schema";
 import { Icon } from "./Icon";
+import { Markdown } from "./Markdown";
 
 interface ThreadsPanelProps {
   readonly manifest: Manifest;
@@ -9,6 +10,8 @@ interface ThreadsPanelProps {
   readonly scenes: readonly Scene[];
   readonly sceneId: string;
   readonly onJump: (thread: Thread) => void;
+  /** Called with a `?scene=…` link clicked inside a reply. */
+  readonly onMoment: (href: string) => void;
 }
 
 const fmtDate = (iso: string) => {
@@ -16,7 +19,7 @@ const fmtDate = (iso: string) => {
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 };
 
-export function ThreadsPanel({ manifest, threads, syncedAt, scenes, sceneId, onJump }: ThreadsPanelProps) {
+export function ThreadsPanel({ manifest, threads, syncedAt, scenes, sceneId, onJump, onMoment }: ThreadsPanelProps) {
   const [scope, setScope] = useState<"scene" | "all">("scene");
   const visible = scope === "scene" ? threads.filter((t) => t.context.sceneId === sceneId) : threads;
   const collab = manifest.collaboration;
@@ -57,7 +60,9 @@ export function ThreadsPanel({ manifest, threads, syncedAt, scenes, sceneId, onJ
                       <span>@{r.author}</span>
                       {r.aiAssisted && <span className="ai-pill">AI-assisted</span>}
                     </div>
-                    <p className="reply-body">{r.body}</p>
+                    <div className="reply-body">
+                      <Markdown source={r.body} onMoment={onMoment} />
+                    </div>
                   </div>
                 ))}
                 {t.url && (

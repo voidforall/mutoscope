@@ -8,6 +8,7 @@ import {
   isAgentAnswer,
   newDiscussionUrl,
   parseDiscussionBody,
+  stripAnswerFooter,
   withAnswerFooter,
 } from "../../src/core";
 import { Manifest, Scene } from "../../src/schema";
@@ -59,6 +60,12 @@ describe("discussion codec", () => {
     expect(body).toContain("AI-assisted");
     expect(body).toContain("@alice");
     expect(body.endsWith(ANSWER_MARKER)).toBe(true);
+  });
+
+  it("strips its own footer and marker back to the answer, leaving other text alone", () => {
+    expect(stripAnswerFooter(withAnswerFooter("Because **this**.\n\n---\nA rule above.", "alice"))).toBe("Because **this**.\n\n---\nA rule above.");
+    expect(stripAnswerFooter("Plain reply.\n\n---\n<sub>my own small print</sub>")).toBe("Plain reply.\n\n---\n<sub>my own small print</sub>");
+    expect(stripAnswerFooter(withAnswerFooter("Because.", "alice").replace(/\n/g, "\r\n"))).toBe("Because.");
   });
 });
 

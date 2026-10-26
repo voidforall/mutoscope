@@ -10,8 +10,22 @@
       "author": "bob",
       "createdAt": "2026-10-24T09:00:00Z",
       "status": "answered",
-      "context": { "reelId": "spsc-evolution", "reelVersion": 1, "sceneId": "mutex-baseline", "timestampMs": 4200, "entityId": "mutex", "sourceRefs": [] },
-      "replies": [{ "author": "alice", "body": "Each cursor has a single writer, so ordering only needs acquire/release.", "createdAt": "2026-10-24T09:30:00Z", "aiAssisted": true }]
+      "context": {
+        "reelId": "spsc-evolution",
+        "reelVersion": 1,
+        "sceneId": "mutex-baseline",
+        "timestampMs": 4200,
+        "entityId": "mutex",
+        "sourceRefs": []
+      },
+      "replies": [
+        {
+          "author": "alice",
+          "body": "Each cursor has a **single writer**, so ordering only needs `acquire`/`release`.\n\n- See [the C++ memory model](https://en.cppreference.com/w/cpp/atomic/memory_order).\n- Rewatch [the handoff](?scene=happens-before&t=3000).",
+          "createdAt": "2026-10-24T09:30:00Z",
+          "aiAssisted": true
+        }
+      ]
     }
   ]
 }

@@ -118,14 +118,20 @@ export function answerSideEffects(body: string, ownRepo: string): string[] {
   return effects;
 }
 
+const footerNotice = (approver: string) => `<sub>AI-assisted answer drafted with mutoscope from the pinned source; reviewed and approved by @${approver}.</sub>`;
+
 /** Every published answer carries a visible AI-assistance notice and a machine marker. */
 export function withAnswerFooter(answer: string, approver: string): string {
-  return [
-    answer.trim(),
-    "",
-    "---",
-    `<sub>AI-assisted answer drafted with mutoscope from the pinned source; reviewed and approved by @${approver}.</sub>`,
-    "",
-    ANSWER_MARKER,
-  ].join("\n");
+  return [answer.trim(), "", "---", footerNotice(approver), "", ANSWER_MARKER].join("\n");
+}
+
+const ANSWER_FOOTER = /\n+---\n<sub>AI-assisted answer drafted with mutoscope from the pinned source; reviewed and approved by @[A-Za-z0-9-]+\.<\/sub>\s*$/;
+
+/**
+ * The answer as written, without the footer withAnswerFooter added — the
+ * player shows AI assistance as a badge instead. Anything else is untouched.
+ */
+export function stripAnswerFooter(body: string): string {
+  if (!isAgentAnswer(body)) return body;
+  return body.replace(/\r\n?/g, "\n").replace(ANSWER_MARKER, "").trimEnd().replace(ANSWER_FOOTER, "").trim();
 }

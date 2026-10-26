@@ -1,4 +1,4 @@
-import { ANSWER_MARKER, isAgentAnswer, parseDiscussionBody } from "../../core";
+import { ANSWER_MARKER, isAgentAnswer, parseDiscussionBody, stripAnswerFooter } from "../../core";
 import type { Thread, ThreadStatus } from "../../schema";
 import { ghGraphql } from "../../cli/lib/exec";
 import { CliError } from "../../cli/lib/reel-files";
@@ -60,8 +60,8 @@ export async function repoDiscussionInfo(repo: string): Promise<{ id: string; en
 
 const AUTHOR = (a: { login: string } | null) => a?.login ?? "ghost";
 
-function stripMarker(body: string): string {
-  return body.replace(ANSWER_MARKER, "").trim();
+function replyBody(body: string): string {
+  return isAgentAnswer(body) ? stripAnswerFooter(body) : body.replace(ANSWER_MARKER, "").trim();
 }
 
 export function toThread(d: RawDiscussion, reelId: string): DiscussionThread | null {
@@ -69,7 +69,7 @@ export function toThread(d: RawDiscussion, reelId: string): DiscussionThread | n
   if (!parsed.ok || parsed.context.reelId !== reelId) return null;
   const replies = d.comments.nodes.map((c) => ({
     author: AUTHOR(c.author),
-    body: stripMarker(c.body),
+    body: replyBody(c.body),
     createdAt: c.createdAt,
     url: c.url,
     aiAssisted: isAgentAnswer(c.body),
