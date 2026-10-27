@@ -30,7 +30,7 @@ export type CodeRef = z.infer<typeof CodeRef>;
 
 export const MAX_QUOTE = 400;
 
-export const UrlRef = z.object({
+export const UrlRef = z.strictObject({
   kind: z.literal("url"),
   /** May end in `#anchor`; for a pinned document, validate checks the anchor exists. */
   url: HttpsUrl,
@@ -43,7 +43,7 @@ export type UrlRef = z.infer<typeof UrlRef>;
 /** A dataset pinned with `mutoscope ingest data`, by its file name in source/data/. */
 export const DATA_FILE = /^[A-Za-z0-9][\w.-]{0,80}\.(?:csv|tsv|json)$/;
 
-export const DataRef = z.object({
+export const DataRef = z.strictObject({
   kind: z.literal("data"),
   file: z.string().regex(DATA_FILE, "a dataset file name such as sales.csv, as pinned by ingest data"),
   /** The columns the claim or entity rests on. */

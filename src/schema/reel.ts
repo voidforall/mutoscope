@@ -7,7 +7,7 @@ import { IMAGE_SRC, Scene } from "./scene";
 export const IMAGE_MIME = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"] as const;
 
 /** An image from the reel's assets/ folder, embedded so the page never touches the network. */
-export const Asset = z.object({
+export const Asset = z.strictObject({
   mime: z.enum(IMAGE_MIME),
   width: z.number().positive(),
   height: z.number().positive(),
@@ -16,7 +16,7 @@ export const Asset = z.object({
 export type Asset = z.infer<typeof Asset>;
 
 /** Everything the player needs, as embedded into index.html. */
-export const ReelBundle = z.object({
+export const ReelBundle = z.strictObject({
   manifest: Manifest,
   scenes: z.array(Scene).min(1),
   analysis: Analysis.optional(),

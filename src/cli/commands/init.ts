@@ -46,9 +46,10 @@ export async function run(argv: readonly string[]): Promise<number> {
     "",
     "Next:",
     `  1. Follow the recipe's Ingest section: ${recipePath}`,
-    `  2. Write ${join(dir, REEL_FILES.analysis)}  — { "units": [...] }`,
-    `  3. Write ${join(dir, REEL_FILES.scenes)}    — { "scenes": [...] }; the first scene is where the reel opens`,
-    `  4. mutoscope validate ${dir}`,
+    `  2. Write ${join(dir, REEL_FILES.analysis)}  — { "units": [...] }, as references/analysis.md describes`,
+    `  3. Write ${join(dir, REEL_FILES.scenes)}    — { "scenes": [...] }, as references/storyboard.md describes; the first scene is where the reel opens`,
+    `  4. mutoscope validate ${dir}   — until it reports no errors and no warnings`,
+    `  5. mutoscope snapshot ${dir}   — and look at every sheet in ${join(dir, "snapshots")}/`,
   );
   return 0;
 }

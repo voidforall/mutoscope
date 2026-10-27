@@ -1,4 +1,4 @@
-import { partProgress, tableLayout } from "../../../core";
+import { easeInOutCubic, partEmphasis, partShown, tableLayout } from "../../../core";
 import type { TableEntity } from "../../../schema";
 import { NodeFrame, type NodeProps } from "../NodeFrame";
 
@@ -11,6 +11,7 @@ export function TableNode(props: NodeProps & { readonly entity: TableEntity }) {
   const highlighted = new Set(entity.highlightRows);
   return (
     <NodeFrame {...props}>
+      <div className="table-scale" style={{ ["--ts" as string]: l.scale.toFixed(3) }}>
       {entity.title && <span className="table-title">{entity.title}</span>}
       <table className="data-table">
         <colgroup>
@@ -29,9 +30,11 @@ export function TableNode(props: NodeProps & { readonly entity: TableEntity }) {
         </thead>
         <tbody>
           {entity.rows.map((row, r) => {
-            const p = partProgress(state.reveal, r, entity.rows.length);
+            const p = easeInOutCubic(partShown(state, r, entity.rows.length));
+            const em = partEmphasis(state.items, r);
+            const hl = highlighted.has(r) || em.highlight > 0.5;
             return (
-              <tr key={r} className={highlighted.has(r) ? "is-hl" : undefined} style={{ opacity: p, transform: `translateY(${((1 - p) * 10).toFixed(2)}px)` }}>
+              <tr key={r} className={hl ? "is-hl" : undefined} style={{ opacity: p * (1 - 0.6 * em.dim), transform: `translateY(${((1 - p) * 10).toFixed(2)}px)` }}>
                 {row.map((cell, i) => (
                   <td key={i} className={`align-${align(i)}`}>
                     {cell}
@@ -42,6 +45,7 @@ export function TableNode(props: NodeProps & { readonly entity: TableEntity }) {
           })}
         </tbody>
       </table>
+      </div>
     </NodeFrame>
   );
 }

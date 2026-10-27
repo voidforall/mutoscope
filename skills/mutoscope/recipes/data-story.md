@@ -24,7 +24,7 @@ Pick **one question** and keep every unit in service of it. Units: the measure (
 Evidence discipline for numbers:
 
 - **Bind every chart and stat** to the dataset with `data` (see `references/storyboard.md`, *Numbers from data*). `validate` recomputes each value and rejects anything the data does not support. Rounding is fine (47 for 46.8); the shown number must round to the true one.
-- Pre-aggregated views (a sum per year, a mean per region) use `aggregate` and `where`; scale units with `scale` (0.001 for thousands) and say the unit in `unit` or `suffix`.
+- Long-format data (one row per country and year) plots several lines with a `where` on each series. Pre-aggregated views (a sum per year, a mean per region) use `aggregate` and `where`; scale units with `scale` (0.001 for thousands) and say the unit in `unit` or `suffix`.
 - A **derived** number (growth %, a ratio, a share) can't be bound directly. Put it in a claim citing `{ "kind": "data", "file": "…", "note": "2024 sum ÷ 2023 sum" }`. Make it `evidence` only if both inputs are shown, bound, elsewhere in the reel; otherwise `inference`.
 - Explanations of *why* a number moved are inference unless a pinned source says so.
 

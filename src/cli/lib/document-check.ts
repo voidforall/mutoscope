@@ -10,6 +10,8 @@ interface LoadedSnapshot {
   readonly meta: SnapshotMeta;
   readonly plain: string;
   readonly anchors: ReadonlySet<string>;
+  /** Anchors marked in the snapshot text ({#id}): the ones a reader can actually land on. */
+  readonly visible: readonly string[];
 }
 
 const MAX_LISTED_ANCHORS = 12;
@@ -29,7 +31,8 @@ async function loadSnapshots(reelDir: string, errors: Issue[]): Promise<Map<stri
     if (sha256(md) !== meta.sha256) {
       errors.push({ path: `source/${WEB_DIR}/${f}`, message: "snapshot text was edited after ingest; re-run `mutoscope ingest url` instead of editing it" });
     }
-    const loaded = { meta, plain: plainSnapshot(md), anchors: new Set(meta.anchors) };
+    const visible = [...new Set([...md.matchAll(/\{#([^}]+)\}/g)].map((m) => m[1]!))];
+    const loaded = { meta, plain: plainSnapshot(md), anchors: new Set(meta.anchors), visible };
     byKey.set(documentKey(meta.url), loaded);
     byKey.set(documentKey(meta.finalUrl), loaded);
   }
@@ -58,22 +61,35 @@ function citations(bundle: ReelBundle): Cited[] {
   ];
 }
 
-const commonPrefix = (a: string, b: string) => {
-  let i = 0;
-  while (i < a.length && i < b.length && a[i] === b[i]) i++;
-  return i;
+const bigrams = (s: string) => {
+  const t = s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+  return new Set(Array.from({ length: Math.max(0, t.length - 1) }, (_, i) => t.slice(i, i + 2)));
 };
 
-/** Anchors most like the one asked for; footnote anchors only when a footnote was asked for. */
-function nearestAnchors(anchors: ReadonlySet<string>, wanted: string): string[] {
+/** Dice similarity of two ids: "features" ~ "user-content-features", "results" ~ "S4-results". */
+function similarity(a: string, b: string): number {
+  const x = bigrams(a);
+  const y = bigrams(b);
+  if (x.size + y.size === 0) return 0;
+  let shared = 0;
+  for (const g of x) if (y.has(g)) shared++;
+  return (2 * shared) / (x.size + y.size);
+}
+
+/** Anchors a reader can land on, most like the one asked for; footnote anchors only when a footnote was asked for. */
+function nearestAnchors(snap: LoadedSnapshot, wanted: string): string[] {
   const footnote = (x: string) => /^fn(ref)?[:-]/.test(x);
-  return [...anchors]
+  const pool = snap.visible.length ? snap.visible : [...snap.anchors];
+  return pool
     .filter((x) => footnote(x) === footnote(wanted))
-    .map((x, i) => ({ x, i, score: commonPrefix(x, wanted) }))
+    .map((x, i) => ({ x, i, score: similarity(x, wanted) }))
     .sort((a, b) => b.score - a.score || a.i - b.i)
     .slice(0, MAX_LISTED_ANCHORS)
     .map((a) => a.x);
 }
+
+/** GitHub renders a README's "#features" link onto an element with id "user-content-features"; both resolve on the page. */
+const hasAnchor = (snap: LoadedSnapshot, anchor: string) => snap.anchors.has(anchor) || snap.anchors.has(`user-content-${anchor}`);
 
 function checkQuote(plain: string, quote: string, path: string, what: string): Issue | undefined {
   if (quoteFound(plain, quote)) return undefined;
@@ -104,7 +120,7 @@ export async function checkDocuments(bundle: ReelBundle, reelDir: string): Promi
     let pinnedTarget: string | undefined;
     c.refs.forEach((r, i) => {
       if (r.kind !== "url") return;
-      const p = `${c.path}.refs[${i}]`.replace(".sourceRefs.refs", ".sourceRefs");
+      const p = `${c.path}.refs[${i}]`.replace(/\.(sourceRefs|refs)\.refs\[/, ".$1[");
       const snap = snapshots.get(documentKey(r.url));
       if (!snap) {
         if (r.quote) warnings.push({ path: p, message: `quote can't be checked: ${documentKey(r.url)} is not pinned (run \`mutoscope ingest url\`)` });
@@ -112,8 +128,8 @@ export async function checkDocuments(bundle: ReelBundle, reelDir: string): Promi
       }
       pinnedTarget = documentKey(r.url);
       const anchor = new URL(r.url).hash.slice(1);
-      if (anchor && !snap.anchors.has(decodeURIComponent(anchor))) {
-        errors.push({ path: p, message: `#${anchor} is not an anchor on the pinned page; closest: ${nearestAnchors(snap.anchors, anchor).join(", ")}` });
+      if (anchor && !hasAnchor(snap, decodeURIComponent(anchor))) {
+        errors.push({ path: p, message: `#${anchor} is not an anchor on the pinned page; closest: ${nearestAnchors(snap, decodeURIComponent(anchor)).join(", ")}` });
       }
       if (r.quote) {
         quoted = true;

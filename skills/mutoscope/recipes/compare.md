@@ -30,8 +30,8 @@ Fairness rules: same criteria, same depth and same kind of source for every opti
 
 1. **The decision** — `headline`: the question as the viewer would ask it ("Postgres or DynamoDB for an event log?"), `eyebrow` with the context.
 2. **What matters** — a `list` of the criteria, numbered by importance if the user ranked them.
-3. **The contenders** — one column per option (4 columns each for three options, 6 for two): a `headline` (`size: "lg"`) on rows 1–2 above a `list` on rows 3–8 of strengths (`mark: "check"`) and weaknesses (`mark: "cross"`). Bring the columns in one cue at a time.
-4. **Side by side** — a `table` of options × criteria, or a `bar` chart for a measured criterion (`highlight` the winner on it).
+3. **The contenders** — one column per option (4 columns each for three options, 6 for two): a `headline` (`size: "lg"`) on rows 1–2 above a `list` on rows 3–6 of strengths (`mark: "check"`) and weaknesses (`mark: "cross"`), and a takeaway `label` in `footer`. Bring the columns in one cue at a time, or walk one list item by item (`appear` with `item`).
+4. **Side by side** — a `table` of options × criteria, walked row by row with `highlight` + `item` on each cue, or a `bar` chart for a measured criterion (`highlight` the winner on it).
 5. **Where each one wins** — scenarios as `label`s or a `list`, each naming the option that fits.
 6. **Verdict** — `headline` with the recommendation for the stated context, and a `label` with what would change it.
 

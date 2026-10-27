@@ -1,4 +1,5 @@
 export * from "./common";
+export * from "./icon-names";
 export * from "./source-ref";
 export * from "./manifest";
 export * from "./analysis";

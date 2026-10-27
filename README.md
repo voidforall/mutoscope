@@ -7,7 +7,7 @@ A mutoscope was the 1890s peep-show machine where *the viewer* turned the crank 
 ![A scene from the example reel](docs/media/demo.gif)
 
 - **Recipe-driven.** A recipe says how to turn one kind of source into a reel. Built-ins: `pr`, `codebase-tour`, `article`, `paper`, `data-story`, `concept`, `how-to`, `compare`, `timeline`, `product-tour`, `news-brief`, `incident` — add your own as one markdown file.
-- **More than diagrams.** Scenes mix boxes and arrows with display headlines, counting stats, bar/column/line charts, time axes, annotated images, tables and lists, each building in on cue.
+- **More than diagrams.** Scenes mix boxes and arrows with display headlines, counting stats, bar/column/line/log charts, time axes, annotated images, tables, lists and icons. Any part (a list item, a row, an event, a bar, a callout) can appear or be highlighted on its own cue, the camera can zoom into a detail, and a reel can take a whole look: `studio`, `editorial`, `paper`, `blueprint`, `chalkboard` or `terminal`.
 - **Agent-agnostic.** The skill follows the open [Agent Skills](https://agentskills.io) layout (`SKILL.md` + resources). All deterministic work is a plain CLI, so Claude Code, Codex, Gemini CLI, Cursor or any agent that can run a shell command can drive it.
 - **Data, not code.** Agents write validated JSON (scenes, entities, timeline actions); a fixed renderer draws it. No generated JavaScript ever runs in a reel.
 - **Honest by construction.** Every claim is tagged `evidence` (must cite a source ref) or `inference`. Charts and stats can be bound to a pinned dataset, and `validate` recomputes every number. Code refs are pinned to commit SHAs, and `validate --repo-root` rejects snippets that don't match the pinned file. Web pages are pinned as snapshots (`ingest url`), and `validate` rejects quotes that aren't word for word on the page and `#anchors` that don't exist.
@@ -99,6 +99,7 @@ The session page differs from a published reel in one way: its CSP adds `connect
 | `ingest url <https-url> --reel <dir>` | Snapshot a web page (text, anchors, hash) so quotes can be checked |
 | `ingest data <file\|https-url> --reel <dir>` | Pin a CSV/TSV/JSON dataset and print its columns; bound charts and stats are recomputed from it |
 | `ingest image <file\|https-url> --reel <dir>` | Copy an image into `assets/` (metadata stripped), remembering where a download came from |
+| `unpin <dir> <url\|dataset\|assets/file>` | Remove a pinned page, dataset or image and its files |
 | `validate <dir> [--repo-root <checkout>]` | Schema, cross-references, layout, text fit, pacing, quotes against pinned pages, numbers against pinned datasets, and (with a checkout) source refs + snippet fidelity |
 | `build <dir> [--out <dir>]` / `preview <dir>` | Static site / local server |
 | `snapshot <dir> [--at end\|mid\|both]` | PNG per scene for visual review |

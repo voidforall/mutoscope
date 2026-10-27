@@ -29,6 +29,7 @@ const TYPE_NAMES: Record<Entity["type"], string> = {
   image: "Image",
   table: "Table",
   list: "List",
+  icon: "Icon",
 };
 
 export function InspectPanel({ manifest, entity, units, threads, onAsk, onClear, onOpenThreads }: InspectPanelProps) {

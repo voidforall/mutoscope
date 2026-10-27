@@ -10,6 +10,7 @@ import * as publish from "./commands/publish";
 import * as recipes from "./commands/recipes";
 import * as snapshot from "./commands/snapshot";
 import * as threads from "./commands/threads";
+import * as unpin from "./commands/unpin";
 import * as validate from "./commands/validate";
 import { CliError } from "./lib/reel-files";
 import { c, err, out } from "./lib/output";
@@ -20,6 +21,7 @@ const COMMANDS: Record<string, Command> = {
   recipes: recipes.run,
   init: init.run,
   ingest: ingest.run,
+  unpin: unpin.run,
   validate: validate.run,
   build: build.run,
   preview: preview.run,
@@ -46,6 +48,7 @@ const USAGE = [
   `  ${recipes.help}`,
   `  ${init.help}`,
   `  ${ingest.help}`,
+  `  ${unpin.help}`,
   `  ${validate.help}`,
   `  ${build.help}`,
   `  ${preview.help}`,
@@ -61,7 +64,11 @@ const USAGE = [
   `  ${threads.help}`,
 ].join("\n");
 
+const MIN_NODE = 22;
+
 async function main(argv: readonly string[]): Promise<number> {
+  const major = Number(process.versions.node.split(".")[0]);
+  if (major < MIN_NODE) err(`${c.yellow("warn")} mutoscope is built for Node.js ${MIN_NODE} or newer; this is ${process.version}, so some commands may fail`);
   const [name, ...rest] = argv;
   if (!name || name === "help" || name === "--help" || name === "-h") {
     out(USAGE);

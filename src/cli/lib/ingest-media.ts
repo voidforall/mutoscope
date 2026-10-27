@@ -95,11 +95,12 @@ export async function ingestImage(source: string, reelDir: string, opts: { reado
   await mkdir(join(reelDir, "assets"), { recursive: true });
   await writeFile(join(reelDir, src), bytes);
   const others = manifest.media.filter((m) => m.src !== src);
-  const media = fetched ? [...others, { src, source: fetched.finalUrl, retrievedAt: new Date().toISOString(), sha256: sha256(bytes) }] : others;
+  // The URL as given is the provenance: a redirect target can be a signed, expiring link (GitHub assets, S3).
+  const media = fetched ? [...others, { src, source, retrievedAt: new Date().toISOString(), sha256: sha256(bytes) }] : others;
   await writeManifest(reelDir, { ...manifest, media });
   out(
-    `${c.green("✓")} ${src} — ${Math.round(sniffed.width)}×${Math.round(sniffed.height)} ${sniffed.mime.replace("image/", "").toUpperCase()}, ${(bytes.length / 1024).toFixed(0)} KB${bytes.length < raw.length ? " (metadata removed)" : ""}`,
+    `${c.green("✓")} ${src} — ${Math.round(sniffed.width)}×${Math.round(sniffed.height)} ${sniffed.mime.replace("image/", "").toUpperCase()}, ${(bytes.length / 1024).toFixed(0)} KB, ${bytes.length < raw.length ? "metadata removed" : "no metadata to remove"}`,
     `Use it as { "type": "image", "src": "${src}", "alt": "<what it shows>", … }.`,
-    ...(fetched ? [`It came from ${fetched.finalUrl}: add a "credit" and publish it only if you may (your own, licensed, or clearly fair use).`] : []),
+    ...(fetched ? [`It came from ${source}: add a "credit" and publish it only if you may (your own, licensed, or clearly fair use).`] : []),
   );
 }

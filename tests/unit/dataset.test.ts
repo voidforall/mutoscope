@@ -116,10 +116,24 @@ describe("datasets end to end", () => {
     await ingestData(join(dir, "users.csv"), reel, {});
     await scenes([chart([4600, 5600], { aggregate: "none" }), { id: "s2", type: "stat", value: 1, label: "x", layout: { col: 1, row: 1, colSpan: 4, rowSpan: 3 } }]);
     const r = await validateReelDir(reel);
-    expect(r.errors.map((e) => e.message)).toContain("chart 'c' series 'Users' at '2023': 2 rows match; set an aggregate (sum, mean, min, max or count) or a narrower where");
+    expect(r.errors.map((e) => e.message)).toContain("chart 'c' series 'Users': 2 rows match; set an aggregate (sum, mean, min, max or count) or a narrower where (first at '2023')");
     expect(r.warnings.map((w) => w.message)).toContain(`stat 's2' is not bound to a dataset, so its numbers are unchecked; add "data": { "file": … }`);
     await scenes([chart([1, 2], { category: "yr" })]);
     expect((await validateReelDir(reel)).errors.map((e) => e.message)).toContain("users.csv has no column 'yr' (columns: year, region, users)");
+  });
+
+  it("binds each series of long-format data with its own where, and maps short labels to data values", async () => {
+    await ingestData(join(dir, "users.csv"), reel, {});
+    await scenes([{
+      id: "c",
+      type: "chart",
+      kind: "line",
+      categories: ["'23", "'24"],
+      series: [{ name: "EU", values: [1200, 1500], column: "users", where: { region: "EU" } }, { name: "US", values: [3400, 4100], column: "users", where: { region: "US" } }],
+      data: { file: "users.csv", category: "year", categoryKeys: ["2023", "2024"] },
+      layout: "full",
+    }]);
+    expect((await validateReelDir(reel)).errors).toEqual([]);
   });
 
   it("copies local images into assets without their metadata", async () => {

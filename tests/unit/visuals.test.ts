@@ -5,6 +5,7 @@ import {
   gridToRect,
   headlineFont,
   HEADLINE_FONT,
+  imageRect,
   listScale,
   niceDomain,
   partProgress,
@@ -14,8 +15,12 @@ import {
   tableLayout,
   timeAxisLayout,
   typewriterCount,
+  validateBundle,
 } from "../../src/core";
+import { exampleRaw } from "./fixtures";
 import { ChartEntity, HeadlineEntity, ImageEntity, ListEntity, Scene, StatEntity, TableEntity, TimeAxisEntity } from "../../src/schema";
+
+const exampleBundleWith = (scene: Scene) => ({ ...exampleRaw(), scenes: [scene] });
 
 const sceneWith = (entities: object[], timeline: object[] = [], extra: object = {}) =>
   Scene.parse({ id: "s", title: "S", durationMs: 10_000, narration: "n", entities, timeline, ...extra });
@@ -75,7 +80,7 @@ describe("builds", () => {
       [{ action: "appear", atMs: 1000, target: "h" }],
     );
     expect(sceneStateAt(s, 0).entities.h).toMatchObject({ opacity: 0, reveal: 0 });
-    const mid = sceneStateAt(s, 1300).entities.h!;
+    const mid = sceneStateAt(s, 1500).entities.h!;
     expect(mid.opacity).toBe(1);
     expect(mid.reveal).toBeGreaterThan(0);
     expect(mid.reveal).toBeLessThan(1);
@@ -197,7 +202,8 @@ describe("text fitting for display type and tables", () => {
   it("shrinks long lists as a whole, and warns when they get small", () => {
     const items = Array.from({ length: 6 }, (_, i) => ({ text: `Step ${i + 1}: do the thing that this step is about`, detail: "with a detail line under it" }));
     const roomy = ListEntity.parse({ id: "l", type: "list", items: items.slice(0, 2), layout: "left" });
-    expect(listScale(roomy, gridToRect(roomy.layout))).toBe(1);
+    // A roomy box grows the list (up to 1.5×) instead of leaving it small in a corner.
+    expect(listScale(roomy, gridToRect(roomy.layout))).toBeCloseTo(1.5);
     const tight = ListEntity.parse({ id: "l", type: "list", style: "numbered", items, layout: { col: 1, row: 1, colSpan: 4, rowSpan: 3 } });
     expect(listScale(tight, gridToRect(tight.layout))).toBeLessThan(0.8);
     const { warnings } = findVisualIssues(sceneWith([tight]), "p", {});
@@ -243,5 +249,95 @@ describe("visual validation", () => {
     const text = warnings.map((w) => w.message).join("\n");
     expect(text).toMatch(/time-axis 't'.*collide/);
     expect(text).toMatch(/headline 'h' shrinks to \d+px/);
+  });
+});
+
+describe("camera on part of an entity", () => {
+  const shot = { id: "shot", type: "image", src: "assets/s.png", alt: "x", callouts: [{ x: 0.1, y: 0.1, w: 0.2, h: 0.1, label: "Menu" }, { x: 0.9, y: 0.9, label: "Save" }], layout: "full" };
+  const assets = { "assets/s.png": { mime: "image/png" as const, width: 1600, height: 900, dataUri: "data:image/png;base64,AA==" } };
+
+  it("zooms into a fractional region of the target, closer than a whole-entity focus allows", () => {
+    const s = sceneWith([{ id: "c", type: "chart", kind: "column", categories: ["a", "b"], series: [{ name: "s", values: [1, 2] }], layout: "full" }], [{ action: "focus", atMs: 0, target: "c", region: { x: 0.5, y: 0.5, w: 0.1, h: 0.1 }, durationMs: 0 }]);
+    const cam = sceneStateAt(s, 100).camera;
+    const box = gridToRect({ col: 1, row: 1, colSpan: 12, rowSpan: 8 });
+    expect(cam.w).toBeLessThan(1600 / 2.5);
+    expect(cam.w).toBeGreaterThanOrEqual(1600 / 4 - 0.01);
+    const cx = box.x + 0.55 * box.w;
+    expect(cam.x).toBeLessThan(cx);
+    expect(cam.x + cam.w).toBeGreaterThan(cx);
+  });
+
+  it("frames an image callout where the image actually is", () => {
+    const s = sceneWith([shot], [{ action: "focus", atMs: 0, target: "shot", callout: 1, durationMs: 0 }]);
+    const cam = sceneStateAt(s, 100, assets).camera;
+    const point = sceneStateAt(s, 100, assets).entities.shot!.box!;
+    expect(cam.x + cam.w).toBeGreaterThan(point.x + point.w * 0.85);
+    expect(cam.y + cam.h).toBeGreaterThan(point.y + point.h * 0.8);
+  });
+
+  it("rejects callouts that do not exist and regions on nothing", () => {
+    const bad = sceneWith([shot, { id: "l", type: "label", text: "x", layout: { col: 1, row: 1 } }], [
+      { action: "focus", atMs: 0, target: "shot", callout: 5 },
+      { action: "focus", atMs: 0, target: "l", callout: 0 },
+    ]);
+    const r = validateBundle({ ...exampleBundleWith(bad), assets });
+    expect(r.errors.map((e) => e.message)).toEqual(expect.arrayContaining(["focus callout 5: 'shot' has 2 callouts", "focus callout: 'l' is a label, not an image"]));
+    expect(() => sceneWith([shot], [{ action: "focus", atMs: 0, region: { x: 0, y: 0, w: 1, h: 1 } }])).toThrow(/need a target/);
+  });
+});
+
+describe("log charts", () => {
+  it("spans orders of magnitude with one tick per power of ten", () => {
+    const c = ChartEntity.parse({ id: "c", type: "chart", kind: "column", scale: "log", categories: ["MLP", "KAN"], series: [{ name: "RMSE", values: [1e-2, 3e-7] }], layout: "full" });
+    const l = chartLayout(c, gridToRect(c.layout), 1);
+    expect(l.domain).toMatchObject({ log: true, min: 1e-7, max: 1e-2 });
+    expect(l.ticks.map((t) => t.text)).toEqual(["1e-7", "1e-6", "1e-5", "1e-4", "1e-3", "0.01"]);
+    expect(l.bars[0]!.h).toBeGreaterThan(l.bars[1]!.h);
+    expect(l.bars[1]!.h).toBeGreaterThan(0);
+    expect(ChartEntity.safeParse({ ...c, series: [{ name: "x", values: [0, 1] }] }).success).toBe(false);
+  });
+});
+
+describe("stats as a set", () => {
+  it("warns when a stat's number is not in the words it cites", () => {
+    const stat = (value: number) => ({ id: "s", type: "stat", value, prefix: "$", label: "price", sourceRefs: [{ kind: "url", url: "https://example.com/", quote: "available for $149 (U.S.)" }], layout: { col: 1, row: 1, colSpan: 4, rowSpan: 3 } });
+    expect(findVisualIssues(sceneWith([stat(149)]), "p", {}).warnings).toEqual([]);
+    expect(findVisualIssues(sceneWith([stat(99)]), "p", {}).warnings.map((w) => w.message)).toEqual([expect.stringMatching(/stat 's' shows 99, but no quote it cites contains that number/)]);
+  });
+});
+
+describe("image callouts and crops", () => {
+  const assets = { "assets/s.png": { mime: "image/png" as const, width: 1600, height: 400, dataUri: "data:image/png;base64,AA==" } };
+  const image = (extra: object) => ({ id: "i", type: "image", src: "assets/s.png", alt: "x", layout: "full", ...extra });
+
+  it("warns when callout tags overlap, and a side resolves it", () => {
+    const close = [{ x: 0.5, y: 0.5, label: "Collaborators" }, { x: 0.52, y: 0.5, label: "Library" }];
+    expect(findVisualIssues(sceneWith([image({ callouts: close })]), "p", assets).warnings.map((w) => w.message)).toEqual([expect.stringMatching(/tags 'Collaborators' and 'Library' overlap/)]);
+    const apart = [close[0], { ...close[1], side: "below" }];
+    expect(findVisualIssues(sceneWith([image({ callouts: apart })]), "p", assets).warnings).toEqual([]);
+  });
+
+  it("crops to part of a picture and flags callouts left outside it", () => {
+    const geo = imageRect({ fit: "contain", crop: { x: 0, y: 0, w: 0.5, h: 1 } }, assets["assets/s.png"], gridToRect({ col: 1, row: 1, colSpan: 12, rowSpan: 8 }));
+    expect(geo.full.w).toBeCloseTo(geo.view.w * 2);
+    const outside = findVisualIssues(sceneWith([image({ crop: { x: 0, y: 0, w: 0.5, h: 1 }, callouts: [{ x: 0.9, y: 0.5, label: "Gone" }] })]), "p", assets);
+    expect(outside.warnings.map((w) => w.message)).toEqual([expect.stringMatching(/callout 0 \('Gone'\) is outside the visible picture/)]);
+  });
+});
+
+describe("time-axis leader lines", () => {
+  it("never run through another event's label", () => {
+    const t = TimeAxisEntity.parse({ id: "t", type: "time-axis", events: [{ at: 2014.71, when: "Sep 2014", label: "Road to Rust 1.0" }, { at: 2015.02, when: "Jan 2015", label: "1.0 alpha" }, { at: 2015.37, when: "May 2015", label: "Rust 1.0" }], layout: { col: 1, row: 1, colSpan: 12, rowSpan: 6 } });
+    const l = timeAxisLayout(t, gridToRect(t.layout));
+    for (const e of l.events) {
+      const edge = e.above ? e.block.y + e.block.h : e.block.y;
+      const top = Math.min(l.axis.y, edge);
+      const bottom = Math.max(l.axis.y, edge);
+      for (const o of l.events) {
+        if (o === e) continue;
+        const crosses = e.x > o.block.x && e.x < o.block.x + o.block.w && top < o.block.y + o.block.h && bottom > o.block.y;
+        expect(crosses, `${e.label} through ${o.label}`).toBe(false);
+      }
+    }
   });
 });

@@ -1,0 +1,153 @@
+/* Reel styles: the stage's own palette and display type, set per reel in
+   manifest.style. They apply inside the stage only, and in both of the
+   player's light and dark themes, the way a video keeps its look on any page.
+   Display faces must match displayFace() in src/core/visual-fit.ts. */
+
+[data-style] { --display: var(--font); }
+
+[data-style="editorial"] {
+  --display: var(--serif);
+  --stage: #fbf8f1;
+  --stage-dot: rgba(60, 40, 20, 0.08);
+  --line: rgba(40, 28, 16, 0.12);
+  --line-strong: rgba(40, 28, 16, 0.26);
+  --ink: #1d1a16;
+  --ink-2: #554b3f;
+  --ink-3: #8a7f70;
+  --accent: #b4232a;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(180, 35, 42, 0.1);
+  --t-neutral: #2b2620;
+  --t-neutral-soft: #ffffff;
+  --t-accent: #b4232a;
+  --t-accent-soft: #fbeaea;
+  --t-added: #1f6f43;
+  --t-added-soft: #e9f4ee;
+  --t-removed: #9f1d1d;
+  --t-removed-soft: #f8e8e8;
+  --t-warning: #9a6200;
+  --t-warning-soft: #fbf1dc;
+  --t-muted: #8a7f70;
+  --t-muted-soft: #f3efe7;
+  --code-bg: #f4efe4;
+  --code-hl: rgba(180, 35, 42, 0.1);
+}
+
+[data-style="paper"] {
+  --stage: #fffdf6;
+  --stage-dot: rgba(30, 50, 90, 0.09);
+  --line: rgba(20, 30, 50, 0.12);
+  --line-strong: rgba(20, 30, 50, 0.24);
+  --ink: #1e2430;
+  --ink-2: #4a5466;
+  --ink-3: #7d8697;
+  --accent: #1d4ed8;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(29, 78, 216, 0.1);
+  --t-neutral: #26304a;
+  --t-neutral-soft: #ffffff;
+  --t-accent: #1d4ed8;
+  --t-accent-soft: #eaf0fe;
+  --t-added: #15803d;
+  --t-added-soft: #ebf7ef;
+  --t-removed: #b91c1c;
+  --t-removed-soft: #fdecec;
+  --t-warning: #a16207;
+  --t-warning-soft: #fdf5dc;
+  --t-muted: #7d8697;
+  --t-muted-soft: #f3f5f9;
+  --code-bg: #f5f7fb;
+  --code-hl: rgba(29, 78, 216, 0.1);
+}
+
+[data-style="blueprint"] {
+  --stage: #0e2a4d;
+  --stage-dot: rgba(170, 210, 255, 0.16);
+  --line: rgba(170, 210, 255, 0.2);
+  --line-strong: rgba(170, 210, 255, 0.38);
+  --ink: #eaf3ff;
+  --ink-2: #b4cdee;
+  --ink-3: #7f9cc4;
+  --accent: #ffd166;
+  --accent-ink: #10233d;
+  --accent-soft: rgba(255, 209, 102, 0.16);
+  --t-neutral: #d6e7ff;
+  --t-neutral-soft: #13365f;
+  --t-accent: #ffd166;
+  --t-accent-soft: #2a3a4a;
+  --t-added: #7ee0a8;
+  --t-added-soft: #133f4a;
+  --t-removed: #ff9a9a;
+  --t-removed-soft: #3a2a45;
+  --t-warning: #ffb86b;
+  --t-warning-soft: #33344a;
+  --t-muted: #7f9cc4;
+  --t-muted-soft: #112f55;
+  --code-bg: #0b2443;
+  --code-hl: rgba(255, 209, 102, 0.16);
+}
+
+[data-style="chalkboard"] {
+  --stage: #213129;
+  --stage-dot: rgba(240, 240, 220, 0.06);
+  --line: rgba(240, 240, 220, 0.16);
+  --line-strong: rgba(240, 240, 220, 0.32);
+  --ink: #f2f0e6;
+  --ink-2: #c9c8b8;
+  --ink-3: #93978a;
+  --accent: #f6c453;
+  --accent-ink: #1d2a23;
+  --accent-soft: rgba(246, 196, 83, 0.15);
+  --t-neutral: #ecebdf;
+  --t-neutral-soft: #273a30;
+  --t-accent: #f6c453;
+  --t-accent-soft: #34402c;
+  --t-added: #9be4a6;
+  --t-added-soft: #24402f;
+  --t-removed: #f4a2a2;
+  --t-removed-soft: #3d3430;
+  --t-warning: #f6c453;
+  --t-warning-soft: #36402b;
+  --t-muted: #93978a;
+  --t-muted-soft: #25352d;
+  --code-bg: #1b2822;
+  --code-hl: rgba(246, 196, 83, 0.14);
+}
+
+[data-style="terminal"] {
+  --display: var(--mono);
+  --stage: #0a0e0b;
+  --stage-dot: rgba(120, 255, 160, 0.07);
+  --line: rgba(120, 255, 160, 0.16);
+  --line-strong: rgba(120, 255, 160, 0.32);
+  --ink: #d4f8d8;
+  --ink-2: #93c99b;
+  --ink-3: #5f8a66;
+  --accent: #3ee07a;
+  --accent-ink: #04140a;
+  --accent-soft: rgba(62, 224, 122, 0.14);
+  --t-neutral: #c6efcb;
+  --t-neutral-soft: #0f1812;
+  --t-accent: #3ee07a;
+  --t-accent-soft: #0f2416;
+  --t-added: #7cf0a4;
+  --t-added-soft: #0f2416;
+  --t-removed: #ff7b72;
+  --t-removed-soft: #261211;
+  --t-warning: #f2cc60;
+  --t-warning-soft: #241f0e;
+  --t-muted: #5f8a66;
+  --t-muted-soft: #0d140f;
+  --code-bg: #0d1410;
+  --code-hl: rgba(62, 224, 122, 0.14);
+}
+
+/* Display type: headlines everywhere, component titles in the terminal style (see componentTextFits). */
+[data-style] .headline-text { font-family: var(--display); }
+[data-style="editorial"] .headline-text { font-weight: 700; letter-spacing: -0.01em; }
+[data-style="terminal"] .headline-text { font-weight: 700; letter-spacing: 0; }
+[data-style="terminal"] .node-title { font-family: var(--mono); letter-spacing: 0; }
+
+/* The stage frame carries the stage colour so letterboxing matches the style. */
+.stage-frame[data-style]:not([data-style="studio"]),
+.video-stage[data-style]:not([data-style="studio"]) { background: var(--stage); }

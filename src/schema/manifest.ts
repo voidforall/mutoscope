@@ -1,12 +1,13 @@
 import { z } from "zod";
 import { HttpsUrl, Id, SCHEMA_VERSION } from "./common";
 import { DATA_FILE } from "./source-ref";
+import { ReelStyle } from "./stage";
 import { IMAGE_SRC } from "./visuals";
 
 const Sha = z.string().regex(/^[0-9a-f]{40}$/, "pin full 40-char commit SHAs");
 const RepoSlug = z.string().regex(/^[\w.-]+\/[\w.-]+$/, "expected owner/repo");
 
-export const GithubSource = z.object({
+export const GithubSource = z.strictObject({
   provider: z.literal("github"),
   repository: RepoSlug,
   prNumber: z.number().int().positive().optional(),
@@ -16,7 +17,7 @@ export const GithubSource = z.object({
   visibility: z.enum(["public", "private", "internal"]).optional(),
 });
 
-export const GitSource = z.object({
+export const GitSource = z.strictObject({
   provider: z.literal("git"),
   baseRef: z.string().min(1).optional(),
   headRef: z.string().min(1),
@@ -26,13 +27,13 @@ export const GitSource = z.object({
   repository: RepoSlug.optional(),
 });
 
-export const NoSource = z.object({ provider: z.literal("none") });
+export const NoSource = z.strictObject({ provider: z.literal("none") });
 
 export const ReelSource = z.discriminatedUnion("provider", [GithubSource, GitSource, NoSource]);
 export type ReelSource = z.infer<typeof ReelSource>;
 
 /** A web page snapshotted by `mutoscope ingest url`; refs to it are checked against the snapshot. */
-export const PinnedDocument = z.object({
+export const PinnedDocument = z.strictObject({
   url: HttpsUrl,
   title: z.string().max(200).optional(),
   retrievedAt: z.string().datetime({ offset: true }),
@@ -44,7 +45,7 @@ export type PinnedDocument = z.infer<typeof PinnedDocument>;
 const Sha256 = z.string().regex(/^[0-9a-f]{64}$/);
 
 /** A dataset copied into source/data/ by `mutoscope ingest data`; charts and stats bound to it are checked against it. */
-export const PinnedDataset = z.object({
+export const PinnedDataset = z.strictObject({
   file: z.string().regex(DATA_FILE),
   /** Where it was downloaded from; absent for a local file. */
   source: HttpsUrl.optional(),
@@ -57,7 +58,7 @@ export const PinnedDataset = z.object({
 export type PinnedDataset = z.infer<typeof PinnedDataset>;
 
 /** An image fetched into assets/ by `mutoscope ingest image`, with where it came from. */
-export const PinnedMedia = z.object({
+export const PinnedMedia = z.strictObject({
   src: z.string().regex(IMAGE_SRC),
   source: HttpsUrl,
   retrievedAt: z.string().datetime({ offset: true }),
@@ -65,7 +66,7 @@ export const PinnedMedia = z.object({
 });
 export type PinnedMedia = z.infer<typeof PinnedMedia>;
 
-export const GithubDiscussionsCollab = z.object({
+export const GithubDiscussionsCollab = z.strictObject({
   adapter: z.literal("github-discussions"),
   repository: RepoSlug,
   category: z.string().min(1),
@@ -77,7 +78,7 @@ export type GithubDiscussionsCollab = z.infer<typeof GithubDiscussionsCollab>;
 export const Collaboration = z.discriminatedUnion("adapter", [GithubDiscussionsCollab]);
 export type Collaboration = z.infer<typeof Collaboration>;
 
-export const Manifest = z.object({
+export const Manifest = z.strictObject({
   schemaVersion: z.literal(SCHEMA_VERSION),
   id: Id,
   /** Bumped on every rebuild that changes content; anchors record it. */
@@ -86,6 +87,8 @@ export const Manifest = z.object({
   subtitle: z.string().max(240).optional(),
   /** Name of the recipe that produced this reel, e.g. "pr" or "concept". */
   recipe: Id,
+  /** The stage's palette and display type. */
+  style: ReelStyle.default("studio"),
   /** Short kicker shown above the title, e.g. "PR #142 · Walkthrough". */
   kicker: z.string().max(60).optional(),
   createdAt: z.string().datetime({ offset: true }),

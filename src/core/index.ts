@@ -12,3 +12,5 @@ export * from "./visual-fit";
 export * from "./chart-layout";
 export * from "./time-axis-layout";
 export * from "./validate-visuals";
+export * from "./parts";
+export * from "./easing";

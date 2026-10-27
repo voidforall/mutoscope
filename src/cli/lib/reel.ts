@@ -3,6 +3,7 @@ import type { ReelBundle } from "../../schema";
 import { checkDatasets } from "./data-check";
 import { checkDocuments } from "./document-check";
 import { checkSourceRefs } from "./source-check";
+import { findUnused } from "./unused-check";
 import { CliError, loadRawReel } from "./reel-files";
 
 /**
@@ -16,7 +17,8 @@ export async function validateReelDir(dir: string, repoRoot?: string): Promise<V
   const data = await checkDatasets(result.bundle, dir);
   const code = repoRoot ? await checkSourceRefs(result.bundle, repoRoot) : { errors: [], warnings: [] };
   const errors = [...result.errors, ...docs.errors, ...data.errors, ...code.errors];
-  return { ...result, ok: errors.length === 0, errors, warnings: [...result.warnings, ...docs.warnings, ...data.warnings, ...code.warnings] };
+  const unused = await findUnused(result.bundle, dir);
+  return { ...result, ok: errors.length === 0, errors, warnings: [...result.warnings, ...docs.warnings, ...data.warnings, ...code.warnings, ...unused] };
 }
 
 export async function loadValidReel(dir: string): Promise<ReelBundle> {

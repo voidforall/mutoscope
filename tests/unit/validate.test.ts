@@ -49,3 +49,22 @@ describe("validateBundle", () => {
     expect(validateBundle(raw).errors[0]?.path).toBe("manifest.entrySceneId");
   });
 });
+
+describe("schema error messages", () => {
+  it("use one path format and name the scene, entity and action target", async () => {
+    const { validateBundle } = await import("../../src/core");
+    const { exampleRaw } = await import("./fixtures");
+    const raw = exampleRaw();
+    const scene = raw.scenes[0] as { id: string; timeline: { durationMs?: number }[]; entities: Record<string, unknown>[] };
+    scene.timeline[0]!.durationMs = 99_999;
+    scene.entities[0]!.bogus = 1;
+    const r = validateBundle(raw);
+    const text = r.errors.map((e) => `${e.path} ${e.message}`);
+    expect(text).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^scenes\[0\]\.timeline\[0\]\.durationMs scene 'mutex-baseline', action on '[a-z-]+': Too big/),
+        expect.stringMatching(/^scenes\[0\]\.entities\[0\] scene 'mutex-baseline', entity '[a-z-]+': Unrecognized key: "bogus"/),
+      ]),
+    );
+  });
+});

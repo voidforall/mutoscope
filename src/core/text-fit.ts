@@ -1,5 +1,6 @@
 import { GRID_COLS, GRID_ROWS, type CodeBlockEntity, type DiffPanelEntity, type GridBox } from "../schema";
 import { INTER_SEMIBOLD, SERIF_ITALIC } from "./font-metrics";
+import type { ReelStyle } from "../schema";
 import { gridToRect, type Rect } from "./geometry";
 import { diffLines } from "./line-diff";
 
@@ -14,6 +15,8 @@ export const CODE_FONT_MIN = 9;
 export const CODE_FONT_READABLE = 15;
 
 const CHAR_EM = 0.61;
+/** JetBrains Mono advances every glyph by 0.6 em, at every weight. */
+export const MONO_EM = 0.6;
 const LINE_EM = 1.5;
 /** `.code-line .ln { width: 3.2em }` */
 const GUTTER_EM = 3.2;
@@ -116,24 +119,28 @@ export function quoteFont(text: string, attributed: boolean, box: Pick<Rect, "w"
  */
 /** 10px vertical padding + 2px borders; flex may squeeze the text a few px into them unnoticed. */
 const COMPONENT = { padX: 32, padY: 24, squeeze: 4, gap: 6, maxLines: 2 } as const;
+/** `.node-icon` above a component's title. */
+export const COMPONENT_ICON = 40;
 const TITLE = { font: 29, lineEm: 1.15 } as const;
 const SUB = { font: 18, lineEm: 1.25, monoEm: 0.6 } as const;
 
-export function componentTextFits(e: { readonly label: string; readonly sublabel?: string }, box: Pick<Rect, "w" | "h">): boolean {
+export function componentTextFits(e: { readonly label: string; readonly sublabel?: string; readonly icon?: string }, box: Pick<Rect, "w" | "h">, style: ReelStyle = "studio"): boolean {
   const w = box.w - COMPONENT.padX;
-  const titleLines = wrappedLines(e.label, TITLE.font, w, { metrics: INTER_SEMIBOLD });
+  // The terminal style sets titles in the monospace face (visuals.css).
+  const titleLines = wrappedLines(e.label, TITLE.font, w, style === "terminal" ? { monoEm: MONO_EM } : { metrics: INTER_SEMIBOLD });
   const subLines = e.sublabel ? wrappedLines(e.sublabel, SUB.font, w, { monoEm: SUB.monoEm }) : 0;
   if (titleLines > COMPONENT.maxLines || subLines > COMPONENT.maxLines) return false;
-  const height = titleLines * TITLE.font * TITLE.lineEm + (subLines ? COMPONENT.gap + subLines * SUB.font * SUB.lineEm : 0);
+  const icon = e.icon ? COMPONENT_ICON + COMPONENT.gap : 0;
+  const height = icon + titleLines * TITLE.font * TITLE.lineEm + (subLines ? COMPONENT.gap + subLines * SUB.font * SUB.lineEm : 0);
   return height <= box.h - COMPONENT.padY + COMPONENT.squeeze;
 }
 
 /** The smallest widening (then heightening) at which a component's text fits, keeping its position. */
-export function componentSpanThatFits(e: { readonly label: string; readonly sublabel?: string; readonly layout: GridBox }): { colSpan: number; rowSpan: number } | undefined {
+export function componentSpanThatFits(e: { readonly label: string; readonly sublabel?: string; readonly icon?: string; readonly layout: GridBox }, style: ReelStyle = "studio"): { colSpan: number; rowSpan: number } | undefined {
   const { col, row } = e.layout;
   for (let rowSpan = e.layout.rowSpan; row + rowSpan - 1 <= GRID_ROWS; rowSpan++) {
     for (let colSpan = e.layout.colSpan; col + colSpan - 1 <= GRID_COLS; colSpan++) {
-      if (componentTextFits(e, gridToRect({ col, row, colSpan, rowSpan }))) return { colSpan, rowSpan };
+      if (componentTextFits(e, gridToRect({ col, row, colSpan, rowSpan }), style)) return { colSpan, rowSpan };
     }
   }
   return undefined;

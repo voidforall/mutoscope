@@ -1,7 +1,9 @@
-import type { Action, Entity, Scene } from "../schema";
+import type { Action, Asset, Entity, Scene } from "../schema";
 import { buildDurationMs, buildsIn } from "./build";
 import { clamp01, easeInOutCubic } from "./easing";
 import { FULL_STAGE, cameraFor, gridToRect, lerp, lerpRect, unionRects, type Rect } from "./geometry";
+import type { PartEmphasis } from "./parts";
+import { calloutPoint, imageRect } from "./visual-fit";
 
 /** Visual state of one entity at an instant. Every value is a pure function of (scene, t). */
 export interface EntityState {
@@ -12,6 +14,10 @@ export interface EntityState {
   readonly draw: number;
   /** Build progress of an entity with parts (see build.ts), 0..1. Always 1 for everything else. */
   readonly reveal: number;
+  /** For an entity built one `appear item` at a time: how many parts are shown (fractional while one fades in). Null otherwise. */
+  readonly steps: number | null;
+  /** Per-part emphasis set by highlight/dim/restore with an `item`. */
+  readonly items: Readonly<Record<number, PartEmphasis>>;
   /** Stage-space box; null for edges (derived from endpoints) and empty groups. */
   readonly box: Rect | null;
 }
@@ -52,16 +58,24 @@ function startsHidden(entity: Entity, timeline: readonly Action[]): boolean {
   return ENTERING_ACTIONS.has(first.action) || (first.action === "replace" && first.with === entity.id);
 }
 
+/** Entities whose parts are revealed by `appear` actions that name an item. */
+const isStepped = (e: Entity, timeline: readonly Action[]) => timeline.some((a) => a.action === "appear" && a.target === e.id && a.item !== undefined);
+
+const NO_ITEMS: Readonly<Record<number, PartEmphasis>> = {};
+
 function initialStates(scene: Scene, timeline: readonly Action[]): States {
   return Object.fromEntries(
     scene.entities.map((e) => {
       const hidden = startsHidden(e, timeline);
+      const stepped = isStepped(e, timeline);
       const state: EntityState = {
         opacity: hidden ? 0 : 1,
         highlight: 0,
         dim: 0,
         draw: e.type === "edge" && hidden ? 0 : 1,
         reveal: hidden && buildsIn(e) ? 0 : 1,
+        steps: stepped ? 0 : null,
+        items: NO_ITEMS,
         box: "layout" in e ? gridToRect(e.layout) : null,
       };
       return [e.id, state];
@@ -148,25 +162,65 @@ interface Frame {
   readonly camera: Rect;
 }
 
-/** A build fades its frame in over this share of the appear, then spends the rest bringing in its parts. */
-const BUILD_FADE_SHARE = 0.2;
+/** A build fades its frame in this fast, however long its parts take to arrive. */
+const BUILD_FADE_MS = 400;
 
-function applyAction(scene: Scene, frame: Frame, action: Action, p: number, linear: number): Frame {
+const setItem = (s: EntityState, item: number, to: (e: PartEmphasis) => PartEmphasis): Readonly<Record<number, PartEmphasis>> => ({
+  ...s.items,
+  [item]: to(s.items[item] ?? { highlight: 0, dim: 0 }),
+});
+
+type Assets = Readonly<Record<string, Asset>>;
+type FocusAction = Extract<Action, { action: "focus" }>;
+
+/** Zoom limit when framing part of an entity: close enough to read a screenshot's detail. */
+const PART_ZOOM = 4;
+/** A point callout is framed as a square this share of the image's width. */
+const POINT_SPAN = 0.18;
+
+/** The stage rect a regional focus frames, or null for a whole-entity focus. */
+function focusPart(scene: Scene, base: Rect, action: FocusAction, assets: Assets): Rect | null {
+  if (action.region) {
+    const r = action.region;
+    return { x: base.x + r.x * base.w, y: base.y + r.y * base.h, w: r.w * base.w, h: r.h * base.h };
+  }
+  if (action.callout === undefined) return null;
+  const entity = scene.entities.find((e) => e.id === action.target);
+  const callout = entity?.type === "image" ? entity.callouts[action.callout] : undefined;
+  const asset = entity?.type === "image" ? assets[entity.src] : undefined;
+  if (!entity || entity.type !== "image" || !callout || !asset) return null;
+  const geo = imageRect(entity, asset, base);
+  const pt = calloutPoint(callout, geo);
+  const side = POINT_SPAN * geo.view.w;
+  const local = pt.region ?? { x: pt.x - side / 2, y: pt.y - side / 2, w: side, h: side };
+  return { x: base.x + local.x, y: base.y + local.y, w: local.w, h: local.h };
+}
+
+function applyAction(scene: Scene, frame: Frame, action: Action, p: number, linear: number, durationMs: number, assets: Assets): Frame {
   const { entities } = frame;
   if (action.action === "focus") {
     const region = action.target ? focusRegion(scene, withGroupBoxes(scene, entities), action.target) : null;
-    const target = region ? cameraFor(region) : FULL_STAGE;
+    const part = region ? focusPart(scene, region, action, assets) : null;
+    const target = part ? cameraFor(part, 32, PART_ZOOM) : region ? cameraFor(region) : FULL_STAGE;
     return { ...frame, camera: lerpRect(frame.camera, target, p) };
   }
   const id = action.target;
   switch (action.action) {
     case "appear": {
       const entity = scene.entities.find((e) => e.id === id);
-      if (entity && buildsIn(entity)) {
+      const fade = durationMs === 0 ? 1 : clamp01((linear * durationMs) / BUILD_FADE_MS);
+      if (action.item !== undefined) {
+        const item = action.item;
         return {
           ...frame,
-          entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, clamp01(linear / BUILD_FADE_SHARE)), reveal: lerp(s.reveal, 1, linear) })),
+          entities: update(entities, id, (s) => {
+            const from = s.steps ?? 0;
+            return { opacity: lerp(s.opacity, 1, fade), steps: lerp(from, Math.max(from, item + 1), p), reveal: 1 };
+          }),
         };
+      }
+      if (entity && buildsIn(entity)) {
+        return { ...frame, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, fade), reveal: lerp(s.reveal, 1, linear) })) };
       }
       return { ...frame, entities: update(entities, id, (s) => ({ opacity: lerp(s.opacity, 1, p) })) };
     }
@@ -186,20 +240,39 @@ function applyAction(scene: Scene, frame: Frame, action: Action, p: number, line
         entities: update(entities, id, (s) => ({ draw: lerp(s.draw, 0, p), opacity: lerp(s.opacity, 0, p) })),
       };
     case "highlight":
+      if (action.item !== undefined) {
+        const item = action.item;
+        return { ...frame, entities: update(entities, id, (s) => ({ items: setItem(s, item, (e) => ({ highlight: lerp(e.highlight, 1, p), dim: lerp(e.dim, 0, p) })) })) };
+      }
       return {
         ...frame,
         entities: update(entities, id, (s) => ({ highlight: lerp(s.highlight, 1, p), dim: lerp(s.dim, 0, p) })),
       };
     case "dim":
+      if (action.item !== undefined) {
+        const item = action.item;
+        return { ...frame, entities: update(entities, id, (s) => ({ items: setItem(s, item, (e) => ({ dim: lerp(e.dim, 1, p), highlight: lerp(e.highlight, 0, p) })) })) };
+      }
       return {
         ...frame,
         entities: update(entities, id, (s) => ({ dim: lerp(s.dim, 1, p), highlight: lerp(s.highlight, 0, p) })),
       };
-    case "restore":
+    case "restore": {
+      const back = (e: PartEmphasis): PartEmphasis => ({ highlight: lerp(e.highlight, 0, p), dim: lerp(e.dim, 0, p) });
+      if (action.item !== undefined) {
+        const item = action.item;
+        return { ...frame, entities: update(entities, id, (s) => ({ items: setItem(s, item, back) })) };
+      }
+      // Restoring the whole entity also clears every part's emphasis.
       return {
         ...frame,
-        entities: update(entities, id, (s) => ({ dim: lerp(s.dim, 0, p), highlight: lerp(s.highlight, 0, p) })),
+        entities: update(entities, id, (s) => ({
+          dim: lerp(s.dim, 0, p),
+          highlight: lerp(s.highlight, 0, p),
+          items: Object.fromEntries(Object.entries(s.items).map(([k, v]) => [k, back(v)])),
+        })),
       };
+    }
     case "move": {
       const to = gridToRect(action.to);
       return { ...frame, entities: update(entities, id, (s) => ({ box: s.box ? lerpRect(s.box, to, p) : to })) };
@@ -207,8 +280,10 @@ function applyAction(scene: Scene, frame: Frame, action: Action, p: number, line
     case "replace": {
       const place = entities[id]?.box ?? null;
       const outgoing = update(entities, id, (s) => ({ opacity: lerp(s.opacity, 0, p) }));
+      // What replaces something arrives complete: its parts (callouts, items) are not left unbuilt.
       const incoming = update(outgoing, action.with, (s) => ({
         opacity: lerp(s.opacity, 1, p),
+        reveal: lerp(s.reveal, 1, p),
         box: place ?? s.box,
       }));
       return { ...frame, entities: incoming };
@@ -224,9 +299,13 @@ export function orderedTimeline(scene: Scene): readonly Action[] {
     .map(({ a }) => a);
 }
 
+/** One part arriving on its cue. */
+const ITEM_APPEAR_MS = 600;
+
 /** How long `action` runs: its own durationMs, or a default that, for an appear that builds, fits the content. */
 export function actionDuration(scene: Scene, action: Action): number {
   if (action.durationMs !== undefined) return action.durationMs;
+  if (action.action === "appear" && action.item !== undefined) return ITEM_APPEAR_MS;
   if (action.action === "appear") {
     const entity = scene.entities.find((e) => e.id === action.target);
     if (entity && buildsIn(entity)) return buildDurationMs(entity);
@@ -246,12 +325,12 @@ export function actionProgress(scene: Scene, action: Action, tMs: number): numbe
 }
 
 /** Deterministic scene state at `tMs`: seeking and playing always agree. */
-export function sceneStateAt(scene: Scene, tMs: number): SceneState {
+export function sceneStateAt(scene: Scene, tMs: number, assets: Assets = {}): SceneState {
   const timeline = orderedTimeline(scene);
   const start: Frame = { entities: initialStates(scene, timeline), camera: FULL_STAGE };
   const end = timeline
     .filter((a) => a.atMs <= tMs)
-    .reduce((frame, action) => applyAction(scene, frame, action, actionProgress(scene, action, tMs), actionLinearProgress(scene, action, tMs)), start);
+    .reduce((frame, action) => applyAction(scene, frame, action, actionProgress(scene, action, tMs), actionLinearProgress(scene, action, tMs), actionDuration(scene, action), assets), start);
   return { entities: withGroupBoxes(scene, end.entities), camera: end.camera };
 }
 

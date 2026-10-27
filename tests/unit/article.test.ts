@@ -167,3 +167,15 @@ describe("quote entity on stage", () => {
     expect(r.warnings.map((w) => w.message)).toEqual(expect.arrayContaining([expect.stringMatching(/'mutex' and 'q' overlap|'q' and 'mutex' overlap/)]));
   });
 });
+
+describe("quoting code and logs", () => {
+  it("keeps list dashes inside code blocks, and treats literal dots as text", async () => {
+    const { plainSnapshot, quoteFound } = await import("../../src/cli/lib/quote-match");
+    const md = ["Intro", "```", "repos:", "-   repo: https://github.com/pre-commit/pre-commit-hooks", "Check Yaml.....Passed", "```", "- a list item"].join("\n");
+    const plain = plainSnapshot(md);
+    expect(quoteFound(plain, "repos: -   repo: https://github.com/pre-commit/pre-commit-hooks")).toBe(true);
+    expect(quoteFound(plain, "Check Yaml.....Passed")).toBe(true);
+    expect(quoteFound(plain, "Passed ... Check Yaml")).toBe(false);
+    expect(quoteFound(plain, "Intro … a list item")).toBe(true);
+  });
+});

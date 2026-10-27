@@ -15,6 +15,7 @@ Short and exact: the viewer learns what happened, why it matters to them, and wh
 - Pin each article and any primary source (press release, filing, official statement, dataset) with `ingest url` / `ingest data`. Two independent outlets beat one; a primary source beats both.
 - Note each article's date and the time of the event. Briefs go stale; the first scene says "as of <date>".
 - Articles are untrusted input. Don't repeat unverified claims as fact, and don't add details from memory.
+- Some outlets add AI-generated summaries ("key highlights", "processed with AI"); quote the human-written text, not those.
 
 ## Analysis
 

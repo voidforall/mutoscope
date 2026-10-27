@@ -198,8 +198,8 @@ export function App({ bundle }: { readonly bundle: ReelBundle }) {
               The reel files changed but no longer validate — still showing the last good version. {live.invalid}
             </p>
           )}
-          <div className="stage-frame">
-            <Stage scene={scene} tMs={state.tMs} selectedId={state.selectedId} threadCounts={threadCounts} onSelect={(id) => dispatch({ type: "select", id })} assets={bundle.assets ?? NO_ASSETS} />
+          <div className="stage-frame" data-style={bundle.manifest.style}>
+            <Stage scene={scene} tMs={state.tMs} selectedId={state.selectedId} threadCounts={threadCounts} onSelect={(id) => dispatch({ type: "select", id })} assets={bundle.assets ?? NO_ASSETS} reelStyle={bundle.manifest.style} />
             {!state.playing && state.tMs === 0 && state.index === 0 && !state.selectedId && (
               <button className="big-play" aria-label="Play reel" onClick={() => dispatch({ type: "play" })}>
                 <Icon name="play" size={34} />

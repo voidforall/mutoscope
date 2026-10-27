@@ -24,7 +24,7 @@ One unit per feature worth showing (three to five), one for the workflow, and th
 ## Story arc (4–7 scenes)
 
 1. **What it is** — `headline` with the job it does ("Turn any repo into a walkthrough"), and the hero screenshot as an `image` (`right-two-thirds`).
-2. **Features** (2–4 scenes) — one screenshot per scene in `left-two-thirds` with `callouts` that build in one by one as the narration names them, and a `list` in `right-third` of what you can do there.
+2. **Features** (2–4 scenes) — one screenshot per scene in `left-two-thirds` with `callouts` brought in as the narration names them (`appear` with `item`), a `focus` with `callout` to zoom into the detail, and a `list` in `right-third` of what you can do there.
 3. **A workflow** — the screens of one task in order: `replace` one `image` with the next on each cue, and a numbered `list` tracking the steps.
 4. **Limits** — a `list` (`mark: "cross"` for what it does not do), or a `table` of plans.
 5. **Get started** — a `headline` and a `label` with where to begin.

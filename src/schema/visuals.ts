@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DATA_FILE } from "./source-ref";
-import { EntityBase, Layout, Reveal, Tone } from "./stage";
+import { EntityBase, Icon, Layout, Reveal, Tone } from "./stage";
 
 /**
  * Entities beyond boxes and arrows: display type, numbers, charts, time,
@@ -25,7 +25,7 @@ const dataBinding = {
 };
 
 /** Display type: a title card, a thesis, a chapter break. Shrinks to fit its box. */
-export const HeadlineEntity = z.object({
+export const HeadlineEntity = z.strictObject({
   ...EntityBase,
   type: z.literal("headline"),
   text: z.string().trim().min(1).max(160),
@@ -38,7 +38,7 @@ export const HeadlineEntity = z.object({
 });
 
 /** One number that matters, counting up from `from` as it appears. */
-export const StatEntity = z.object({
+export const StatEntity = z.strictObject({
   ...EntityBase,
   type: z.literal("stat"),
   value: finite,
@@ -52,16 +52,18 @@ export const StatEntity = z.object({
   note: z.string().trim().max(60).optional(),
   countUp: z.boolean().default(true),
   /** Where the number comes from; validate recomputes it from the pinned dataset. `column` may be omitted for `count`. */
-  data: z.object({ ...dataBinding, column: z.string().min(1).optional() }).optional(),
+  data: z.strictObject({ ...dataBinding, column: z.string().min(1).optional() }).optional(),
   layout: Layout,
 });
 
-export const ChartSeries = z.object({
+export const ChartSeries = z.strictObject({
   name: z.string().trim().min(1).max(30),
   values: z.array(finite).min(1).max(16),
   tone: Tone.optional(),
   /** With chart `data`: the dataset column this series plots. */
   column: z.string().min(1).optional(),
+  /** With chart `data`: rows for this series only, e.g. { "entity": "Africa" } for long-format data. */
+  where: z.record(z.string().min(1), z.string()).optional(),
 });
 
 export const ChartEntity = z
@@ -75,6 +77,8 @@ export const ChartEntity = z
     unit: z.string().max(12).optional(),
     categories: z.array(z.string().trim().min(1).max(24)).min(1).max(16),
     series: z.array(ChartSeries).min(1).max(4),
+    /** `log` for values spanning orders of magnitude (errors, sizes, costs); all values must be positive. */
+    scale: z.enum(["linear", "log"]).default("linear"),
     /** Axis bounds; default to 0 (or the lowest value, if negative) and a rounded maximum. */
     min: finite.optional(),
     max: finite.optional(),
@@ -82,10 +86,20 @@ export const ChartEntity = z
     highlight: z.array(z.string()).default([]),
     valueLabels: z.boolean().default(true),
     /** Where the numbers come from: `category` names the column holding the categories; each series names its `column`. */
-    data: z.object({ ...dataBinding, category: z.string().min(1) }).optional(),
+    data: z
+      .strictObject({
+        ...dataBinding,
+        category: z.string().min(1),
+        /** The category column's value for each category, when the label shown differs ("Latin America" for "Latin America and the Caribbean"). */
+        categoryKeys: z.array(z.string().min(1)).optional(),
+      })
+      .optional(),
     layout: Layout,
   })
   .superRefine((c, ctx) => {
+    if (c.data?.categoryKeys && c.data.categoryKeys.length !== c.categories.length) {
+      ctx.addIssue({ code: "custom", path: ["data", "categoryKeys"], message: `has ${c.data.categoryKeys.length} keys for ${c.categories.length} categories` });
+    }
     if (c.data && c.data.aggregate !== "count") {
       c.series.forEach((s, i) => {
         if (!s.column) ctx.addIssue({ code: "custom", path: ["series", i, "column"], message: "name the dataset column this series plots" });
@@ -102,10 +116,13 @@ export const ChartEntity = z
     if ((c.kind === "line" || c.kind === "area") && c.categories.length < 2) {
       ctx.addIssue({ code: "custom", path: ["categories"], message: `a ${c.kind} chart needs at least 2 categories` });
     }
+    if (c.scale === "log" && (c.series.some((s) => s.values.some((v) => v <= 0)) || (c.min ?? 1) <= 0)) {
+      ctx.addIssue({ code: "custom", path: ["scale"], message: "a log scale needs every value (and min) above 0" });
+    }
     if (c.min !== undefined && c.max !== undefined && c.min >= c.max) ctx.addIssue({ code: "custom", path: ["max"], message: "max must be greater than min" });
   });
 
-export const TimeEvent = z.object({
+export const TimeEvent = z.strictObject({
   /** Position on the axis: a year, a day number, a version — any increasing number. */
   at: finite,
   label: z.string().trim().min(1).max(40),
@@ -144,12 +161,14 @@ export const Callout = z
     w: z.number().gt(0).max(1).optional(),
     h: z.number().gt(0).max(1).optional(),
     label: z.string().trim().min(1).max(40),
+    /** Where the tag goes relative to the point or region; default above (below when there is no room). */
+    side: z.enum(["above", "below", "left", "right"]).optional(),
   })
   .refine((c) => (c.w === undefined) === (c.h === undefined), "give a region both w and h, or neither")
   .refine((c) => c.x + (c.w ?? 0) <= 1.0001 && c.y + (c.h ?? 0) <= 1.0001, "region extends past the image");
 
 /** A picture from the reel's own assets/ folder, with optional callouts that build in one by one. */
-export const ImageEntity = z.object({
+export const ImageEntity = z.strictObject({
   ...EntityBase,
   type: z.literal("image"),
   /** Path inside the reel directory, under assets/ — never a URL, so nothing loads from the network. */
@@ -160,6 +179,11 @@ export const ImageEntity = z.object({
   /** Where the image comes from: "Photo: NASA", "Figure 3 of the paper". */
   credit: z.string().trim().max(80).optional(),
   callouts: z.array(Callout).max(6).default([]),
+  /** Show only this part of the picture (fractions of it); callouts still use whole-picture fractions. */
+  crop: z
+    .strictObject({ x: z.number().min(0).max(1), y: z.number().min(0).max(1), w: z.number().gt(0).max(1), h: z.number().gt(0).max(1) })
+    .refine((r) => r.x + r.w <= 1.0001 && r.y + r.h <= 1.0001, "crop extends past the picture")
+    .optional(),
   layout: Layout,
 });
 
@@ -187,16 +211,18 @@ export const TableEntity = z
     }
   });
 
-export const ListItem = z.object({
+export const ListItem = z.strictObject({
   text: z.string().trim().min(1).max(100),
   detail: z.string().trim().max(120).optional(),
   /** Overrides the list's marker for this item: a tick for a pro, a cross for a con. */
   mark: z.enum(["check", "cross", "dot", "none"]).optional(),
+  /** An icon in place of the marker. */
+  icon: Icon.optional(),
   tone: Tone.optional(),
 });
 
 /** Steps, key points, pros and cons. Items build in one by one. */
-export const ListEntity = z.object({
+export const ListEntity = z.strictObject({
   ...EntityBase,
   type: z.literal("list"),
   title: z.string().trim().max(80).optional(),
@@ -205,7 +231,18 @@ export const ListEntity = z.object({
   layout: Layout,
 });
 
+/** A single pictogram, optionally captioned: a metaphor, an actor, a place. */
+export const IconEntity = z.strictObject({
+  ...EntityBase,
+  type: z.literal("icon"),
+  name: Icon,
+  label: z.string().trim().max(40).optional(),
+  sublabel: z.string().trim().max(60).optional(),
+  layout: Layout,
+});
+
 export type HeadlineEntity = z.infer<typeof HeadlineEntity>;
+export type IconEntity = z.infer<typeof IconEntity>;
 export type ListEntity = z.infer<typeof ListEntity>;
 export type StatEntity = z.infer<typeof StatEntity>;
 export type ChartEntity = z.infer<typeof ChartEntity>;

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { STAGE, edgeEnds, sceneStateAt } from "../../core";
-import type { Asset, BoxedEntity, Scene, Tone } from "../../schema";
+import { STAGE, edgeEnds, gridToRect, sceneListScale, sceneStatFont, sceneStateAt } from "../../core";
+import type { Asset, BoxedEntity, ReelStyle, Scene, Tone } from "../../schema";
 import { ArrowDefs, EdgeView } from "./Edge";
 import { GroupView } from "./Group";
 import { EntityNode } from "./Nodes";
@@ -14,15 +14,18 @@ interface StageProps {
   readonly threadCounts: ReadonlyMap<string, number>;
   readonly onSelect: (id?: string) => void;
   readonly assets: Readonly<Record<string, Asset>>;
+  readonly reelStyle: ReelStyle;
 }
 
-export function Stage({ scene, tMs, selectedId, threadCounts, onSelect, assets }: StageProps) {
-  const state = useMemo(() => sceneStateAt(scene, tMs), [scene, tMs]);
+export function Stage({ scene, tMs, selectedId, threadCounts, onSelect, assets, reelStyle }: StageProps) {
+  const state = useMemo(() => sceneStateAt(scene, tMs, assets), [scene, tMs, assets]);
   const { camera } = state;
   const at = (id: string) => state.entities[id];
   const groups = scene.entities.filter((e) => e.type === "group");
   const edges = scene.entities.filter((e) => e.type === "edge");
   const boxed = scene.entities.filter((e): e is BoxedEntity => "layout" in e);
+  const listScale = useMemo(() => sceneListScale(scene.entities, (e) => gridToRect(e.layout)), [scene]);
+  const statFont = useMemo(() => sceneStatFont(scene.entities, (e) => gridToRect(e.layout)), [scene]);
 
   return (
     <svg
@@ -70,6 +73,9 @@ export function Stage({ scene, tMs, selectedId, threadCounts, onSelect, assets }
             threadCount={threadCounts.get(e.id) ?? 0}
             onSelect={onSelect}
             assets={assets}
+            reelStyle={reelStyle}
+            listScale={listScale}
+            statFont={statFont}
           />
         );
       })}

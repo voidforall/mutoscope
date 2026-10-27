@@ -1,5 +1,5 @@
 import type { ChartEntity, Tone } from "../schema";
-import { partProgress } from "./build";
+import { partShown } from "./parts";
 import { easeInOutCubic } from "./easing";
 import { INTER_REGULAR, INTER_SEMIBOLD } from "./font-metrics";
 import type { Point, Rect } from "./geometry";
@@ -15,6 +15,8 @@ const SERIES_TONES: readonly Tone[] = ["accent", "neutral", "added", "warning"];
 const MIN_BAR = 4;
 
 export interface Domain {
+  /** Logarithmic: equal distances are equal ratios, for values spanning orders of magnitude. */
+  readonly log: boolean;
   readonly min: number;
   readonly max: number;
   readonly step: number;
@@ -26,8 +28,24 @@ function niceStep(raw: number): number {
   return ([1, 2, 2.5, 5, 10].find((m) => m * mag >= raw) ?? 10) * mag;
 }
 
+/** Where `v` sits along the axis, 0..1. */
+export function axisFrac(d: Domain, v: number): number {
+  return d.log ? (Math.log10(v) - Math.log10(d.min)) / (Math.log10(d.max) - Math.log10(d.min)) : (v - d.min) / (d.max - d.min);
+}
+
+/** A log axis: bounds widened to whole powers of ten, one tick per power. */
+function logDomain(values: readonly number[], min?: number, max?: number): Domain {
+  const lo = min ?? 10 ** Math.floor(Math.log10(Math.min(...values)));
+  let hi = max ?? 10 ** Math.ceil(Math.log10(Math.max(...values)));
+  if (hi <= lo) hi = lo * 10;
+  const ticks: number[] = [];
+  for (let e = Math.ceil(Math.log10(lo) - 1e-9); e <= Math.floor(Math.log10(hi) + 1e-9); e++) ticks.push(Number((10 ** e).toPrecision(12)));
+  return { log: true, min: lo, max: hi, step: 10, ticks };
+}
+
 /** Axis bounds rounded outward to a readable step (about five intervals), unless pinned. */
-export function niceDomain(values: readonly number[], min?: number, max?: number): Domain {
+export function niceDomain(values: readonly number[], min?: number, max?: number, log = false): Domain {
+  if (log) return logDomain(values, min, max);
   let lo = min ?? Math.min(0, ...values);
   let hi = max ?? Math.max(0, ...values);
   if (hi === lo) hi = lo + 1;
@@ -36,13 +54,14 @@ export function niceDomain(values: readonly number[], min?: number, max?: number
   hi = max ?? Math.ceil(hi / step - 1e-9) * step;
   const ticks: number[] = [];
   for (let t = Math.ceil(lo / step - 1e-9) * step; t <= hi + step * 1e-9; t += step) ticks.push(Number(t.toPrecision(12)));
-  return { min: lo, max: hi, step, ticks };
+  return { log: false, min: lo, max: hi, step, ticks };
 }
 
 /** Compact number for axes and value labels: 1.2k, 3.4M, 0.25. */
 export function formatValue(v: number, unit = ""): string {
   if (v === 0) return "0";
   const abs = Math.abs(v);
+  if (abs < 0.01) return `${Number(v.toPrecision(2)).toExponential().replace(/\.?0+e/, "e").replace("e+", "e")}${unit}`;
   const [n, s] = abs >= 1e9 ? [v / 1e9, "B"] : abs >= 1e6 ? [v / 1e6, "M"] : abs >= 1e4 ? [v / 1e3, "k"] : [v, ""];
   const text = Number(n.toPrecision(3)).toLocaleString("en-US", { maximumFractionDigits: 2 });
   return `${text}${s}${unit}`;
@@ -115,8 +134,9 @@ function frame(c: ChartEntity, box: Pick<Rect, "w" | "h">): { top: number; title
   return { top: Math.min(top, box.h / 2), ...(titleY !== undefined ? { titleY } : {}), ...(legendY !== undefined ? { legendY } : {}) };
 }
 
-export function chartLayout(c: ChartEntity, box: Pick<Rect, "w" | "h">, reveal: number): ChartLayout {
-  const domain = niceDomain(c.series.flatMap((s) => s.values), c.min, c.max);
+/** `steps` is set when the chart is built one category at a time (appear with `item`). */
+export function chartLayout(c: ChartEntity, box: Pick<Rect, "w" | "h">, reveal: number, steps: number | null = null): ChartLayout {
+  const domain = niceDomain(c.series.flatMap((s) => s.values), c.min, c.max, c.scale === "log");
   const head = frame(c, box);
   const legend = c.series.reduce<{ name: string; tone: Tone; x: number }[]>((acc, s, i) => {
     const prev = acc.at(-1);
@@ -125,19 +145,20 @@ export function chartLayout(c: ChartEntity, box: Pick<Rect, "w" | "h">, reveal: 
   }, []);
   const muted = (i: number) => c.highlight.length > 0 && !c.highlight.includes(c.categories[i]!);
   const common = { domain, legend, ...(head.titleY !== undefined ? { titleY: head.titleY } : {}), ...(head.legendY !== undefined ? { legendY: head.legendY } : {}) };
-  return c.kind === "bar" ? { ...common, ...horizontal(c, box, head.top, domain, reveal, muted) } : { ...common, ...vertical(c, box, head.top, domain, reveal, muted) };
+  const shown = (i: number) => partShown({ reveal, steps }, i, c.categories.length);
+  return c.kind === "bar" ? { ...common, ...horizontal(c, box, head.top, domain, reveal, muted, shown) } : { ...common, ...vertical(c, box, head.top, domain, reveal, muted, shown) };
 }
 
 type Body = Omit<ChartLayout, "domain" | "legend" | "titleY" | "legendY">;
 
-function vertical(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: Domain, reveal: number, muted: (i: number) => boolean): Body {
+function vertical(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: Domain, reveal: number, muted: (i: number) => boolean, shown: (i: number) => number): Body {
   const tickTexts = d.ticks.map((t) => formatValue(t, c.unit));
   const tickW = Math.max(...tickTexts.map((t) => t.length)) * CHART.tick * CHART.tickEm + CHART.gap;
   const valueRoom = c.valueLabels ? CHART.value + 8 : 6;
   const plot = { x: CHART.pad + tickW, y: top + valueRoom, w: box.w - 2 * CHART.pad - tickW, h: box.h - top - valueRoom - CHART.pad - CHART.labelH };
   const n = c.categories.length;
-  const yOf = (v: number) => plot.y + plot.h - ((v - d.min) / (d.max - d.min)) * plot.h;
-  const base = yOf(Math.min(Math.max(0, d.min), d.max));
+  const yOf = (v: number) => plot.y + plot.h - axisFrac(d, v) * plot.h;
+  const base = d.log ? plot.y + plot.h : yOf(Math.min(Math.max(0, d.min), d.max));
   const ticks = d.ticks.map((t, i) => ({ text: tickTexts[i]!, x: plot.x - CHART.gap, y: yOf(t) + CHART.tick * 0.35, anchor: "end" as const }));
   const gridlines = d.ticks.map((t) => ({ x1: plot.x, y1: yOf(t), x2: plot.x + plot.w, y2: yOf(t) }));
   const line = c.kind === "line" || c.kind === "area";
@@ -162,7 +183,7 @@ function vertical(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: Do
   const barW = Math.max(MIN_BAR, group / c.series.length);
   const bars = c.series.flatMap((s, si) =>
     s.values.map((v, i) => {
-      const p = easeInOutCubic(partProgress(reveal, i, n));
+      const p = easeInOutCubic(shown(i));
       const end = yOf(v);
       const y = Math.min(base, base + (end - base) * p);
       const h = Math.abs(end - base) * p;
@@ -174,15 +195,15 @@ function vertical(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: Do
   return { plot, bars, lines: [], labels, ticks, gridlines };
 }
 
-function horizontal(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: Domain, reveal: number, muted: (i: number) => boolean): Body {
+function horizontal(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: Domain, reveal: number, muted: (i: number) => boolean, shown: (i: number) => number): Body {
   const inner = box.w - 2 * CHART.pad;
   const labelCol = Math.min(Math.max(...c.categories.map((t) => width(t, CHART.label))) + CHART.gap * 2, inner * 0.38);
   const valueRoom = c.valueLabels ? Math.max(...c.series.flatMap((s) => s.values.map((v) => width(formatValue(v, c.unit), CHART.value)))) + CHART.gap : 0;
   const plot = { x: CHART.pad + labelCol, y: top, w: inner - labelCol - valueRoom, h: box.h - top - CHART.pad - CHART.labelH };
   const n = c.categories.length;
   const slot = plot.h / n;
-  const xOf = (v: number) => plot.x + ((v - d.min) / (d.max - d.min)) * plot.w;
-  const base = xOf(Math.min(Math.max(0, d.min), d.max));
+  const xOf = (v: number) => plot.x + axisFrac(d, v) * plot.w;
+  const base = d.log ? plot.x : xOf(Math.min(Math.max(0, d.min), d.max));
   const ticks = d.ticks.map((t) => ({ text: formatValue(t, c.unit), x: xOf(t), y: plot.y + plot.h + CHART.labelH * 0.8, anchor: "middle" as const }));
   const gridlines = d.ticks.map((t) => ({ x1: xOf(t), y1: plot.y, x2: xOf(t), y2: plot.y + plot.h }));
   const labels = c.categories.map((cat, i) => {
@@ -193,7 +214,7 @@ function horizontal(c: ChartEntity, box: Pick<Rect, "w" | "h">, top: number, d: 
   const barH = Math.max(MIN_BAR, group / c.series.length);
   const bars = c.series.flatMap((s, si) =>
     s.values.map((v, i) => {
-      const p = easeInOutCubic(partProgress(reveal, i, n));
+      const p = easeInOutCubic(shown(i));
       const end = xOf(v);
       const x = Math.min(base, base + (end - base) * p);
       const w = Math.abs(end - base) * p;

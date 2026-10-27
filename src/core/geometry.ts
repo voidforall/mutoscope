@@ -55,11 +55,11 @@ export function rectsOverlap(a: Rect, b: Rect): boolean {
   return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 }
 
-/** Smallest stage-aspect viewport containing `r` (plus padding), never zooming past 2.5x. */
-export function cameraFor(r: Rect, pad = 48): Rect {
+/** Smallest stage-aspect viewport containing `r` (plus padding), never zooming past `maxZoom`. */
+export function cameraFor(r: Rect, pad = 48, maxZoom = 2.5): Rect {
   const aspect = STAGE.width / STAGE.height;
   const padded = padRect(r, pad);
-  const minW = STAGE.width / 2.5;
+  const minW = STAGE.width / maxZoom;
   let w = Math.max(padded.w, padded.h * aspect, minW);
   w = Math.min(w, STAGE.width);
   const h = w / aspect;
@@ -91,8 +91,14 @@ function exitPoint(r: Rect, toward: Point, gap: number): Point {
 
 /** Room an edge needs before its label can sit on it without covering the ends. */
 export function edgeLabelFits(label: string, length: number): boolean {
-  return length >= label.length * 11 + 70;
+  return length >= edgeLengthFor(label);
 }
+
+/** The edge length a label needs: its text plus room for the arrow ends. */
+export const edgeLengthFor = (label: string): number => label.length * 11 + 70;
+
+/** Stage units per grid column, gutter included. */
+export const COLUMN_PITCH = CELL_W + GUTTER_X;
 
 /** Straight connector between two boxes, clipped to their borders. */
 export function edgeSegment(from: Rect, to: Rect, gap = 6): { a: Point; b: Point } {

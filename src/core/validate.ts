@@ -1,9 +1,10 @@
 import type { z } from "zod";
-import { ReelBundle, type Asset, type Entity, type Manifest, type Scene, type SourceRef } from "../schema";
-import { edgeLabelFits, edgeSegment, gridToRect, padRect, rectsOverlap, segmentHitsRect, type Rect } from "./geometry";
+import { ReelBundle, type Asset, type Entity, type Manifest, type ReelStyle, type Scene, type SourceRef } from "../schema";
+import { COLUMN_PITCH, edgeLabelFits, edgeLengthFor, edgeSegment, gridToRect, padRect, rectsOverlap, segmentHitsRect, type Rect } from "./geometry";
 import { CODE_FONT_READABLE, componentSpanThatFits, componentTextFits, QUOTE_FONT_READABLE, quoteFont, spanForFullSize, textFont, type TextEntity } from "./text-fit";
 import { edgeEnds, sceneStateAt } from "./timeline";
 import { findVisualIssues } from "./validate-visuals";
+import { PART_NAMES, partCount } from "./parts";
 
 export interface Issue {
   readonly path: string;
@@ -20,8 +21,32 @@ export interface ValidationResult {
 const READING_WORDS_PER_SECOND = 3;
 const OVERLAP_SAMPLE_MS = 250;
 
-function zodIssues(error: z.ZodError): Issue[] {
-  return error.issues.map((i) => ({ path: i.path.join(".") || "(root)", message: i.message }));
+/** `scenes[1].timeline[0].durationMs`: the same shape as every other issue path. */
+export function formatPath(path: readonly PropertyKey[]): string {
+  return path.reduce<string>((out, k) => (typeof k === "number" ? `${out}[${k}]` : out ? `${out}.${String(k)}` : String(k)), "") || "(root)";
+}
+
+/** "scene 'the-arc', action on 'arc-axis'": where an issue is, by the ids the author wrote. */
+function context(path: readonly PropertyKey[], input: unknown): string | undefined {
+  const at = (o: unknown, k: PropertyKey): unknown => (o !== null && typeof o === "object" ? (o as Record<PropertyKey, unknown>)[k] : undefined);
+  const idOf = (o: unknown) => (typeof at(o, "id") === "string" ? (at(o, "id") as string) : undefined);
+  if (path[0] !== "scenes" || typeof path[1] !== "number") return undefined;
+  const scene = at(at(input, "scenes"), path[1]);
+  const parts = [idOf(scene) && `scene '${idOf(scene)}'`];
+  if (typeof path[3] === "number" && path[2] === "entities") parts.push(idOf(at(at(scene, "entities"), path[3])) && `entity '${idOf(at(at(scene, "entities"), path[3]))}'`);
+  if (typeof path[3] === "number" && path[2] === "timeline") {
+    const target = at(at(at(scene, "timeline"), path[3]), "target");
+    if (typeof target === "string") parts.push(`action on '${target}'`);
+  }
+  const named = parts.filter(Boolean);
+  return named.length ? named.join(", ") : undefined;
+}
+
+function zodIssues(error: z.ZodError, input: unknown): Issue[] {
+  return error.issues.map((i) => {
+    const where = context(i.path, input);
+    return { path: formatPath(i.path), message: where ? `${where}: ${i.message}` : i.message };
+  });
 }
 
 function duplicates(ids: readonly string[]): string[] {
@@ -87,6 +112,15 @@ function checkTimeline(scene: Scene, p: string): Issue[] {
     }
     if (target && a.action === "move" && !isBoxed(target)) {
       issues.push({ path: ap, message: `cannot move a ${target.type}` });
+    }
+    if (target && "item" in a && a.item !== undefined) {
+      const count = partCount(target);
+      if (count === undefined) issues.push({ path: ap, message: `${a.action} item: a ${target.type} has no parts; items address list items, table rows, time-axis events, chart categories and image callouts` });
+      else if (a.item >= count) issues.push({ path: ap, message: `${a.action} item ${a.item}: '${a.target}' has ${count} ${PART_NAMES[target.type]} (0–${count - 1})` });
+    }
+    if (target && a.action === "focus" && a.callout !== undefined) {
+      if (target.type !== "image") issues.push({ path: ap, message: `focus callout: '${a.target}' is a ${target.type}, not an image` });
+      else if (a.callout >= target.callouts.length) issues.push({ path: ap, message: `focus callout ${a.callout}: '${a.target}' has ${target.callouts.length} callouts` });
     }
     if (a.action === "replace") {
       const incoming = byId.get(a.with);
@@ -174,7 +208,7 @@ export function findEdgeCrossings(scene: Scene): EdgeCrossing[] {
 }
 
 /** Labelled edges too short (in the final frame) to show their label. */
-export function findCrampedEdges(scene: Scene): string[] {
+export function findCrampedEdges(scene: Scene): { id: string; need: number; have: number }[] {
   const { entities } = sceneStateAt(scene, scene.durationMs);
   return scene.entities.flatMap((e) => {
     if (e.type !== "edge" || !e.label) return [];
@@ -183,7 +217,8 @@ export function findCrampedEdges(scene: Scene): string[] {
     const to = ends.to?.box;
     if (!from || !to) return [];
     const { a, b } = edgeSegment(from, to, 8);
-    return edgeLabelFits(e.label, Math.hypot(b.x - a.x, b.y - a.y)) ? [] : [e.id];
+    const have = Math.hypot(b.x - a.x, b.y - a.y);
+    return edgeLabelFits(e.label, have) ? [] : [{ id: e.id, need: edgeLengthFor(e.label), have }];
   });
 }
 
@@ -191,7 +226,7 @@ const fmtPx = (n: number) => `${Math.round(n)}px`;
 const MAX_FONT_SPREAD = 2;
 
 /** Code that shrinks to fit reads small, and blocks at different sizes look like a mistake. */
-export function findTextSizeIssues(scene: Scene, p: string): Issue[] {
+export function findTextSizeIssues(scene: Scene, p: string, style: ReelStyle = "studio"): Issue[] {
   const texts = scene.entities.filter((e): e is TextEntity => e.type === "code-block" || e.type === "diff-panel");
   const sized = texts.map((e) => ({ e, font: textFont(e, gridToRect(e.layout)) }));
   const issues: Issue[] = sized
@@ -202,8 +237,8 @@ export function findTextSizeIssues(scene: Scene, p: string): Issue[] {
       return { path: `${p}.entities`, message: `text in '${e.id}' shrinks to ${fmtPx(font)} to fit its box; ${fix}` };
     });
   for (const e of scene.entities) {
-    if (e.type !== "component" || componentTextFits(e, gridToRect(e.layout))) continue;
-    const span = componentSpanThatFits(e);
+    if (e.type !== "component" || componentTextFits(e, gridToRect(e.layout), style)) continue;
+    const span = componentSpanThatFits(e, style);
     const fix = span ? `give it colSpan ${span.colSpan}, rowSpan ${span.rowSpan}` : "shorten the label or sublabel";
     issues.push({ path: `${p}.entities`, message: `component '${e.id}' text doesn't fit its box and will be cut off; ${fix}` });
   }
@@ -246,7 +281,7 @@ export function findMarkdownInStageText(scene: Scene, p: string): Issue[] {
 
 function checkScene(scene: Scene, index: number, manifest: Manifest, assets: Readonly<Record<string, Asset>>): { errors: Issue[]; warnings: Issue[] } {
   const p = `scenes[${index}]`;
-  const visuals = findVisualIssues(scene, p, assets, manifest.media);
+  const visuals = findVisualIssues(scene, p, assets, manifest.media, manifest.style);
   const errors = [...checkEntities(scene, p), ...checkTimeline(scene, p), ...visuals.errors];
   const refIssues = [
     ...scene.entities.flatMap((e, i) => checkRefs(e.sourceRefs, manifest, `${p}.entities[${i}].sourceRefs`)),
@@ -258,9 +293,12 @@ function checkScene(scene: Scene, index: number, manifest: Manifest, assets: Rea
       ? findOverlaps(scene).map(([a, b]) => ({ path: `${p}.entities`, message: `'${a}' and '${b}' overlap while visible` }))
       : []),
     ...(errors.length === 0
-      ? findCrampedEdges(scene).map((id) => ({ path: `${p}.entities`, message: `edge '${id}' is too short to show its label; move its ends apart` }))
+      ? findCrampedEdges(scene).map(({ id, need, have }) => ({
+          path: `${p}.entities`,
+          message: `edge '${id}' is ${Math.round(have)} units long but its label needs ${Math.round(need)}; move its ends about ${Math.ceil((need - have) / COLUMN_PITCH)} column(s) further apart, or shorten the label`,
+        }))
       : []),
-    ...findTextSizeIssues(scene, p),
+    ...findTextSizeIssues(scene, p, manifest.style),
     ...(errors.length === 0
       ? findEdgeCrossings(scene).map((c) => ({
           path: `${p}.entities`,
@@ -279,7 +317,7 @@ function checkScene(scene: Scene, index: number, manifest: Manifest, assets: Rea
 /** Schema + cross-reference validation of a whole reel. */
 export function validateBundle(input: unknown): ValidationResult {
   const parsed = ReelBundle.safeParse(input);
-  if (!parsed.success) return { ok: false, errors: zodIssues(parsed.error), warnings: [] };
+  if (!parsed.success) return { ok: false, errors: zodIssues(parsed.error, input), warnings: [] };
   const bundle = parsed.data;
   const { manifest, scenes } = bundle;
   const errors: Issue[] = duplicates(scenes.map((s) => s.id)).map((id) => ({

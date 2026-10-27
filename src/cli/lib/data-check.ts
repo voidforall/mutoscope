@@ -21,19 +21,28 @@ function checkColumns(ds: Dataset, file: string, cols: readonly (string | undefi
 
 function checkChart(e: ChartEntity, ds: Dataset): string[] {
   const data = e.data!;
-  const missing = checkColumns(ds, data.file, [data.category, ...e.series.map((s) => s.column)], data.where);
+  const seriesWhere = e.series.flatMap((s) => Object.keys(s.where ?? {}));
+  const missing = checkColumns(ds, data.file, [data.category, ...e.series.map((s) => s.column), ...seriesWhere], data.where);
   if (missing.length) return missing;
   const rows = filterRows(ds, data.where);
   const problems: string[] = [];
+  // One message per series for a systematic mistake, not one per category.
+  const reported = new Set<string>();
   e.categories.forEach((cat, i) => {
-    const inCat = rows.filter((r) => r[data.category] === cat);
+    const key = data.categoryKeys?.[i] ?? cat;
+    const inCat = rows.filter((r) => r[data.category] === key);
     if (inCat.length === 0) {
-      problems.push(`chart '${e.id}': no rows with ${data.category} = '${cat}' in ${data.file}`);
+      problems.push(`chart '${e.id}': no rows with ${data.category} = '${key}' in ${data.file}${data.categoryKeys ? "" : "; if the data names it differently, map it with data.categoryKeys"}`);
       return;
     }
     for (const s of e.series) {
-      const r = aggregate(inCat, s.column, data.aggregate);
-      if (!r.ok) problems.push(`chart '${e.id}' series '${s.name}' at '${cat}': ${r.reason}`);
+      const mine = s.where ? inCat.filter((r) => Object.entries(s.where!).every(([k, v]) => (r[k] ?? "") === v)) : inCat;
+      const r = aggregate(mine, s.column, data.aggregate);
+      if (!r.ok) {
+        const msg = `chart '${e.id}' series '${s.name}': ${r.reason}${r.reason.includes("rows match") && e.series.length > 1 && !s.where ? "; give the series its own where, e.g. { \"entity\": \"…\" }" : ""}`;
+        if (!reported.has(msg)) problems.push(`${msg} (first at '${cat}')`);
+        reported.add(msg);
+      }
       else if (!matchesShown(s.values[i]!, r.value * data.scale)) {
         const how = data.aggregate === "none" ? `'${s.column}'` : `${data.aggregate} of '${s.column ?? "rows"}' over ${r.rows} rows`;
         problems.push(`chart '${e.id}' series '${s.name}' at '${cat}' shows ${fmt(s.values[i]!)}, but ${data.file} gives ${fmt(r.value * data.scale)} (${how}${data.scale !== 1 ? ` × ${data.scale}` : ""})`);

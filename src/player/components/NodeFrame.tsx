@@ -1,6 +1,6 @@
 import type { KeyboardEvent, MouseEvent, ReactNode } from "react";
 import { statText, type EntityState, type Rect } from "../../core";
-import type { Asset, BoxedEntity, Entity } from "../../schema";
+import type { Asset, BoxedEntity, Entity, ReelStyle } from "../../schema";
 import { emphasisStyle } from "./emphasis";
 
 export interface NodeProps {
@@ -11,6 +11,11 @@ export interface NodeProps {
   readonly threadCount: number;
   readonly onSelect: (id: string) => void;
   readonly assets: Readonly<Record<string, Asset>>;
+  readonly reelStyle: ReelStyle;
+  /** Shared by every list in the scene (see sceneListScale). */
+  readonly listScale: number;
+  /** Shared by every stat in the scene (see sceneStatFont). */
+  readonly statFont: number;
 }
 
 /** Bleed around each node so selection rings and thread badges are not clipped by the foreignObject. */
@@ -60,6 +65,8 @@ export function accessibleName(e: Entity): string {
       return `${statText(e, 1)} ${e.label}`;
     case "image":
       return e.alt.slice(0, 60);
+    case "icon":
+      return e.label ?? e.name;
     case "chart":
     case "time-axis":
     case "table":

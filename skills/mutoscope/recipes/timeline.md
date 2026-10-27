@@ -12,6 +12,7 @@ The viewer should see the whole arc at a glance, understand the three or four tu
 
 ## Ingest
 
+- Changelogs on GitHub: pin the raw file at a commit, `https://raw.githubusercontent.com/<org>/<repo>/<sha>/CHANGELOG.md` (a `github.com/…/blob/…` URL is fetched raw automatically, but `master` moves).
 - Every date and event comes from a pinned source: `ingest url` for histories, release notes, announcements, Wikipedia-style overviews (check them against primary sources where you can). For a repository's own history, its tags and changelog are primary sources.
 - Images from the period (a screenshot of version 1, a photo, a diagram) via `ingest image`, each with a `credit`. Only images the reel may publish.
 - Sources disagree about dates more often than you would think; when they do, say so or pick the primary source.
@@ -29,9 +30,9 @@ Cite each event `{ "kind": "url", "url": "…#<section>", "quote": "<the sentenc
 ## Story arc (4–7 scenes)
 
 1. **Title card** — `headline` naming the arc ("Fifty years of the terminal"), `eyebrow` with the date range, `backdrop: "spotlight"`.
-2. **The whole arc** — one `time-axis` with every event and the eras as `spans`; it builds left to right with the narration. Tone the turning points `accent`.
+2. **The whole arc** — one `time-axis` with every event and the eras as `spans`. Bring events in on their cues (`appear` with `item`, in the order you listed them) so the line keeps pace with the narration. Tone the turning points `accent`.
 3. **Turning points** (1–3 scenes) — each: a `headline` (`size: "lg"`) with the year and what changed, and the evidence: a period `image`, a `quote`, a `stat` ("from 300 to 30,000 users"), or a before/after diagram.
-4. **Where it stands** — the `time-axis` again with `today` highlighted (or a `stat`), and a `list` of open questions.
+4. **Where it stands** — the `time-axis` again with the latest event highlighted (`highlight` with `item`), and a `list` of open questions.
 
 Use `when` for how dates print ("Q3 2019", "v1.0"), `at` for position (a decimal year, a version number).
 

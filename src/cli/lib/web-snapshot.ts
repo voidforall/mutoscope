@@ -65,6 +65,8 @@ function firstId(e: Element): string | undefined {
 const collapse = (s: string) => s.replace(/\s+/g, " ");
 
 class Writer {
+  /** The page's URL, to resolve relative image sources against. */
+  constructor(readonly base?: URL) {}
   private readonly blocks: string[] = [];
   private line = "";
   /** An anchor waiting for the next block that has text (a footnote <li id> wraps a <p>). */
@@ -111,7 +113,12 @@ function render(n: AnyNode, w: Writer, quoteDepth: number): void {
   }
   if (n.name === "pre") return w.raw(`${quote}\`\`\`\n${textOf(n).replace(/\n$/, "")}\n${quote}\`\`\``);
   if (n.name === "br") return w.inline(" ");
-  if (n.name === "img") return n.attribs.alt ? w.inline(` [image: ${n.attribs.alt}] `) : undefined;
+  if (n.name === "img" || (n.name === "object" && /^image\//.test(n.attribs.type ?? ""))) {
+    const src = imageSource(n.attribs.src ?? n.attribs.data, w.base);
+    const alt = collapse(n.attribs.alt ?? "").trim();
+    // Keep where a figure lives, so `ingest image` can fetch exactly that one.
+    return alt || src ? w.inline(` [image: ${[alt, src].filter(Boolean).join(" — ")}] `) : undefined;
+  }
   if (n.name === "li") {
     w.flush(quote);
     if (n.attribs.id) w.mark(n.attribs.id);
@@ -137,13 +144,24 @@ function contentRoot(doc: AnyNode): AnyNode {
   return body;
 }
 
-export function htmlToSnapshot(html: string): WebSnapshot {
+/** An https image URL, resolved against the page; nothing for inline data or other schemes. */
+function imageSource(src: string | undefined, base?: URL): string | undefined {
+  if (!src || src.startsWith("data:")) return undefined;
+  try {
+    const u = new URL(src, base);
+    return u.protocol === "https:" ? u.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+export function htmlToSnapshot(html: string, url?: string): WebSnapshot {
   const doc = parseDocument(html);
   const meta = findAll(doc, (e) => e.name === "meta" && (e.attribs.property === "og:title" || e.attribs.name === "twitter:title"))[0];
   const titleEl = findAll(doc, (e) => e.name === "title")[0];
   const title = collapse(meta?.attribs.content ?? (titleEl ? titleEl.children.map(textOf).join("") : "")).trim() || undefined;
   const anchors = [...new Set(findAll(doc, (e) => Boolean(e.attribs.id) || (e.name === "a" && Boolean(e.attribs.name))).map((e) => e.attribs.id ?? e.attribs.name!))];
-  const w = new Writer();
+  const w = new Writer(url ? new URL(url) : undefined);
   render(contentRoot(doc), w, 0);
   return { ...(title ? { title } : {}), text: w.done(), anchors };
 }
@@ -173,4 +191,24 @@ export async function fetchPage(url: string): Promise<{ finalUrl: string; body: 
     hint: "Download PDFs or other files and pass their text to the agent instead.",
   });
   return { finalUrl: page.finalUrl, body: page.bytes.toString("utf8"), contentType: page.contentType };
+}
+
+/** A `<meta http-equiv="refresh">` target: stub pages that only redirect elsewhere. */
+export function metaRefreshTarget(html: string, base: string): string | undefined {
+  const doc = parseDocument(html);
+  const meta = findAll(doc, (e) => e.name === "meta" && (e.attribs["http-equiv"] ?? "").toLowerCase() === "refresh")[0];
+  const target = /url\s*=\s*['"]?([^'";]+)/i.exec(meta?.attribs.content ?? "")?.[1];
+  if (!target) return undefined;
+  try {
+    const u = new URL(target.trim(), base);
+    return u.protocol === "https:" ? u.toString() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** github.com/<owner>/<repo>/blob/<ref>/<path> → the raw file: the page itself is mostly app chrome. */
+export function rawGithubUrl(url: string): string | undefined {
+  const m = /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/.exec(url.split("#")[0]!.split("?")[0]!);
+  return m ? `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}` : undefined;
 }

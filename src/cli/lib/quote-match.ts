@@ -17,22 +17,30 @@ export function normalizeText(s: string): string {
 
 /** The snapshot as plain text, one block per line: no heading marks, anchors, bullets, quote marks or fences. */
 export function plainSnapshot(markdown: string): string {
-  return markdown
-    .split("\n")
-    .filter((l) => !/^\s*(?:> )*```/.test(l) && !l.startsWith("<!--"))
-    .map((l) =>
-      l
-        .replace(/^(?:> )+/, "")
-        .replace(/^#{1,6} /, "")
-        .replace(/^- /, "")
-        .replace(/^\{#[^}]+\} /, "")
-        .replace(/ ?\{#[^}]+\}$/, ""),
-    )
-    .filter((l) => l.trim())
-    .join("\n");
+  let inFence = false;
+  const lines: string[] = [];
+  for (const raw of markdown.split("\n")) {
+    if (/^\s*(?:> )*```/.test(raw)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (raw.startsWith("<!--")) continue;
+    // Code is quoted verbatim: a YAML "- key" or a log line starting "- " keeps its dash.
+    const line = inFence
+      ? raw
+      : raw
+          .replace(/^(?:> )+/, "")
+          .replace(/^#{1,6} /, "")
+          .replace(/^- /, "")
+          .replace(/^\{#[^}]+\} /, "")
+          .replace(/ ?\{#[^}]+\}$/, "");
+    if (line.trim()) lines.push(line);
+  }
+  return lines.join("\n");
 }
 
-const ELLIPSIS = /\s*(?:…|\.\.\.)\s*/;
+/** Only the ellipsis character joins passages: "..." is often part of the quoted text itself (logs, progress lines). */
+const ELLIPSIS = /\s*…\s*/;
 
 export function quoteFound(haystackPlain: string, quote: string): boolean {
   const hay = normalizeText(haystackPlain);
@@ -51,7 +59,7 @@ export function quoteOutOfOrder(haystackPlain: string, quote: string): boolean {
   return parts.length > 1 && parts.every((p) => quoteFound(haystackPlain, p)) && !quoteFound(haystackPlain, quote);
 }
 
-const words = (s: string) => normalizeText(s).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2);
+const words = (s: string) => normalizeText(s).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length > 2 || /\p{N}/u.test(w));
 
 /** The snapshot sentence sharing the most words with `quote`, to show where it probably came from. */
 export function closestPassage(haystackPlain: string, quote: string): string | undefined {

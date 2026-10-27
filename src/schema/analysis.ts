@@ -19,7 +19,7 @@ export type Claim = z.infer<typeof Claim>;
  * A recipe decides which `kind` values make sense (e.g. "behavior", "refactor"
  * for code changes; "mechanism", "tradeoff" for concepts).
  */
-export const AnalysisUnit = z.object({
+export const AnalysisUnit = z.strictObject({
   id: Id,
   kind: Id,
   title: z.string().min(1).max(120),
@@ -31,7 +31,7 @@ export const AnalysisUnit = z.object({
 });
 export type AnalysisUnit = z.infer<typeof AnalysisUnit>;
 
-export const Analysis = z.object({
+export const Analysis = z.strictObject({
   units: z.array(AnalysisUnit).min(1),
 });
 export type Analysis = z.infer<typeof Analysis>;

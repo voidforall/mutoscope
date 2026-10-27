@@ -1,4 +1,4 @@
-import { eventProgress, TIME_AXIS, timeAxisLayout } from "../../../core";
+import { clamp01, eventProgress, partEmphasis, TIME_AXIS, timeAxisLayout } from "../../../core";
 import type { TimeAxisEntity } from "../../../schema";
 import { NodeFrame, type NodeProps } from "../NodeFrame";
 
@@ -7,7 +7,12 @@ export function TimeAxisNode(props: NodeProps & { readonly entity: TimeAxisEntit
   const { entity, box, state } = props;
   const l = timeAxisLayout(entity, box);
   const { x1, x2, y } = l.axis;
-  const head = x1 + (x2 - x1) * Math.min(1, state.reveal * 1.12);
+  const steps = state.steps;
+  const shown = (index: number, frac: number) => (steps === null ? eventProgress(frac, state.reveal) : clamp01(steps - index));
+  // Stepped, the line runs just past the newest event shown; otherwise it sweeps with the build.
+  const done = steps === null ? state.reveal >= 1 : steps >= l.events.length;
+  const reach = steps === null ? Math.min(1, state.reveal * 1.12) : done ? 1 : Math.min(1, Math.max(0, ...l.events.map((e) => e.frac * Math.min(1, shown(e.index, e.frac) * 4))) + 0.03);
+  const head = x1 + (x2 - x1) * reach;
   return (
     <NodeFrame {...props}>
       <svg className="time-axis" viewBox={`0 0 ${box.w} ${box.h}`} aria-hidden="true">
@@ -32,9 +37,10 @@ export function TimeAxisNode(props: NodeProps & { readonly entity: TimeAxisEntit
             )
           );
         })}
-        {state.reveal >= 1 && <path className="time-arrow" d={`M${x2 + TIME_AXIS.inset / 2 - 10},${y - 6} L${x2 + TIME_AXIS.inset / 2},${y} L${x2 + TIME_AXIS.inset / 2 - 10},${y + 6}`} />}
+        {done && <path className="time-arrow" d={`M${x2 + TIME_AXIS.inset / 2 - 10},${y - 6} L${x2 + TIME_AXIS.inset / 2},${y} L${x2 + TIME_AXIS.inset / 2 - 10},${y + 6}`} />}
         {l.events.map((e) => {
-          const p = eventProgress(e.frac, state.reveal);
+          const em = partEmphasis(state.items, e.index);
+          const p = shown(e.index, e.frac) * (1 - 0.6 * em.dim);
           if (p <= 0) return null;
           const stemEnd = e.above ? e.block.y + e.block.h + 4 : e.block.y - 4;
           const anchorX = Math.min(Math.max(e.x, e.block.x + 6), e.block.x + e.block.w - 6);
@@ -42,9 +48,9 @@ export function TimeAxisNode(props: NodeProps & { readonly entity: TimeAxisEntit
           const top = e.block.y + TIME_AXIS.when;
           const labelY = top + TIME_AXIS.lineGap + TIME_AXIS.label * 1.05;
           return (
-            <g key={e.index} className={`time-event tone-${e.tone ?? "accent"}`} style={{ opacity: p }}>
+            <g key={e.index} className={`time-event tone-${e.tone ?? "accent"}${em.highlight > 0.5 ? " is-hl" : ""}`} style={{ opacity: p }}>
               <path className="time-stem" d={`M${e.x},${y} L${e.x},${(y + stemEnd) / 2} L${anchorX},${(y + stemEnd) / 2} L${anchorX},${stemEnd}`} />
-              <circle className="time-dot" cx={e.x} cy={y} r={TIME_AXIS.dot} />
+              <circle className="time-dot" cx={e.x} cy={y} r={TIME_AXIS.dot * (1 + 0.6 * em.highlight)} />
               <text className="time-when" x={textX} y={top} textAnchor="middle">
                 {e.when}
               </text>

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Id } from "./common";
+import { ICON_NAMES } from "./icon-names";
 import { SourceRef } from "./source-ref";
 
 /** Scenes are laid out on a fixed 12 x 8 grid over a 16:9 stage. */
@@ -7,7 +8,7 @@ export const GRID_COLS = 12;
 export const GRID_ROWS = 8;
 
 export const GridBox = z
-  .object({
+  .strictObject({
     col: z.number().int().min(1).max(GRID_COLS),
     row: z.number().int().min(1).max(GRID_ROWS),
     colSpan: z.number().int().min(1).max(GRID_COLS).default(2),
@@ -49,6 +50,9 @@ const PRESET_NAMES = Object.keys(LAYOUT_PRESETS) as [LayoutPreset, ...LayoutPres
 /** A grid box, or the name of a preset region; always a GridBox once parsed. */
 export const Layout = z.union([GridBox, z.enum(PRESET_NAMES).transform((name): GridBox => ({ ...LAYOUT_PRESETS[name] }))]);
 
+/** One of the bundled Lucide icons (see icon-names.ts). */
+export const Icon = z.enum(ICON_NAMES);
+
 export const Tone = z.enum(["neutral", "accent", "added", "removed", "warning", "muted"]);
 export type Tone = z.infer<typeof Tone>;
 
@@ -66,6 +70,13 @@ export const EntityBase = {
  */
 export const Reveal = z.enum(["fade", "words", "typewriter"]);
 export type Reveal = z.infer<typeof Reveal>;
+
+/**
+ * A reel's look: palette and display type for the stage (the player around
+ * it keeps its own light/dark theme). `studio` is the default.
+ */
+export const ReelStyle = z.enum(["studio", "editorial", "blueprint", "chalkboard", "terminal", "paper"]);
+export type ReelStyle = z.infer<typeof ReelStyle>;
 
 /** The surface behind a scene's entities. */
 export const Backdrop = z.enum(["dots", "plain", "grid", "spotlight"]);

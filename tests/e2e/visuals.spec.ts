@@ -236,3 +236,77 @@ for (const theme of ["light", "dark"] as const) {
     expect(errors).toEqual([]);
   });
 }
+
+test.describe("step five: parts, icons, styles, camera", () => {
+  let site: string;
+  test.beforeAll(async () => {
+    const dir = await mkdtemp(join(tmpdir(), "mutoscope-step5-"));
+    const reel = join(dir, "reel");
+    await cp(resolve("examples/spsc-evolution"), reel, { recursive: true });
+    await rm(join(reel, "analysis.json"));
+    await mkdir(join(reel, "assets"));
+    await cp(resolve("docs/media/player-dark.png"), join(reel, "assets", "player.png"));
+    const { entrySceneId: _e, ...manifest } = JSON.parse(await readFile(join(reel, "manifest.json"), "utf8"));
+    await writeFile(join(reel, "manifest.json"), JSON.stringify({ ...manifest, style: "blueprint" }));
+    const scenes = [
+      scene("parts", [
+        { id: "steps", type: "list", style: "numbered", items: [{ text: "Install" }, { text: "Configure" }, { text: "Run" }], layout: "left" },
+        { id: "ax", type: "time-axis", events: [{ at: 2014, label: "A" }, { at: 2016, label: "B" }, { at: 2018, label: "C" }], layout: "right" },
+      ], [
+        { action: "appear", atMs: 0, target: "steps", item: 0 },
+        { action: "appear", atMs: 3000, target: "steps", item: 1 },
+        { action: "highlight", atMs: 5000, target: "steps", item: 1 },
+        { action: "highlight", atMs: 5000, target: "ax", item: 2 },
+      ]),
+      scene("icons", [
+        { id: "api", type: "component", label: "API", icon: "server", explanation: "x", layout: { col: 1, row: 1, colSpan: 3, rowSpan: 2 } },
+        { id: "fast", type: "icon", name: "zap", label: "Fast", layout: { col: 5, row: 1, colSpan: 3, rowSpan: 3 } },
+      ]),
+      scene("zoom", [{ id: "shot", type: "image", src: "assets/player.png", alt: "Player", callouts: [{ x: 0.78, y: 0.2, label: "Side panel" }], layout: "full" }], [
+        { action: "focus", atMs: 1000, target: "shot", callout: 0, durationMs: 0 },
+      ]),
+    ];
+    await writeFile(join(reel, "scenes.json"), JSON.stringify({ scenes }));
+    const cli = resolve("skills/mutoscope/runtime/cli.mjs");
+    const { stdout } = await run(process.execPath, [cli, "validate", reel]).catch((e) => e);
+    expect(stdout).toMatch(/is valid/);
+    await run(process.execPath, [cli, "build", reel, "--out", join(dir, "site")]);
+    site = pathToFileURL(join(dir, "site", "index.html")).href;
+  });
+
+  const go = async (p: Page, q: string) => {
+    await p.goto(`${site}${q}`);
+    await p.waitForFunction(() => (window as any).mutoscope?.ready);
+  };
+
+  test("parts appear on their cues and one part can be highlighted", async ({ page: p }) => {
+    await go(p, "?scene=parts&t=1500");
+    const shown = () => p.locator('[data-entity="steps"] .list-item').evaluateAll((els) => els.map((e) => Number(getComputedStyle(e).opacity)));
+    expect(await shown()).toEqual([1, 0, 0]);
+    await go(p, "?scene=parts&t=6000");
+    const op = await shown();
+    expect(op[1]).toBe(1);
+    expect(op[0]).toBeLessThan(0.7);
+    expect(op[2]).toBe(0);
+    await expect(p.locator('[data-entity="steps"] .list-item.is-hl')).toHaveText("2Configure");
+    await expect(p.locator('[data-entity="ax"] .time-event.is-hl .time-label')).toHaveText("C");
+  });
+
+  test("icons render as shapes, and the reel style colours the stage", async ({ page: p }) => {
+    await go(p, "?scene=icons&t=0");
+    expect(await p.locator('[data-entity="api"] .component-icon path, [data-entity="api"] .component-icon rect').count()).toBeGreaterThan(0);
+    await expect(p.locator('[data-entity="fast"] .icon-label')).toHaveText("Fast");
+    await expect(p.locator(".stage-frame")).toHaveAttribute("data-style", "blueprint");
+    expect(await p.locator(".stage-bg").evaluate((el) => getComputedStyle(el).fill)).toBe("rgb(14, 42, 77)");
+  });
+
+  test("the camera zooms onto an image callout", async ({ page: p }) => {
+    await go(p, "?scene=zoom&t=500");
+    const before = await p.locator(".stage-svg").getAttribute("viewBox");
+    await go(p, "?scene=zoom&t=2000");
+    const [x, , w] = (await p.locator(".stage-svg").getAttribute("viewBox"))!.split(" ").map(Number);
+    expect(before).toBe("0 0 1600 900");
+    expect(w).toBeLessThan(1600 / 2.5);
+    expect(x).toBeGreaterThan(800);
+  });
+});

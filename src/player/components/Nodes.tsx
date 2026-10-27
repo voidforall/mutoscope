@@ -1,5 +1,7 @@
-import { codeBlockFont, diffLines, diffPanelFont, isElision, quoteFont } from "../../core";
+import { codeBlockFont, COMPONENT_ICON, diffLines, diffPanelFont, isElision, quoteFont } from "../../core";
+import { LucideIcon } from "../icons/LucideIcon";
 import { NodeFrame, type NodeProps } from "./NodeFrame";
+import { IconNode } from "./visuals/IconNode";
 import { ChartNode } from "./visuals/ChartNode";
 import { HeadlineNode, RevealText, StatNode } from "./visuals/TextNodes";
 import { ImageNode } from "./visuals/ImageNode";
@@ -41,6 +43,7 @@ export function EntityNode(props: NodeProps) {
     case "component":
       return (
         <NodeFrame {...props}>
+          {entity.icon && <LucideIcon className="component-icon" name={entity.icon} size={COMPONENT_ICON} />}
           <span className="node-title">{entity.label}</span>
           {entity.sublabel && <span className="node-sub">{entity.sublabel}</span>}
         </NodeFrame>
@@ -105,5 +108,7 @@ export function EntityNode(props: NodeProps) {
       return <TableNode {...props} entity={entity} />;
     case "list":
       return <ListNode {...props} entity={entity} />;
+    case "icon":
+      return <IconNode {...props} entity={entity} />;
   }
 }

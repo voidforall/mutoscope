@@ -1,4 +1,4 @@
-import { headlineFont, revealWords, statFit, statText, typewriterCount } from "../../../core";
+import { headlineFont, revealWords, statText, typewriterCount } from "../../../core";
 import type { HeadlineEntity, Reveal, StatEntity } from "../../../schema";
 import { NodeFrame, type NodeProps } from "../NodeFrame";
 
@@ -43,7 +43,7 @@ export function HeadlineNode(props: Props<HeadlineEntity>) {
     <NodeFrame {...props}>
       <div className={`headline align-${entity.align}`}>
         {entity.eyebrow && <span className="headline-eyebrow">{entity.eyebrow}</span>}
-        <span className="headline-text" style={{ fontSize: headlineFont(entity, box) }}>
+        <span className="headline-text" style={{ fontSize: headlineFont(entity, box, props.reelStyle) }}>
           <RevealText text={entity.text} mode={entity.reveal} reveal={state.reveal} />
         </span>
       </div>
@@ -53,10 +53,9 @@ export function HeadlineNode(props: Props<HeadlineEntity>) {
 
 export function StatNode(props: Props<StatEntity>) {
   const { entity, box, state } = props;
-  const fit = statFit(entity, box);
   return (
     <NodeFrame {...props}>
-      <span className="stat-value" style={{ fontSize: fit.valueFont }}>
+      <span className="stat-value" style={{ fontSize: props.statFont }}>
         {statText(entity, state.reveal)}
       </span>
       <span className="stat-label">{entity.label}</span>

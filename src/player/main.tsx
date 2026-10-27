@@ -4,6 +4,7 @@ import { App } from "./App";
 import "./fonts.css";
 import "./styles.css";
 import "./visuals.css";
+import "./reel-styles.css";
 
 export const DATA_ELEMENT_ID = "mutoscope-reel";
 

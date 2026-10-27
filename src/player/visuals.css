@@ -128,19 +128,20 @@
 
 /* ---------- table ---------- */
 .node.node-table { display: flex; flex-direction: column; padding: 8px; }
-.table-title { flex: none; height: 38px; padding: 0 14px; font: 650 24px/38px var(--font); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.data-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 21px; }
+.table-scale { display: contents; }
+.table-title { flex: none; height: calc(38px * var(--ts, 1)); padding: 0 14px; font: 650 calc(24px * var(--ts, 1)) / calc(38px * var(--ts, 1)) var(--font); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: calc(21px * var(--ts, 1)); }
 .data-table th,
 .data-table td { padding: 0 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
 .data-table th {
-  height: 42px;
-  font: 650 16px var(--font);
+  height: calc(42px * var(--ts, 1));
+  font: 650 calc(16px * var(--ts, 1)) var(--font);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink-3);
   border-bottom: 1.5px solid var(--line-strong);
 }
-.data-table td { height: 46px; color: var(--ink); border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.data-table td { height: calc(46px * var(--ts, 1)); color: var(--ink); border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr.is-hl td { background: color-mix(in srgb, var(--t-accent) 13%, transparent); font-weight: 650; }
 .data-table .align-end { text-align: right; }
@@ -188,7 +189,7 @@
 }
 .node.node-list:hover { border-color: var(--line); }
 .list { height: 100%; display: flex; flex-direction: column; justify-content: flex-start; }
-.list-title { flex: none; height: 38px; font: 650 24px/38px var(--font); color: var(--ink-2); letter-spacing: 0.01em; }
+.list-title { flex: none; height: calc(40px * var(--s)); font: 700 calc(26px * var(--s)) / calc(40px * var(--s)) var(--font); color: var(--ink); letter-spacing: -0.01em; }
 .list-items { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: calc(16px * var(--s)); }
 .list-item { display: grid; grid-template-columns: calc(44px * var(--s)) minmax(0, 1fr); align-items: start; }
 .list-body { display: flex; flex-direction: column; gap: calc(4px * var(--s)); min-width: 0; }
@@ -205,7 +206,45 @@
 .list-marker.is-number { background: var(--tone); color: var(--stage); font: 700 calc(17px * var(--s)) / 1 var(--mono); }
 .list-item.tone-neutral .list-marker.is-number { background: var(--t-accent); }
 .list-marker.is-dot::before { content: ""; width: 34%; height: 34%; border-radius: 50%; background: var(--tone); }
-.list-item.tone-neutral .list-marker.is-dot::before { background: var(--t-accent); }
+.list-item.tone-neutral .list-marker.is-dot::before { background: var(--ink-3); }
 .list-marker.is-check,
 .list-marker.is-cross { background: color-mix(in srgb, var(--tone) 18%, transparent); }
 .list-marker svg { width: 66%; height: 66%; fill: none; stroke: var(--tone); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- icons ---------- */
+.component-icon { flex: none; color: var(--tone); }
+.tone-neutral .component-icon { color: var(--t-accent); }
+.node.node-icon {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: 0 0 0 calc(var(--sel) * 4px) var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  text-align: center;
+}
+.node.node-icon:hover { border-color: var(--line); }
+.icon-glyph { flex: none; color: var(--tone); }
+.node-icon.tone-neutral .icon-glyph { color: var(--ink); }
+.icon-label { margin-top: 10px; font-size: 26px; font-weight: 650; line-height: 1.2; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.icon-sub { margin-top: 4px; font: 500 18px/1.3 var(--mono); color: var(--ink-2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list-marker.is-icon { background: none; color: var(--tone); }
+.list-item.tone-neutral .list-marker.is-icon { color: var(--t-accent); }
+
+/* ---------- emphasised parts ---------- */
+.list-item { border-radius: 10px; transition: background-color 0.2s; background: color-mix(in srgb, var(--t-accent) calc(var(--ihl, 0) * 14%), transparent); }
+.list-item.is-hl .list-text { color: var(--ink); }
+.list-item.tone-muted .list-text { color: var(--ink-3); }
+.list-item.tone-muted .list-detail { color: var(--ink-3); }
+.time-event.is-hl .time-label { fill: var(--tone); }
+.time-event.is-hl .time-dot { stroke-width: 4; }
+.chart-label.is-hl { fill: var(--ink); font-weight: 650; }
+.chart-dot.is-hl { fill: var(--tone); }
+/* An event's tone shows in its label too, not only its dot: turning points read at a glance. */
+.time-event.tone-accent .time-label,
+.time-event.tone-added .time-label,
+.time-event.tone-removed .time-label,
+.time-event.tone-warning .time-label { fill: var(--tone); }
+.time-event.tone-muted .time-label { fill: var(--ink-2); }

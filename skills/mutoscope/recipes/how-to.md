@@ -25,8 +25,8 @@ Units are the steps a viewer performs, plus the goal, the prerequisites, one che
 
 1. **The goal** — `headline` ("Deploy a static site in five minutes"), and the finished result as an `image` or a `stat` (time, cost).
 2. **Before you start** — a `list` with `style: "checks"` of prerequisites (tools, versions, accounts).
-3. **Steps** (one scene per 1–3 steps) — a `list` with `style: "numbered"` in `left-third` as a progress tracker (`highlight` the current step), the exact command in a `code-block` with `lineNumbers: false`, and the expected output or screenshot beside it.
-4. **Checkpoint** — "you should now see …": the output or screenshot with a `callout` on what matters.
+3. **Steps** (one scene per 1–3 steps) — a `list` with `style: "numbered"` in `left-third` as a progress tracker: `highlight` the current step with `item`, and mark finished steps `mark: "check"`. The exact command in a `code-block` with `lineNumbers: false` (at least 2 rows), and the expected output or screenshot beside it.
+4. **Checkpoint** — "you should now see …": a screenshot with a `callout` on what matters, or the terminal output in a `code-block` with `highlightLines` on the lines to check.
 5. **When it goes wrong** — a `list` pairing each symptom (`mark: "cross"`) with its fix (`mark: "check"`).
 6. **Recap** — the numbered `list` again, all steps done, and where to go next.
 

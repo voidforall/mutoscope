@@ -119,6 +119,7 @@ export function timeAxisLayout(t: TimeAxisEntity, box: Pick<Rect, "w" | "h">): T
   const stem = Math.min(Math.max(TIME_AXIS.stem, room * 0.85), MAX_STEM);
   const order = t.events.map((e, index) => ({ e, index })).sort((a, b) => a.e.at - b.e.at || a.index - b.index);
   const placed: PlacedEvent[] = [];
+  const stems: { label: string; rect: Rect }[] = [];
   const collisions: [string, string][] = [];
   order.forEach(({ e, index }, k) => {
     const when = e.when ?? fmtAt(e.at);
@@ -135,12 +136,17 @@ export function timeAxisLayout(t: TimeAxisEntity, box: Pick<Rect, "w" | "h">): T
       const padded = { x: bx - TIME_AXIS.hGap / 2, y, w: size.w + TIME_AXIS.hGap, h: size.h };
       // A stem running down through an era label would strike it out.
       const strikes = lane.above ? [] : spans.filter((sp) => x >= sp.labelRect.x - 4 && x <= sp.labelRect.x + sp.labelRect.w + 4);
-      const hits = [...placed.filter((p) => rectsOverlap(padded, p.block)).map((p) => p.label), ...strikes.map((sp) => sp.label)];
-      return { lane, block, inside, hits };
+      // The leader line runs from the axis to the label: it must not cut through another label, nor this label sit on another's line.
+      const edge = lane.above ? y + size.h : y;
+      const stemRect = { x: x - 2, y: Math.min(axisY, edge), w: 4, h: Math.abs(edge - axisY) };
+      const crossed = [...placed.filter((p) => rectsOverlap(stemRect, p.block)), ...stems.filter((st) => rectsOverlap(block, st.rect))].map((p) => p.label);
+      const hits = [...placed.filter((p) => rectsOverlap(padded, p.block)).map((p) => p.label), ...strikes.map((sp) => sp.label), ...crossed];
+      return { lane, block, inside, hits, stemRect };
     });
     const free = candidates.find((c) => c.inside && c.hits.length === 0);
     const chosen = free ?? candidates.filter((c) => c.inside).sort((a, b) => a.hits.length - b.hits.length)[0] ?? candidates[0]!;
     if (!free) collisions.push([chosen.hits[0] ?? e.label, e.label]);
+    stems.push({ label: e.label, rect: chosen.stemRect });
     placed.push({ index, label: e.label, when, ...(e.detail ? { detail: e.detail } : {}), ...(e.tone ? { tone: e.tone } : {}), frac: fracOf(e.at), x, above: chosen.lane.above, block: chosen.block });
   });
   return {

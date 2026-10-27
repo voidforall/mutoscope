@@ -4,6 +4,7 @@
   "version": 1,
   "title": "SQLite or PostgreSQL for a web app?",
   "recipe": "compare",
+  "style": "studio",
   "kicker": "Compare · SQLite vs PostgreSQL",
   "createdAt": "2026-10-26T23:24:34.872Z",
   "source": {
@@ -15,12 +16,6 @@
       "title": "Appropriate Uses For SQLite",
       "retrievedAt": "2026-10-26T23:24:35.660Z",
       "sha256": "0b20fcdb5ad60076bd95f6bacb850e0a5ba8adab9ab62a37e982afe7a0d20dbb"
-    },
-    {
-      "url": "https://sqlite.org/limits.html",
-      "title": "Implementation Limits For SQLite",
-      "retrievedAt": "2026-10-26T23:24:36.320Z",
-      "sha256": "a300c08e1b12a0932a2a9f04ef4b329a0e828bfd04e021ccaeee9de0d91ef329"
     },
     {
       "url": "https://www.postgresql.org/docs/current/limits.html",
